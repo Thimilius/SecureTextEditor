@@ -4,30 +4,92 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SecureTextEditor.GUI"
+        xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
+        xmlns:adonisExtensions="clr-namespace:AdonisUI.Extensions;assembly=AdonisUI"
         mc:Ignorable="d"
         Title="Secure Text Editor" Height="450" Width="800">
-    <Window.CommandBindings>
-        <CommandBinding Command="Open"></CommandBinding>
-    </Window.CommandBindings>
-    
-    <DockPanel LastChildFill="True">
-        <Menu DockPanel.Dock="Top" Height="20" Background="White">
-            <MenuItem Header="File" Height="20">
-                <MenuItem Header="Open..." Command="Open"></MenuItem>
-            </MenuItem>
-            <MenuItem Header="Edit">
-            </MenuItem>
-            <MenuItem Header="View">
-            </MenuItem>
-        </Menu>
-        <Grid DockPanel.Dock="Bottom" Height="20">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"></ColumnDefinition>
-                <ColumnDefinition Width="100"></ColumnDefinition>
-            </Grid.ColumnDefinitions>
-            <TextBlock Grid.Column="0" VerticalAlignment="Center">Status...</TextBlock>
-            <ProgressBar Grid.Column="1" Width="100" Value="0"></ProgressBar>
-        </Grid>
-        <TextBox Name="Editor" AcceptsReturn="True" AcceptsTab="True" BorderThickness="0" FontSize="12" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Auto"></TextBox>
-    </DockPanel>
+
+    <Window.Resources>
+        <!-- Define style for text editor -->
+        <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}" x:Key="EditorStyle">
+            <Setter Property="FontFamily" Value="Consolas" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="AcceptsTab" Value="True" />
+            <Setter Property="AcceptsReturn" Value="True" />
+            <Setter Property="VerticalContentAlignment" Value="Top" />
+            <Setter Property="VerticalScrollBarVisibility" Value="Visible" />
+            <Setter Property="HorizontalScrollBarVisibility" Value="Auto" />
+            <Setter Property="adonisExtensions:CursorSpotlightExtension.BackgroundBrush" Value="Transparent" />
+            <Setter Property="adonisExtensions:CursorSpotlightExtension.BorderBrush" Value="Transparent" />
+        </Style>
+    </Window.Resources>
+
+    <Window.Style>
+        <Style TargetType="Window" BasedOn="{StaticResource {x:Type Window}}"/>
+    </Window.Style>
+
+    <Grid>
+        <DockPanel LastChildFill="True">
+            
+            <!-- Menu -->
+            <Menu DockPanel.Dock="Top" Height="25">
+                <MenuItem Header="File" Height="25">
+                    <MenuItem Header="New" Command="New" />
+                    <MenuItem Header="Open..." Command="Open" />
+                    <MenuItem Header="Save..." Command="Save" />
+                    <Separator />
+                    <MenuItem Header="Close" Command="Close" />
+                </MenuItem>
+                <MenuItem Header="Edit" Height="25">
+                    <MenuItem Header="Redo" Command="Redo" />
+                    <MenuItem Header="Undo" Command="Undo" />
+                    <Separator/>
+                    <MenuItem Header="Cut" Command="Cut" />
+                    <MenuItem Header="Copy" Command="Copy" />
+                    <MenuItem Header="Paste" Command="Paste" />
+                    <MenuItem Header="Delete" Command="Delete" />
+                    <MenuItem Header="SelectAll" Command="SelectAll" />
+                </MenuItem>
+                <MenuItem Header="View" Height="25">
+                    <MenuItem Header="Dark Mode" IsCheckable="True" IsChecked="True" Click="ThemeChanged" />
+                </MenuItem>
+            </Menu>
+            
+            <!-- Statusbar -->
+            <Grid DockPanel.Dock="Bottom" Height="25">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"></ColumnDefinition>
+                    <ColumnDefinition Width="24"></ColumnDefinition>
+                </Grid.ColumnDefinitions>
+                
+                <TextBlock Margin="4 0 0 0" Grid.Column="0" VerticalAlignment="Center" Text="Ready" />
+                <ContentControl Grid.Column="1" Focusable="False" Margin="2" Visibility="Visible"
+                                ContentTemplate="{DynamicResource {x:Static adonisUi:Templates.LoadingDots}}"
+                                Foreground="{DynamicResource {x:Static adonisUi:Brushes.ForegroundBrush}}" />
+            </Grid>
+            
+            <!-- Text editor tab control -->
+            <TabControl Name="EditorTabControl">
+                
+                <!-- Define context menu for tab items -->
+                <TabControl.ItemContainerStyle>
+                    <Style TargetType="{x:Type TabItem}" BasedOn="{StaticResource {x:Type TabItem}}">
+                        <Setter Property="ContextMenu">
+                            <Setter.Value>
+                                <ContextMenu>
+                                    <MenuItem Header="Close" />
+                                </ContextMenu>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </TabControl.ItemContainerStyle>
+
+                <TabItem Header="New 1" BorderThickness="1">
+                    <TextBox Style="{StaticResource EditorStyle}" />
+                </TabItem>
+            </TabControl>
+            
+        </DockPanel>
+    </Grid>
 </Window>

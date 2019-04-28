@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AdonisUI;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,16 +14,28 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace SecureTextEditor.GUI
-{
+namespace SecureTextEditor.GUI {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
-    {
-        public MainWindow()
-        {
+    public partial class MainWindow : Window {
+        private enum Theme {
+            LightMode,
+            DarkMode
+        }
+
+        public MainWindow() { 
             InitializeComponent();
+        }
+
+        private void ThemeChanged(object sender, RoutedEventArgs e) {
+            MenuItem menuItem = sender as MenuItem;
+            ChangeTheme(menuItem.IsChecked ? Theme.DarkMode : Theme.LightMode);
+        }
+
+        private void ChangeTheme(Theme theme) {
+            Uri locator = theme == Theme.DarkMode ? ResourceLocator.DarkColorScheme : ResourceLocator.LightColorScheme;
+            ResourceLocator.SetColorScheme(Application.Current.Resources, locator);
         }
     }
 }
