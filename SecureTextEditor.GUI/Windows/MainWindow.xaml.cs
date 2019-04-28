@@ -37,5 +37,10 @@ namespace SecureTextEditor.GUI {
             Uri locator = theme == Theme.DarkMode ? ResourceLocator.DarkColorScheme : ResourceLocator.LightColorScheme;
             ResourceLocator.SetColorScheme(Application.Current.Resources, locator);
         }
+
+        private void CloseApp(object sender, RoutedEventArgs e) {
+            // TODO: Check for unsaved changes
+            Application.Current.Shutdown();
+        }
     }
 }
