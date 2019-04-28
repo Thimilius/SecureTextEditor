@@ -20,6 +20,8 @@
             <Setter Property="VerticalContentAlignment" Value="Top" />
             <Setter Property="VerticalScrollBarVisibility" Value="Visible" />
             <Setter Property="HorizontalScrollBarVisibility" Value="Auto" />
+            <Setter Property="adonisExtensions:CursorSpotlightExtension.RelativeSpotlightSize" Value="0" />
+            <Setter Property="adonisExtensions:CursorSpotlightExtension.MaxBlurRadius" Value="0" />
             <Setter Property="adonisExtensions:CursorSpotlightExtension.BackgroundBrush" Value="Transparent" />
             <Setter Property="adonisExtensions:CursorSpotlightExtension.BorderBrush" Value="Transparent" />
         </Style>
@@ -64,7 +66,7 @@
                 </Grid.ColumnDefinitions>
                 
                 <TextBlock Margin="4 0 0 0" Grid.Column="0" VerticalAlignment="Center" Text="Ready" />
-                <ContentControl Grid.Column="1" Focusable="False" Margin="2" Visibility="Visible"
+                <ContentControl Grid.Column="1" Focusable="False" Margin="2" Visibility="Hidden"
                                 ContentTemplate="{DynamicResource {x:Static adonisUi:Templates.LoadingDots}}"
                                 Foreground="{DynamicResource {x:Static adonisUi:Brushes.ForegroundBrush}}" />
             </Grid>
