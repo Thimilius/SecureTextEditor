@@ -20,5 +20,18 @@ namespace SecureTextEditor.GUI {
         public SaveWindow() {
             InitializeComponent();
         }
+
+        private void CancelSave(object sender, RoutedEventArgs e) {
+            Close();
+        }
+
+        private async void Save(object sender, RoutedEventArgs e) {
+            WaitingIndicator.Visibility = Visibility.Visible;
+            // TODO: Do this over a binding
+            CancelButton.IsEnabled = false;
+            SaveButton.IsEnabled = false;
+            await Task.Delay(2000);
+            Close();
+        }
     }
 }
