@@ -50,17 +50,26 @@
                     <MenuItem Header="Close" Command="Close" />
                 </MenuItem>
                 <MenuItem Header="Edit" Height="25">
-                    <MenuItem Header="Redo" Command="Redo" />
                     <MenuItem Header="Undo" Command="Undo" />
+                    <MenuItem Header="Redo" Command="Redo" />
                     <Separator/>
                     <MenuItem Header="Cut" Command="Cut" />
                     <MenuItem Header="Copy" Command="Copy" />
                     <MenuItem Header="Paste" Command="Paste" />
                     <MenuItem Header="Delete" Command="Delete" />
-                    <MenuItem Header="SelectAll" Command="SelectAll" />
+                    <MenuItem Header="Select All" Command="SelectAll" />
                 </MenuItem>
                 <MenuItem Header="View" Height="25">
-                    <MenuItem Header="Dark Mode" IsCheckable="True" IsChecked="True" Click="ThemeChanged" />
+                    <MenuItem Header="Zoom In" />
+                    <MenuItem Header="Zoom Out" />
+                    <MenuItem Header="Theme" Name="ThemeMenu">
+                        <MenuItem Header="Light Mode" IsCheckable="True" IsChecked="False" Click="ThemeChanged" />
+                        <MenuItem Header="Dark Mode" IsCheckable="True" IsChecked="True" Click="ThemeChanged" />
+                    </MenuItem>
+                </MenuItem>
+                <MenuItem Header="Encoding" Height="25" Name="EncodingMenu">
+                    <MenuItem Header="UTF-8" IsCheckable="True" IsChecked="True" Click="EncodingChanged" />
+                    <MenuItem Header="ASCII" IsCheckable="True" IsChecked="False" Click="EncodingChanged" />
                 </MenuItem>
             </Menu>
             
@@ -118,7 +127,7 @@
                     <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
                 </StackPanel>
 
-                <TextBlock Grid.Column="8" VerticalAlignment="Center" Text="Encoding: UTF-8" />
+                <TextBlock Name="EncodingText" Grid.Column="8" VerticalAlignment="Center" Text="Encoding: UTF-8" />
 
                 <!-- Vertical seperator -->
                 <StackPanel Grid.Column="9" Orientation="Horizontal">

@@ -24,18 +24,51 @@ namespace SecureTextEditor.GUI {
             DarkMode
         }
 
+        private enum Encoding {
+            UTF8,
+            ASCII
+        }
+
+        private Theme m_Theme;
+        private Encoding m_Encoding;
+
         public MainWindow() { 
             InitializeComponent();
+
+            m_Encoding = Encoding.UTF8;
         }
 
         private void ThemeChanged(object sender, RoutedEventArgs e) {
             MenuItem menuItem = sender as MenuItem;
-            ChangeTheme(menuItem.IsChecked ? Theme.DarkMode : Theme.LightMode);
+            ChangeTheme(menuItem.Header.Equals("Light Mode") ? Theme.LightMode : Theme.DarkMode, menuItem);
         }
 
-        private void ChangeTheme(Theme theme) {
+        private void EncodingChanged(object sender, RoutedEventArgs e) {
+            MenuItem menuItem = sender as MenuItem;
+            ChangeEncoding(menuItem.Header.Equals("UTF-8") ? Encoding.UTF8 : Encoding.ASCII, menuItem);
+        }
+
+        private void ChangeTheme(Theme theme, MenuItem clickedItem) {
+            m_Theme = theme;
             Uri locator = theme == Theme.DarkMode ? ResourceLocator.DarkColorScheme : ResourceLocator.LightColorScheme;
             ResourceLocator.SetColorScheme(Application.Current.Resources, locator);
+
+            // Update UI
+            foreach (MenuItem item in ThemeMenu.Items.OfType<MenuItem>()) {
+                item.IsChecked = false;
+            }
+            clickedItem.IsChecked = true;
+        }
+
+        private void ChangeEncoding(Encoding encoding, MenuItem clickedItem) {
+            m_Encoding = encoding;
+
+            // Update UI
+            foreach (MenuItem item in EncodingMenu.Items.OfType<MenuItem>()) {
+                item.IsChecked = false;
+            }
+            clickedItem.IsChecked = true;
+            EncodingText.Text = $"Encoding: {clickedItem.Header}"; 
         }
 
         private void CloseApp(object sender, RoutedEventArgs e) {
