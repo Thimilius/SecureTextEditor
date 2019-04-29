@@ -65,15 +65,60 @@
             </Menu>
             
             <!-- Statusbar -->
-            <Grid DockPanel.Dock="Bottom" Height="25">
+            <Grid DockPanel.Dock="Bottom" Height="25" Margin="4 0 2 0">
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2.5*" />
+                    <ColumnDefinition Width="8" />
+                    <ColumnDefinition Width="1.5*" />
+                    <ColumnDefinition Width="8" />
+                    <ColumnDefinition Width="1.5*" />
+                    <ColumnDefinition Width="8" />
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="24" />
+                    <ColumnDefinition Width="8" />
+                    <ColumnDefinition Width="25" />
                 </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="Ready" />
                 
-                <TextBlock Margin="4 0 0 0" Grid.Column="0" VerticalAlignment="Center" Text="Ready" />
-                <ContentControl Grid.Column="1" Focusable="False" Margin="2" Visibility="Hidden"
-                                ContentTemplate="{DynamicResource {x:Static adonisUi:Templates.LoadingDots}}"
+                <!-- Vertical seperator -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
+                </StackPanel>
+                
+                <TextBlock Grid.Column="2" VerticalAlignment="Center" Text="Lines: 0" />
+
+                <!-- Vertical seperator -->
+                <StackPanel Grid.Column="3" Orientation="Horizontal">
+                    <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
+                </StackPanel>
+
+                <Grid Grid.Column="4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="Ln: 0" />
+                    <TextBlock Grid.Column="1" VerticalAlignment="Center" Text="Col: 0" />
+                    <TextBlock Grid.Column="2" VerticalAlignment="Center" Text="Sel: 0" />
+                </Grid>
+                
+
+                <!-- Vertical seperator -->
+                <StackPanel Grid.Column="5" Orientation="Horizontal">
+                    <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
+                </StackPanel>
+
+                <TextBlock Grid.Column="6" VerticalAlignment="Center" Text="Encoding: UTF-8" />
+
+                <!-- Vertical seperator -->
+                <StackPanel Grid.Column="7" Orientation="Horizontal">
+                    <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
+                </StackPanel>
+                
+                <ContentControl Grid.Column="8" Focusable="False" Margin="2" Visibility="Hidden"
+                                ContentTemplate="{DynamicResource {x:Static adonisUi:Templates.LoadingCircle}}"
                                 Foreground="{DynamicResource {x:Static adonisUi:Brushes.ForegroundBrush}}" />
             </Grid>
             
