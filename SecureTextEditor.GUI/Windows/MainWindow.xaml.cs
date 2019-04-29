@@ -42,5 +42,16 @@ namespace SecureTextEditor.GUI {
             // TODO: Check for unsaved changes
             Application.Current.Shutdown();
         }
+
+        private void Save(object sender, RoutedEventArgs e) {
+            ShowSaveWindow();
+        }
+
+        private void ShowSaveWindow() {
+            Window window = new SaveWindow {
+                Owner = this,
+            };
+            window.ShowDialog();
+        }
     }
 }

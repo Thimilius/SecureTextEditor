@@ -7,13 +7,14 @@
         xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
         xmlns:adonisExtensions="clr-namespace:AdonisUI.Extensions;assembly=AdonisUI"
         mc:Ignorable="d"
-        Title="Secure Text Editor" Height="450" Width="800">
+        Title="Secure Text Editor" Height="480" Width="853"
+        MinHeight="360" MinWidth="640">
 
     <Window.Resources>
         <!-- Define style for text editor -->
         <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}" x:Key="EditorStyle">
             <Setter Property="FontFamily" Value="Consolas" />
-            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontSize" Value="16" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="AcceptsTab" Value="True" />
             <Setter Property="AcceptsReturn" Value="True" />
@@ -32,7 +33,8 @@
     </Window.Style>
 
     <Window.CommandBindings>
-        <CommandBinding Command="Close" Executed="CloseApp"></CommandBinding>
+        <CommandBinding Command="Close" Executed="CloseApp" />
+        <CommandBinding Command="Save" Executed="Save" />
     </Window.CommandBindings>
     
     <Grid>
@@ -65,8 +67,8 @@
             <!-- Statusbar -->
             <Grid DockPanel.Dock="Bottom" Height="25">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"></ColumnDefinition>
-                    <ColumnDefinition Width="24"></ColumnDefinition>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="24" />
                 </Grid.ColumnDefinitions>
                 
                 <TextBlock Margin="4 0 0 0" Grid.Column="0" VerticalAlignment="Center" Text="Ready" />
