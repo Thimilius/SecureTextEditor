@@ -67,6 +67,8 @@
             <!-- Statusbar -->
             <Grid DockPanel.Dock="Bottom" Height="25" Margin="4 0 2 0">
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="20" />
+                    <ColumnDefinition Width="8" />
                     <ColumnDefinition Width="2.5*" />
                     <ColumnDefinition Width="8" />
                     <ColumnDefinition Width="1.5*" />
@@ -78,21 +80,28 @@
                     <ColumnDefinition Width="25" />
                 </Grid.ColumnDefinitions>
 
-                <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="Ready" />
-                
+                <TextBlock Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Center" Text="&#xf00c;" FontFamily="{StaticResource FontAwesome}" />
+
                 <!-- Vertical seperator -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                     <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
                 </StackPanel>
-                
-                <TextBlock Grid.Column="2" VerticalAlignment="Center" Text="Lines: 0" />
+
+                <TextBlock Grid.Column="2" VerticalAlignment="Center" Text="Ready" />
 
                 <!-- Vertical seperator -->
                 <StackPanel Grid.Column="3" Orientation="Horizontal">
                     <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
                 </StackPanel>
+                
+                <TextBlock Grid.Column="4" VerticalAlignment="Center" Text="Lines: 0" />
 
-                <Grid Grid.Column="4">
+                <!-- Vertical seperator -->
+                <StackPanel Grid.Column="5" Orientation="Horizontal">
+                    <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
+                </StackPanel>
+
+                <Grid Grid.Column="6">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
@@ -104,20 +113,19 @@
                     <TextBlock Grid.Column="2" VerticalAlignment="Center" Text="Sel: 0" />
                 </Grid>
                 
-
-                <!-- Vertical seperator -->
-                <StackPanel Grid.Column="5" Orientation="Horizontal">
-                    <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
-                </StackPanel>
-
-                <TextBlock Grid.Column="6" VerticalAlignment="Center" Text="Encoding: UTF-8" />
-
                 <!-- Vertical seperator -->
                 <StackPanel Grid.Column="7" Orientation="Horizontal">
                     <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
                 </StackPanel>
+
+                <TextBlock Grid.Column="8" VerticalAlignment="Center" Text="Encoding: UTF-8" />
+
+                <!-- Vertical seperator -->
+                <StackPanel Grid.Column="9" Orientation="Horizontal">
+                    <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
+                </StackPanel>
                 
-                <ContentControl Grid.Column="8" Focusable="False" Margin="2" Visibility="Hidden"
+                <ContentControl Grid.Column="10" Focusable="False" Margin="2" Visibility="Hidden"
                                 ContentTemplate="{DynamicResource {x:Static adonisUi:Templates.LoadingCircle}}"
                                 Foreground="{DynamicResource {x:Static adonisUi:Brushes.ForegroundBrush}}" />
             </Grid>

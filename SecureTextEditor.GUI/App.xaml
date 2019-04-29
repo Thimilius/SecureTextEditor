@@ -10,6 +10,8 @@
                     <ResourceDictionary Source="{x:Static adonisUi:ResourceLocator.DarkColorScheme}"/>
                     <ResourceDictionary Source="{x:Static adonisUi:ResourceLocator.ClassicTheme}"/>
             </ResourceDictionary.MergedDictionaries>
+
+            <FontFamily x:Key="FontAwesome">/Fonts/font-awesome-free.otf#Font Awesome 5 Free Solid</FontFamily>
         </ResourceDictionary>
     </Application.Resources>
 </Application>
