@@ -7,6 +7,7 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Paddings;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Security;
 
 namespace SecureTextEditor.Core {
     public class CryptoPlaceholder {
@@ -31,7 +32,7 @@ namespace SecureTextEditor.Core {
         }
 
         private byte[] EncryptDecrypt(bool encrypt, byte[] input, string key) {
-            IBufferedCipher cipher = new PaddedBufferedBlockCipher(m_BlockCipher);
+            IBufferedCipher cipher = new BufferedBlockCipher(m_BlockCipher);
             cipher.Init(encrypt, new KeyParameter(m_Encoding.GetBytes(key)));
             return cipher.DoFinal(input);
         }

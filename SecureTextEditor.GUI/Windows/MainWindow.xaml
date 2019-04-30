@@ -25,6 +25,19 @@
             <Setter Property="adonisExtensions:CursorSpotlightExtension.MaxBlurRadius" Value="0" />
             <Setter Property="adonisExtensions:CursorSpotlightExtension.BackgroundBrush" Value="Transparent" />
             <Setter Property="adonisExtensions:CursorSpotlightExtension.BorderBrush" Value="Transparent" />
+            <!-- We want to override the default (not theme like) context menu -->
+            <Setter Property="ContextMenu" >
+                <Setter.Value>
+                    <ContextMenu>
+                    </ContextMenu>
+                </Setter.Value>
+            </Setter>
+            <!-- We want to override the themes hover effect -->
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource {x:Static adonisUi:Brushes.Layer2BackgroundBrush}}" />
+                </Trigger>
+            </Style.Triggers>
         </Style>
     </Window.Resources>
 
@@ -142,25 +155,41 @@
             
             <!-- Text editor tab control -->
             <TabControl Name="EditorTabControl">
-                
-                <!-- Define context menu for tab items -->
-                <TabControl.ItemContainerStyle>
-                    <Style TargetType="{x:Type TabItem}" BasedOn="{StaticResource {x:Type TabItem}}">
-                        <Setter Property="ContextMenu">
+                <!-- Define tab item template -->
+                <TabControl.Resources>
+                    <Style TargetType="TabItem" BasedOn="{StaticResource {x:Type TabItem}}">
+                        <Setter Property="HeaderTemplate">
                             <Setter.Value>
-                                <ContextMenu>
-                                    <MenuItem Header="Close" />
-                                </ContextMenu>
+                                <DataTemplate>
+                                    <!-- Define context menu for tab items -->
+                                    <DataTemplate.Resources>
+                                        <Style TargetType="{x:Type StackPanel}">
+                                            <Setter Property="ContextMenu">
+                                                <Setter.Value>
+                                                    <ContextMenu>
+                                                        <MenuItem Header="Close" />
+                                                    </ContextMenu>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </DataTemplate.Resources>
+                                    
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock VerticalAlignment="Center" Text="{Binding}" />
+                                        <Button Content="&#xf00d;" FontSize="8" FontFamily="{StaticResource FontAwesome}"
+                                                Height="15" Width="15" Margin="5 0 0 0" Padding="0"
+                                                VerticalContentAlignment="Center" HorizontalContentAlignment="Center" />
+                                    </StackPanel>
+                                </DataTemplate>
                             </Setter.Value>
                         </Setter>
                     </Style>
-                </TabControl.ItemContainerStyle>
+                </TabControl.Resources>
 
-                <TabItem Header="New 1" BorderThickness="1">
+                <TabItem Header="New 1">
                     <TextBox Name="Editor" Style="{StaticResource EditorStyle}" />
                 </TabItem>
             </TabControl>
-            
         </DockPanel>
     </Grid>
 </Window>
