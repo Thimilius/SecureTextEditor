@@ -16,6 +16,7 @@
             <Setter Property="FontFamily" Value="Consolas" />
             <Setter Property="FontSize" Value="16" />
             <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="2" />
             <Setter Property="AcceptsTab" Value="True" />
             <Setter Property="AcceptsReturn" Value="True" />
             <Setter Property="VerticalContentAlignment" Value="Top" />
@@ -29,6 +30,9 @@
             <Setter Property="ContextMenu" >
                 <Setter.Value>
                     <ContextMenu>
+                        <MenuItem Header="Cut" Command="Cut" />
+                        <MenuItem Header="Copy" Command="Copy" />
+                        <MenuItem Header="Paste" Command="Paste" />
                     </ContextMenu>
                 </Setter.Value>
             </Setter>
@@ -110,14 +114,14 @@
                     <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
                 </StackPanel>
 
-                <TextBlock Grid.Column="2" VerticalAlignment="Center" Text="Ready" />
+                <TextBlock Name="StatusLabel" Grid.Column="2" VerticalAlignment="Center" Text="Ready" />
 
                 <!-- Vertical seperator -->
                 <StackPanel Grid.Column="3" Orientation="Horizontal">
                     <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
                 </StackPanel>
                 
-                <TextBlock Grid.Column="4" VerticalAlignment="Center" Text="Lines: 0" />
+                <TextBlock Name="LinesLabel" Grid.Column="4" VerticalAlignment="Center" Text="Lines: 1" />
 
                 <!-- Vertical seperator -->
                 <StackPanel Grid.Column="5" Orientation="Horizontal">
@@ -131,9 +135,9 @@
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
-                    <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="Ln: 0" />
-                    <TextBlock Grid.Column="1" VerticalAlignment="Center" Text="Col: 0" />
-                    <TextBlock Grid.Column="2" VerticalAlignment="Center" Text="Sel: 0" />
+                    <TextBlock Name="LineLabel" Grid.Column="0" VerticalAlignment="Center" Text="Ln: 0" />
+                    <TextBlock Name="ColumnLabel" Grid.Column="1" VerticalAlignment="Center" Text="Col: 0" />
+                    <TextBlock Name="SelectionLabel" Grid.Column="2" VerticalAlignment="Center" Text="Sel: 0" />
                 </Grid>
                 
                 <!-- Vertical seperator -->
@@ -158,10 +162,14 @@
                 <!-- Define tab item template -->
                 <TabControl.Resources>
                     <Style TargetType="TabItem" BasedOn="{StaticResource {x:Type TabItem}}">
+                        <Setter Property="AllowDrop" Value="True" />
+                        <EventSetter Event="PreviewMouseMove" Handler="TabControlPreviewMouseMove" />
+                        <EventSetter Event="Drop" Handler="TabControlDrop" />
+                        <EventSetter Event="GiveFeedback" Handler="TabControlGiveFeedback" />
                         <Setter Property="HeaderTemplate">
                             <Setter.Value>
                                 <DataTemplate>
-                                    <!-- Define context menu for tab items -->
+                                    <!-- Define context menu for tab headers -->
                                     <DataTemplate.Resources>
                                         <Style TargetType="{x:Type StackPanel}">
                                             <Setter Property="ContextMenu">
@@ -174,10 +182,11 @@
                                         </Style>
                                     </DataTemplate.Resources>
                                     
+                                    <!-- Define header content -->
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock VerticalAlignment="Center" Text="{Binding}" />
-                                        <Button Content="&#xf00d;" FontSize="8" FontFamily="{StaticResource FontAwesome}"
-                                                Height="15" Width="15" Margin="5 0 0 0" Padding="0"
+                                        <Button Content="&#xf00d;" FontSize="10" FontFamily="{StaticResource FontAwesome}"
+                                                Height="15" Width="15" Margin="5 0 0 0" Padding="0" BorderThickness="0"
                                                 VerticalContentAlignment="Center" HorizontalContentAlignment="Center" />
                                     </StackPanel>
                                 </DataTemplate>
@@ -187,7 +196,7 @@
                 </TabControl.Resources>
 
                 <TabItem Header="New 1">
-                    <TextBox Name="Editor" Style="{StaticResource EditorStyle}" />
+                    <TextBox Name="Editor" Style="{StaticResource EditorStyle}" TextChanged="EditorTextChanged" SelectionChanged="EditorSelectionChanged" />
                 </TabItem>
             </TabControl>
         </DockPanel>
