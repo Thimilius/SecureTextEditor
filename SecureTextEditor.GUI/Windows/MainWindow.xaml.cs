@@ -1,6 +1,9 @@
 ﻿using AdonisUI;
+using Microsoft.Win32;
+using SecureTextEditor.Core;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,13 +27,16 @@ namespace SecureTextEditor.GUI {
             DarkMode
         }
 
-        private enum Encoding {
+        public enum Encoding {
             UTF8,
             ASCII
         }
 
         private Theme m_Theme;
         private Encoding m_Encoding;
+        public System.Text.Encoding CurrentEncoding => m_Encoding == Encoding.UTF8 ? System.Text.Encoding.UTF8 : System.Text.Encoding.ASCII;
+
+        public string CurrentText => Editor.Text;
 
         public MainWindow() { 
             InitializeComponent();
@@ -74,6 +80,25 @@ namespace SecureTextEditor.GUI {
         private void CloseApp(object sender, RoutedEventArgs e) {
             // TODO: Check for unsaved changes
             Application.Current.Shutdown();
+        }
+
+        private void Open(object sender, RoutedEventArgs e) {
+            if (!File.Exists("save.stxt")) {
+                return;
+            }
+
+            OpenFileDialog dialog = new OpenFileDialog();
+            dialog.Filter = "Secure Text File (.stxt)|*.stxt";
+            bool? result = dialog.ShowDialog();
+            if (result == false) {
+                return;
+            }
+
+            string cipher = File.ReadAllText(dialog.FileName);
+            // TODO: We need to save the encoding within the file
+            CryptoPlaceholder crpyto = new CryptoPlaceholder(CurrentEncoding);
+            string text = crpyto.Decrypt(cipher);
+            Editor.Text = text;
         }
 
         private void Save(object sender, RoutedEventArgs e) {

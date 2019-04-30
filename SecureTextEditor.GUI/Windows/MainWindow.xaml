@@ -33,8 +33,9 @@
     </Window.Style>
 
     <Window.CommandBindings>
-        <CommandBinding Command="Close" Executed="CloseApp" />
+        <CommandBinding Command="Open" Executed="Open" />
         <CommandBinding Command="Save" Executed="Save" />
+        <CommandBinding Command="Close" Executed="CloseApp" />
     </Window.CommandBindings>
     
     <Grid>
@@ -156,7 +157,7 @@
                 </TabControl.ItemContainerStyle>
 
                 <TabItem Header="New 1" BorderThickness="1">
-                    <TextBox Style="{StaticResource EditorStyle}" />
+                    <TextBox Name="Editor" Style="{StaticResource EditorStyle}" />
                 </TabItem>
             </TabControl>
             
