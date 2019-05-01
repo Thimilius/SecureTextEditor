@@ -1,4 +1,5 @@
-﻿using SecureTextEditor.Core;
+﻿using Microsoft.Win32;
+using SecureTextEditor.Core;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -28,24 +29,15 @@ namespace SecureTextEditor.GUI {
         }
 
         private async void Save(object sender, RoutedEventArgs e) {
-            WaitingIndicator.Visibility = Visibility.Visible;
-
             MainWindow window = Owner as MainWindow;
-            await SaveAsnyc(window.CurrentEncoding, window.CurrentText);
+            
+            WaitingIndicator.Visibility = Visibility.Visible;
+            await FileHandler.SaveFileAsync(window.CurrentText, window.CurrentEncoding);
 
             CancelButton.IsEnabled = false;
             SaveButton.IsEnabled = false;
 
             Close();
-        }
-        
-        private async Task SaveAsnyc(Encoding encoding, string text) {
-            await Task.Run(() => {
-                CryptoPlaceholder crypto = new CryptoPlaceholder(encoding);
-                string cipher = crypto.Encrypt(text);
-                File.WriteAllText("save.stxt", cipher);
-            });
-            await Task.Delay(100);
         }
     }
 }

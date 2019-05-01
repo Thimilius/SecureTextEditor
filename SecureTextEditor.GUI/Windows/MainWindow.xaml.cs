@@ -131,22 +131,10 @@ namespace SecureTextEditor.GUI {
         }
 
         private void Open(object sender, RoutedEventArgs e) {
-            if (!File.Exists("save.stxt")) {
-                return;
+            string text = FileHandler.OpenFile();
+            if (text != null) {
+                Editor.Text = text;
             }
-
-            OpenFileDialog dialog = new OpenFileDialog();
-            dialog.Filter = "Secure Text File (.stxt)|*.stxt";
-            bool? result = dialog.ShowDialog();
-            if (result == false) {
-                return;
-            }
-
-            string cipher = File.ReadAllText(dialog.FileName);
-            // TODO: We need to save the encoding within the file
-            CryptoPlaceholder crpyto = new CryptoPlaceholder(CurrentEncoding);
-            string text = crpyto.Decrypt(cipher);
-            Editor.Text = text;
         }
 
         private void Save(object sender, RoutedEventArgs e) {

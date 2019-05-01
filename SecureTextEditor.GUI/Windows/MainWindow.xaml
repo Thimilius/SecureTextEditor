@@ -65,7 +65,7 @@
                     <MenuItem Header="Open..." Command="Open" />
                     <MenuItem Header="Save..." Command="Save" />
                     <Separator />
-                    <MenuItem Header="Close" Command="Close" />
+                    <MenuItem Header="Exit" Command="Close" />
                 </MenuItem>
                 <MenuItem Header="Edit" Height="25">
                     <MenuItem Header="Undo" Command="Undo" />
