@@ -47,9 +47,15 @@
     </Window.Style>
 
     <Window.CommandBindings>
+        <!-- Define system commands -->
         <CommandBinding Command="Open" Executed="OnOpen" />
         <CommandBinding Command="Save" Executed="OnSave" />
-        <CommandBinding Command="Close" Executed="OnClose" />
+        <CommandBinding Command="Close" Executed="OnExit" />
+
+        <!-- Define text editor commands -->
+        <CommandBinding Command="{x:Static local:TextEditorCommands.ZoomInCommand}" Executed="OnZoomIn" />
+        <CommandBinding Command="{x:Static local:TextEditorCommands.ZoomOutCommand}" Executed="OnZoomOut" />
+        <CommandBinding Command="{x:Static local:TextEditorCommands.CloseTabCommand}" Executed="OnCloseTab" />
     </Window.CommandBindings>
     
     <Grid>
@@ -71,12 +77,14 @@
                     <MenuItem Header="Cut" Command="Cut" />
                     <MenuItem Header="Copy" Command="Copy" />
                     <MenuItem Header="Paste" Command="Paste" />
-                    <MenuItem Header="Delete" Command="Delete" />
                     <MenuItem Header="Select All" Command="SelectAll" />
                 </MenuItem>
                 <MenuItem Header="View" Height="25">
-                    <MenuItem Header="Zoom In" />
-                    <MenuItem Header="Zoom Out" />
+                    <MenuItem Header="Zoom">
+                        <MenuItem Header="Zoom In" Command="{x:Static local:TextEditorCommands.ZoomInCommand}" />
+                        <MenuItem Header="Zoom Out" Command="{x:Static local:TextEditorCommands.ZoomOutCommand}" />
+                        <MenuItem Header="Reset Zoom" Click="OnZoomReset" />
+                    </MenuItem>
                     <MenuItem Header="Theme" Name="ThemeMenu">
                         <MenuItem Name="ThemeCheckBoxLightMode" Header="Light Mode" IsCheckable="True" />
                         <MenuItem Name="ThemeCheckBoxDarkMode" Header="Dark Mode" IsCheckable="True" />
@@ -172,7 +180,7 @@
                                             <Setter Property="ContextMenu">
                                                 <Setter.Value>
                                                     <ContextMenu>
-                                                        <MenuItem Header="Close" />
+                                                        <MenuItem Header="Close" Command="{x:Static local:TextEditorCommands.CloseTabCommand}" />
                                                     </ContextMenu>
                                                 </Setter.Value>
                                             </Setter>
@@ -191,7 +199,6 @@
                         </Setter>
                     </Style>
                 </TabControl.Resources>
-
                 <TabItem Header="New 1">
                     <TextBox Name="Editor" Style="{StaticResource EditorStyle}" />
                 </TabItem>

@@ -68,6 +68,7 @@
     <Compile Include="FileHandler.cs" />
     <Compile Include="Config\AppConfig.cs" />
     <Compile Include="Config\Theme.cs" />
+    <Compile Include="TextEditorCommands.cs" />
     <Compile Include="TextEncoding.cs" />
     <Compile Include="Windows\SaveWindow.xaml.cs">
       <DependentUpon>SaveWindow.xaml</DependentUpon>

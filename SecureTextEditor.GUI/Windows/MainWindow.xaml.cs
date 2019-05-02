@@ -39,6 +39,10 @@ namespace SecureTextEditor.GUI {
 
             Editor.TextChanged += (s, e) => UpdateEditorStatus(s as TextBox);
             Editor.SelectionChanged += (s, e) => UpdateEditorStatus(s as TextBox);
+
+            // We want to directly set the focus on the editor
+            Editor.Focus();
+            UpdateEditorStatus(Editor);
         }
 
         private void TabControlPreviewMouseMove(object sender, MouseEventArgs e) {
@@ -71,7 +75,7 @@ namespace SecureTextEditor.GUI {
             e.Handled = true;
         }
 
-        private void OnClose(object sender, RoutedEventArgs e) {
+        private void OnExit(object sender, RoutedEventArgs e) {
             // TODO: Check for unsaved changes
             Application.Current.Shutdown();
         }
@@ -87,6 +91,22 @@ namespace SecureTextEditor.GUI {
             ShowSaveWindow();
         }
 
+        private void OnZoomIn(object sender, RoutedEventArgs e) {
+            Editor.FontSize++;
+        }
+
+        private void OnZoomOut(object sender, RoutedEventArgs e) {
+            Editor.FontSize--;
+        }
+
+        private void OnZoomReset(object sender, RoutedEventArgs e) {
+            Editor.FontSize = 16;
+        }
+
+        private void OnCloseTab(object sender, RoutedEventArgs e) {
+            MessageBox.Show("Hello there!");
+        }
+
         private void ShowSaveWindow() {
             Window window = new SaveWindow {
                 Owner = this,
@@ -95,11 +115,13 @@ namespace SecureTextEditor.GUI {
         }
 
         private void UpdateEditorStatus(TextBox editor) {
-            LinesLabel.Text = $"Lines: {editor.LineCount}";
+            // Update status bar texts and take into account empty text editor
+            LinesLabel.Text = $"Lines: {Math.Max(1, editor.LineCount)}";
             int caretIndex = editor.CaretIndex;
-            int lineIndex = editor.GetLineIndexFromCharacterIndex(caretIndex);
+            int lineIndex = Math.Max(0, editor.GetLineIndexFromCharacterIndex(caretIndex));
             LineLabel.Text = $"Ln: {lineIndex + 1}";
-            ColumnLabel.Text = $"Col: {caretIndex - editor.GetCharacterIndexFromLineIndex(lineIndex)}";
+            int charIndex = Math.Max(0, editor.GetCharacterIndexFromLineIndex(lineIndex));
+            ColumnLabel.Text = $"Col: {(caretIndex - charIndex) + 1}";
             SelectionLabel.Text = $"Sel: {editor.SelectionLength}";
         }
 
