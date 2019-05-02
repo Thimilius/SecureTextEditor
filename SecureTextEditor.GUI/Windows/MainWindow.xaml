@@ -47,9 +47,9 @@
     </Window.Style>
 
     <Window.CommandBindings>
-        <CommandBinding Command="Open" Executed="Open" />
-        <CommandBinding Command="Save" Executed="Save" />
-        <CommandBinding Command="Close" Executed="CloseApp" />
+        <CommandBinding Command="Open" Executed="OnOpen" />
+        <CommandBinding Command="Save" Executed="OnSave" />
+        <CommandBinding Command="Close" Executed="OnClose" />
     </Window.CommandBindings>
     
     <Grid>
@@ -78,16 +78,16 @@
                     <MenuItem Header="Zoom In" />
                     <MenuItem Header="Zoom Out" />
                     <MenuItem Header="Theme" Name="ThemeMenu">
-                        <MenuItem Header="Light Mode" IsCheckable="True" IsChecked="False" Click="ThemeChanged" />
-                        <MenuItem Header="Dark Mode" IsCheckable="True" IsChecked="True" Click="ThemeChanged" />
+                        <MenuItem Name="ThemeCheckBoxLightMode" Header="Light Mode" IsCheckable="True" />
+                        <MenuItem Name="ThemeCheckBoxDarkMode" Header="Dark Mode" IsCheckable="True" />
                     </MenuItem>
                 </MenuItem>
                 <MenuItem Header="Encoding" Height="25" Name="EncodingMenu">
-                    <MenuItem Header="UTF-8" IsCheckable="True" IsChecked="True" Click="EncodingChanged" />
-                    <MenuItem Header="ASCII" IsCheckable="True" IsChecked="False" Click="EncodingChanged" />
+                    <MenuItem Name="EncodingCheckBoxASCII" Header="ASCII" IsCheckable="True" />
+                    <MenuItem Name="EncodingCheckBoxUTF8" Header="UTF-8" IsCheckable="True" />
                 </MenuItem>
             </Menu>
-            
+
             <!-- Statusbar -->
             <Grid DockPanel.Dock="Bottom" Height="25" Margin="4 0 2 0">
                 <Grid.ColumnDefinitions>
@@ -193,7 +193,7 @@
                 </TabControl.Resources>
 
                 <TabItem Header="New 1">
-                    <TextBox Name="Editor" Style="{StaticResource EditorStyle}" TextChanged="EditorTextChanged" SelectionChanged="EditorSelectionChanged" />
+                    <TextBox Name="Editor" Style="{StaticResource EditorStyle}" />
                 </TabItem>
             </TabControl>
         </DockPanel>
