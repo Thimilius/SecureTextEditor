@@ -6,10 +6,10 @@ namespace SecureTextEditor.Core {
     public class SecureTextFile {
         public const string FILE_EXTENSION = ".stxt";
 
-        public int Encoding { get; }
+        public TextEncoding Encoding { get; }
         public string Base64Cipher { get; }
 
-        public SecureTextFile(int encoding, string base64Cipher) {
+        public SecureTextFile(TextEncoding encoding, string base64Cipher) {
             Encoding = encoding;
             Base64Cipher = base64Cipher;
         }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.Win32;
 using SecureTextEditor.Core;
+using SecureTextEditor.GUI.Editor;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -29,10 +30,10 @@ namespace SecureTextEditor.GUI {
         }
 
         private async void Save(object sender, RoutedEventArgs e) {
-            MainWindow window = Owner as MainWindow;
+            TextEditorTab tab = (Owner as MainWindow).TextEditorControl.CurrentTab;
             
             WaitingIndicator.Visibility = Visibility.Visible;
-            await FileHandler.SaveFileAsync(window.CurrentText, window.CurrentEncoding);
+            await FileHandler.SaveFileAsync(tab.Editor.Text, tab.TextEncoding);
 
             CancelButton.IsEnabled = false;
             SaveButton.IsEnabled = false;

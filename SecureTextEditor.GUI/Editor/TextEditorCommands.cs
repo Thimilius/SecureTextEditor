@@ -1,6 +1,6 @@
 ﻿using System.Windows.Input;
 
-namespace SecureTextEditor.GUI {
+namespace SecureTextEditor.GUI.Editor {
     /// <summary>
     /// Holds commands for the text editor.
     /// </summary>

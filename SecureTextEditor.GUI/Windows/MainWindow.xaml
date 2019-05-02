@@ -4,43 +4,12 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SecureTextEditor.GUI"
+        xmlns:editor="clr-namespace:SecureTextEditor.GUI.Editor"
         xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
         xmlns:adonisExtensions="clr-namespace:AdonisUI.Extensions;assembly=AdonisUI"
         mc:Ignorable="d"
         Title="Secure Text Editor" Height="480" Width="853"
-        MinHeight="360" MinWidth="640">
-
-    <Window.Resources>
-        <!-- Define style for text editor (we explicity do not base the style on the default one to fully control the looks) -->
-        <Style TargetType="TextBox" x:Key="EditorStyle">
-            <Setter Property="FontFamily" Value="Consolas" />
-            <Setter Property="FontSize" Value="16" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Padding" Value="2" />
-            <Setter Property="AcceptsTab" Value="True" />
-            <Setter Property="AcceptsReturn" Value="True" />
-            <Setter Property="VerticalContentAlignment" Value="Top" />
-            <Setter Property="VerticalScrollBarVisibility" Value="Visible" />
-            <Setter Property="HorizontalScrollBarVisibility" Value="Visible" />
-            <Setter Property="adonisExtensions:CursorSpotlightExtension.RelativeSpotlightSize" Value="0" />
-            <Setter Property="adonisExtensions:CursorSpotlightExtension.MaxBlurRadius" Value="0" />
-            <Setter Property="adonisExtensions:CursorSpotlightExtension.BackgroundBrush" Value="Transparent" />
-            <Setter Property="adonisExtensions:CursorSpotlightExtension.BorderBrush" Value="Transparent" />
-            <Setter Property="Background" Value="{DynamicResource {x:Static adonisUi:Brushes.Layer2BackgroundBrush}}" />
-            <Setter Property="Foreground" Value="{DynamicResource {x:Static adonisUi:Brushes.ForegroundBrush}}" />
-            
-            <!-- We want to override the default (not theme like) context menu -->
-            <Setter Property="ContextMenu" >
-                <Setter.Value>
-                    <ContextMenu>
-                        <MenuItem Header="Cut" Command="Cut" />
-                        <MenuItem Header="Copy" Command="Copy" />
-                        <MenuItem Header="Paste" Command="Paste" />
-                    </ContextMenu>
-                </Setter.Value>
-            </Setter>
-        </Style>
-    </Window.Resources>
+        MinHeight="480" MinWidth="853">
 
     <Window.Style>
         <Style TargetType="Window" BasedOn="{StaticResource {x:Type Window}}"/>
@@ -48,14 +17,15 @@
 
     <Window.CommandBindings>
         <!-- Define system commands -->
+        <CommandBinding Command="New" Executed="OnNew" />
         <CommandBinding Command="Open" Executed="OnOpen" />
         <CommandBinding Command="Save" Executed="OnSave" />
         <CommandBinding Command="Close" Executed="OnExit" />
 
         <!-- Define text editor commands -->
-        <CommandBinding Command="{x:Static local:TextEditorCommands.ZoomInCommand}" Executed="OnZoomIn" />
-        <CommandBinding Command="{x:Static local:TextEditorCommands.ZoomOutCommand}" Executed="OnZoomOut" />
-        <CommandBinding Command="{x:Static local:TextEditorCommands.CloseTabCommand}" Executed="OnCloseTab" />
+        <CommandBinding Command="{x:Static editor:TextEditorCommands.ZoomInCommand}" Executed="OnZoomIn" />
+        <CommandBinding Command="{x:Static editor:TextEditorCommands.ZoomOutCommand}" Executed="OnZoomOut" />
+        <CommandBinding Command="{x:Static editor:TextEditorCommands.CloseTabCommand}" Executed="OnCloseTab" />
     </Window.CommandBindings>
     
     <Grid>
@@ -81,8 +51,8 @@
                 </MenuItem>
                 <MenuItem Header="View" Height="25">
                     <MenuItem Header="Zoom">
-                        <MenuItem Header="Zoom In" Command="{x:Static local:TextEditorCommands.ZoomInCommand}" />
-                        <MenuItem Header="Zoom Out" Command="{x:Static local:TextEditorCommands.ZoomOutCommand}" />
+                        <MenuItem Header="Zoom In" Command="{x:Static editor:TextEditorCommands.ZoomInCommand}" InputGestureText="Crtl+Plus" />
+                        <MenuItem Header="Zoom Out" Command="{x:Static editor:TextEditorCommands.ZoomOutCommand}" InputGestureText="Crtl+Minus" />
                         <MenuItem Header="Reset Zoom" Click="OnZoomReset" />
                     </MenuItem>
                     <MenuItem Header="Theme" Name="ThemeMenu">
@@ -150,7 +120,7 @@
                     <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
                 </StackPanel>
 
-                <TextBlock Name="EncodingText" Grid.Column="8" VerticalAlignment="Center" Text="Encoding: UTF-8" />
+                <TextBlock Name="EncodingLabel" Grid.Column="8" VerticalAlignment="Center" Text="Encoding: UTF-8" />
 
                 <!-- Vertical seperator -->
                 <StackPanel Grid.Column="9" Orientation="Horizontal">
@@ -164,44 +134,67 @@
             
             <!-- Text editor tab control -->
             <TabControl Name="EditorTabControl" BorderThickness="0">
-                <!-- Define tab item template -->
                 <TabControl.Resources>
+                    <!-- Define style for actual tab item -->
                     <Style TargetType="TabItem" BasedOn="{StaticResource {x:Type TabItem}}">
                         <Setter Property="AllowDrop" Value="True" />
-                        <EventSetter Event="PreviewMouseMove" Handler="TabControlPreviewMouseMove" />
-                        <EventSetter Event="Drop" Handler="TabControlDrop" />
-                        <EventSetter Event="GiveFeedback" Handler="TabControlGiveFeedback" />
-                        <Setter Property="HeaderTemplate">
+                    </Style>
+
+                    <!-- Define style for tab item container -->
+                    <Style TargetType="StackPanel">
+                        <Setter Property="Orientation" Value="Horizontal" />
+                    </Style>
+
+                    <!-- Define style for tab item header text -->
+                    <Style TargetType="TextBlock">
+                        <Setter Property="VerticalAlignment" Value="Center" />
+                        <Setter Property="MaxWidth" Value="125" />
+                    </Style>
+                    
+                    <!-- Define style for tab item close button -->
+                    <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                        <Setter Property="Content" Value="&#xf00d;" />
+                        <Setter Property="FontSize" Value="10" />
+                        <Setter Property="FontFamily" Value="{StaticResource FontAwesome}" />
+                        <Setter Property="Height" Value="15" />
+                        <Setter Property="Width" Value="15" />
+                        <Setter Property="Margin" Value="5 0 0 0" />
+                        <Setter Property="Padding" Value="0" />
+                        <Setter Property="BorderThickness" Value="0" />
+                        <Setter Property="VerticalContentAlignment" Value="Center" />
+                        <Setter Property="HorizontalContentAlignment" Value="Center" />
+                    </Style>
+
+                    <!-- Define style for text editor (we explicity do not base the style on the default one to fully control the look) -->
+                    <Style TargetType="TextBox">
+                        <Setter Property="FontFamily" Value="Consolas" />
+                        <Setter Property="FontSize" Value="16" />
+                        <Setter Property="BorderThickness" Value="0" />
+                        <Setter Property="Padding" Value="2" />
+                        <Setter Property="AcceptsTab" Value="True" />
+                        <Setter Property="AcceptsReturn" Value="True" />
+                        <Setter Property="VerticalContentAlignment" Value="Top" />
+                        <Setter Property="VerticalScrollBarVisibility" Value="Visible" />
+                        <Setter Property="HorizontalScrollBarVisibility" Value="Visible" />
+                        <Setter Property="adonisExtensions:CursorSpotlightExtension.RelativeSpotlightSize" Value="0" />
+                        <Setter Property="adonisExtensions:CursorSpotlightExtension.MaxBlurRadius" Value="0" />
+                        <Setter Property="adonisExtensions:CursorSpotlightExtension.BackgroundBrush" Value="Transparent" />
+                        <Setter Property="adonisExtensions:CursorSpotlightExtension.BorderBrush" Value="Transparent" />
+                        <Setter Property="Background" Value="{DynamicResource {x:Static adonisUi:Brushes.Layer2BackgroundBrush}}" />
+                        <Setter Property="Foreground" Value="{DynamicResource {x:Static adonisUi:Brushes.ForegroundBrush}}" />
+
+                        <!-- We want to override the default (not theme like) context menu -->
+                        <Setter Property="ContextMenu" >
                             <Setter.Value>
-                                <DataTemplate>
-                                    <!-- Define context menu for tab headers -->
-                                    <DataTemplate.Resources>
-                                        <Style TargetType="{x:Type StackPanel}">
-                                            <Setter Property="ContextMenu">
-                                                <Setter.Value>
-                                                    <ContextMenu>
-                                                        <MenuItem Header="Close" Command="{x:Static local:TextEditorCommands.CloseTabCommand}" />
-                                                    </ContextMenu>
-                                                </Setter.Value>
-                                            </Setter>
-                                        </Style>
-                                    </DataTemplate.Resources>
-                                    
-                                    <!-- Define header content -->
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock VerticalAlignment="Center" Text="{Binding}" />
-                                        <Button Content="&#xf00d;" FontSize="10" FontFamily="{StaticResource FontAwesome}"
-                                                Height="15" Width="15" Margin="5 0 0 0" Padding="0" BorderThickness="0"
-                                                VerticalContentAlignment="Center" HorizontalContentAlignment="Center" />
-                                    </StackPanel>
-                                </DataTemplate>
+                                <ContextMenu>
+                                    <MenuItem Header="Cut" Command="Cut" />
+                                    <MenuItem Header="Copy" Command="Copy" />
+                                    <MenuItem Header="Paste" Command="Paste" />
+                                </ContextMenu>
                             </Setter.Value>
                         </Setter>
                     </Style>
                 </TabControl.Resources>
-                <TabItem Header="New 1">
-                    <TextBox Name="Editor" Style="{StaticResource EditorStyle}" />
-                </TabItem>
             </TabControl>
         </DockPanel>
     </Grid>

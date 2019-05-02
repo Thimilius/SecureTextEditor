@@ -1,5 +1,6 @@
-﻿using Newtonsoft.Json;
-using System.IO;
+﻿using System.IO;
+using Newtonsoft.Json;
+using SecureTextEditor.Core;
 
 namespace SecureTextEditor.GUI.Config {
     /// <summary>
@@ -52,7 +53,8 @@ namespace SecureTextEditor.GUI.Config {
         private static void ResetSettings() {
             // Set default config
             Config = new Configuration() {
-                Theme = Theme.DarkMode
+                Theme = Theme.DarkMode,
+                NewFileTextEncoding = TextEncoding.UTF8
             };
         }
     }

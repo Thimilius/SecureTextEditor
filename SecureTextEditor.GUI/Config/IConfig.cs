@@ -1,4 +1,6 @@
-﻿namespace SecureTextEditor.GUI.Config {
+﻿using SecureTextEditor.Core;
+
+namespace SecureTextEditor.GUI.Config {
     /// <summary>
     /// Describes the configuration.
     /// </summary>

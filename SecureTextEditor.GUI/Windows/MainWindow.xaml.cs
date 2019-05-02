@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -17,6 +18,7 @@ using AdonisUI;
 using Microsoft.Win32;
 using SecureTextEditor.Core;
 using SecureTextEditor.GUI.Config;
+using SecureTextEditor.GUI.Editor;
 
 namespace SecureTextEditor.GUI {
     /// <summary>
@@ -25,7 +27,7 @@ namespace SecureTextEditor.GUI {
     public partial class MainWindow : Window {
         public Encoding CurrentEncoding => Encoding.UTF8;
 
-        public string CurrentText => Editor.Text;
+        public TextEditorControl TextEditorControl { get; private set; }
 
         public MainWindow() { 
             InitializeComponent();
@@ -33,57 +35,34 @@ namespace SecureTextEditor.GUI {
             // We need to set the inital theme based on config
             ChangeTheme(AppConfig.Config.Theme);
 
-            // Initialize global events
+            // Create text editor with new empty tab
+            TextEditorControl = new TextEditorControl(EditorTabControl);
+            TextEditorControl.TabChanged += UpdateEncodingUI;
+            TextEditorControl.NewTab("");
+
+            // Subscribe to global events
             ThemeCheckBoxLightMode.Click += (s, e) => ChangeTheme(Theme.LightMode);
             ThemeCheckBoxDarkMode.Click += (s, e) => ChangeTheme(Theme.DarkMode);
-
-            Editor.TextChanged += (s, e) => UpdateEditorStatus(s as TextBox);
-            Editor.SelectionChanged += (s, e) => UpdateEditorStatus(s as TextBox);
-
-            // We want to directly set the focus on the editor
-            Editor.Focus();
-            UpdateEditorStatus(Editor);
-        }
-
-        private void TabControlPreviewMouseMove(object sender, MouseEventArgs e) {
-            if (!(e.Source is TabItem tabItem)) {
-                return;
-            }
-
-            if (Mouse.PrimaryDevice.LeftButton == MouseButtonState.Pressed) {
-                DragDrop.DoDragDrop(tabItem, tabItem, DragDropEffects.All);
-            }
-        }
-
-        private void TabControlDrop(object sender, DragEventArgs e) {
-            var tabItemTarget = e.Source as TabItem;
-            var tabItemSource = e.Data.GetData(typeof(TabItem)) as TabItem;
-
-            if (!tabItemTarget.Equals(tabItemSource)) {
-                var tabControl = tabItemTarget.Parent as TabControl;
-                int targetIndex = tabControl.Items.IndexOf(tabItemTarget);
-
-                tabControl.Items.Remove(tabItemSource);
-                tabControl.Items.Insert(targetIndex, tabItemSource);
-
-                tabItemSource.Focus();
-            }
-        }
-
-        private void TabControlGiveFeedback(object sender, GiveFeedbackEventArgs e) {
-            e.UseDefaultCursors = false;
-            e.Handled = true;
+            EncodingCheckBoxASCII.Click += (s, e) => ChangeEncoding(TextEncoding.ASCII);
+            EncodingCheckBoxUTF8.Click += (s, e) => ChangeEncoding(TextEncoding.UTF8);
         }
 
         private void OnExit(object sender, RoutedEventArgs e) {
-            // TODO: Check for unsaved changes
+            if (TextEditorControl.CurrentTab.Dirty) {
+                // TODO: Prompt unsaved warning
+            }
             Application.Current.Shutdown();
         }
 
+        private void OnNew(object sender, RoutedEventArgs e) {
+            TextEditorControl.NewTab("");
+        }
+
         private void OnOpen(object sender, RoutedEventArgs e) {
-            string text = FileHandler.OpenFile();
+            string text = FileHandler.OpenFile(out TextEncoding encoding);
             if (text != null) {
-                Editor.Text = text;
+                TextEditorControl.NewTab(text, encoding);
+                UpdateEncodingUI();
             }
         }
 
@@ -92,19 +71,22 @@ namespace SecureTextEditor.GUI {
         }
 
         private void OnZoomIn(object sender, RoutedEventArgs e) {
-            Editor.FontSize++;
         }
 
         private void OnZoomOut(object sender, RoutedEventArgs e) {
-            Editor.FontSize--;
         }
 
         private void OnZoomReset(object sender, RoutedEventArgs e) {
-            Editor.FontSize = 16;
         }
 
         private void OnCloseTab(object sender, RoutedEventArgs e) {
-            MessageBox.Show("Hello there!");
+            TextEditorControl.CloseTab(TextEditorControl.CurrentTab);
+        }
+
+        private void OnEncodingChanged(object sender, RoutedEventArgs e) {
+            // Update encoding checkboxes
+            EncodingCheckBoxASCII.IsChecked = TextEditorControl.CurrentTab.TextEncoding == TextEncoding.ASCII;
+            EncodingCheckBoxUTF8.IsChecked = TextEditorControl.CurrentTab.TextEncoding == TextEncoding.UTF8;
         }
 
         private void ShowSaveWindow() {
@@ -125,6 +107,12 @@ namespace SecureTextEditor.GUI {
             SelectionLabel.Text = $"Sel: {editor.SelectionLength}";
         }
 
+        private void ChangeEncoding(TextEncoding encoding) {
+            TextEditorControl.CurrentTab.TextEncoding = encoding;
+
+            UpdateEncodingUI();
+        }
+
         private void ChangeTheme(Theme theme) {
             // Store theme in config
             AppConfig.Config.Theme = theme;
@@ -133,9 +121,26 @@ namespace SecureTextEditor.GUI {
             Uri locator = theme == Theme.LightMode ? ResourceLocator.LightColorScheme : ResourceLocator.DarkColorScheme;
             ResourceLocator.SetColorScheme(Application.Current.Resources, locator);
 
-            // Update UI
+            // Update theme checkboxes
             ThemeCheckBoxLightMode.IsChecked = theme == Theme.LightMode;
             ThemeCheckBoxDarkMode.IsChecked = theme == Theme.DarkMode;
+        }
+
+        private void UpdateEncodingUI() {
+            string TextEncodingToString(TextEncoding textEncoding) {
+                switch (textEncoding) {
+                    case TextEncoding.ASCII: return "ASCII";
+                    case TextEncoding.UTF8: return "UTF-8";
+                    default: return "Unknown";
+                }
+            }
+
+            // Update encoding checkboxes
+            var encoding = TextEditorControl.CurrentTab.TextEncoding;
+            EncodingCheckBoxASCII.IsChecked = encoding == TextEncoding.ASCII;
+            EncodingCheckBoxUTF8.IsChecked = encoding == TextEncoding.UTF8;
+
+            EncodingLabel.Text = $"Encoding: {TextEncodingToString(encoding)}";
         }
     }
 }
