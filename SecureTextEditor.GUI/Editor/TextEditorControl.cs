@@ -14,6 +14,7 @@ namespace SecureTextEditor.GUI.Editor {
     public class TextEditorControl {
         private const int MAX_TABS = 10;
 
+        private MainWindow m_Window;
         private TabControl m_TabControl;
         private int m_NewTabCounter;
 
@@ -21,29 +22,35 @@ namespace SecureTextEditor.GUI.Editor {
 
         public event Action TabChanged;
 
-        public TextEditorControl(TabControl tabControl) {
+        public TextEditorControl(MainWindow window, TabControl tabControl) {
+            m_Window = window;
             m_TabControl = tabControl;
             m_NewTabCounter = 1;
 
             m_TabControl.SelectionChanged += OnTabControlSelectionChanged;
         }
 
-        public void NewTab(string content) => NewTab(content, AppConfig.Config.NewFileTextEncoding);
+        public void NewTab(string content) => NewTab(content, AppConfig.Config.NewFileTextEncoding, $"New {m_NewTabCounter++}");
 
-        public void NewTab(string content, TextEncoding textEncoding) {
+        public void NewTab(string content, TextEncoding textEncoding, string header) {
             if (m_TabControl.Items.Count == MAX_TABS) {
                 // TODO: Inform user
                 return;
             }
 
             // FIXME: We should use an object pool here to avoid using unnecessary memory
-            var tab = new TextEditorTab(this, $"New {m_NewTabCounter++}", content, textEncoding);
+            var tab = new TextEditorTab(this, header, content, textEncoding);
             var item = tab.TabItem;
+            var editor = tab.Editor;
 
             // Subscribe to tab drag and drop events
             item.PreviewMouseMove += OnTabItemPreviewMouseMove;
             item.Drop += OnTabItemDrop;
             item.GiveFeedback += OnTabItemGiveFeedback;
+
+            // Subscribe to text events
+            editor.TextChanged += (s, e) => m_Window.UpdateEditorStatus();
+            editor.SelectionChanged += (s, e) => m_Window.UpdateEditorStatus();
 
             // Add the tab to current tabs and focus it
             m_TabControl.Items.Add(item);

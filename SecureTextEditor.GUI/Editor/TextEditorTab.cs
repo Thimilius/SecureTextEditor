@@ -36,8 +36,8 @@ namespace SecureTextEditor.GUI.Editor {
                 Text = header
             });
 
-            var coseButton = new Button();
-            stackPanel.Children.Add(coseButton);
+            var closeButton = new Button();
+            stackPanel.Children.Add(closeButton);
 
             TabItem = new TabItem() {
                 Header = stackPanel,
@@ -46,7 +46,7 @@ namespace SecureTextEditor.GUI.Editor {
             };
 
             // Subscribe to events
-            coseButton.Click += OnClose;
+            closeButton.Click += OnClose;
             closeMenuItem.Click += OnClose;
 
             Editor.TextInput += (s, e) => {

@@ -36,8 +36,8 @@ namespace SecureTextEditor.GUI {
             ChangeTheme(AppConfig.Config.Theme);
 
             // Create text editor with new empty tab
-            TextEditorControl = new TextEditorControl(EditorTabControl);
-            TextEditorControl.TabChanged += UpdateEncodingUI;
+            TextEditorControl = new TextEditorControl(this, EditorTabControl);
+            TextEditorControl.TabChanged += OnTabChanged;
             TextEditorControl.NewTab("");
 
             // Subscribe to global events
@@ -45,6 +45,19 @@ namespace SecureTextEditor.GUI {
             ThemeCheckBoxDarkMode.Click += (s, e) => ChangeTheme(Theme.DarkMode);
             EncodingCheckBoxASCII.Click += (s, e) => ChangeEncoding(TextEncoding.ASCII);
             EncodingCheckBoxUTF8.Click += (s, e) => ChangeEncoding(TextEncoding.UTF8);
+        }
+
+        public void UpdateEditorStatus() {
+            TextBox editor = TextEditorControl.CurrentTab.Editor;
+
+            // Update status bar texts and take into account empty text editor
+            LinesLabel.Text = $"Lines: {Math.Max(1, editor.LineCount)}";
+            int caretIndex = editor.CaretIndex;
+            int lineIndex = Math.Max(0, editor.GetLineIndexFromCharacterIndex(caretIndex));
+            LineLabel.Text = $"Ln: {lineIndex + 1}";
+            int charIndex = Math.Max(0, editor.GetCharacterIndexFromLineIndex(lineIndex));
+            ColumnLabel.Text = $"Col: {(caretIndex - charIndex) + 1}";
+            SelectionLabel.Text = $"Sel: {editor.SelectionLength}";
         }
 
         private void OnExit(object sender, RoutedEventArgs e) {
@@ -59,9 +72,9 @@ namespace SecureTextEditor.GUI {
         }
 
         private void OnOpen(object sender, RoutedEventArgs e) {
-            string text = FileHandler.OpenFile(out TextEncoding encoding);
-            if (text != null) {
-                TextEditorControl.NewTab(text, encoding);
+            var file = FileHandler.OpenFile();
+            if (file != null) {
+                TextEditorControl.NewTab(file.Text, file.Encoding, file.FileName);
                 UpdateEncodingUI();
             }
         }
@@ -89,22 +102,16 @@ namespace SecureTextEditor.GUI {
             EncodingCheckBoxUTF8.IsChecked = TextEditorControl.CurrentTab.TextEncoding == TextEncoding.UTF8;
         }
 
+        private void OnTabChanged() {
+            UpdateEncodingUI();
+            UpdateEditorStatus();
+        }
+
         private void ShowSaveWindow() {
             Window window = new SaveWindow {
                 Owner = this,
             };
             window.ShowDialog();
-        }
-
-        private void UpdateEditorStatus(TextBox editor) {
-            // Update status bar texts and take into account empty text editor
-            LinesLabel.Text = $"Lines: {Math.Max(1, editor.LineCount)}";
-            int caretIndex = editor.CaretIndex;
-            int lineIndex = Math.Max(0, editor.GetLineIndexFromCharacterIndex(caretIndex));
-            LineLabel.Text = $"Ln: {lineIndex + 1}";
-            int charIndex = Math.Max(0, editor.GetCharacterIndexFromLineIndex(lineIndex));
-            ColumnLabel.Text = $"Col: {(caretIndex - charIndex) + 1}";
-            SelectionLabel.Text = $"Sel: {editor.SelectionLength}";
         }
 
         private void ChangeEncoding(TextEncoding encoding) {

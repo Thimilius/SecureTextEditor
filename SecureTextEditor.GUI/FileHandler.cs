@@ -6,6 +6,13 @@ using SecureTextEditor.GUI.Editor;
 
 namespace SecureTextEditor.GUI {
     public static class FileHandler {
+        public class File {
+            public string Text { get; set; }
+            public TextEncoding Encoding { get; set; }
+            public string FileName { get; set; }
+            public string FilePath { get; set; }
+        }
+
         private const string FILE_FILTER = "Secure Text File (" + SecureTextFile.FILE_EXTENSION + ")|*" + SecureTextFile.FILE_EXTENSION;
 
         public static async Task SaveFileAsync(string text, TextEncoding textEncoding) {
@@ -31,7 +38,7 @@ namespace SecureTextEditor.GUI {
             await Task.Delay(100);
         }
 
-        public static string OpenFile(out TextEncoding textEncoding) {
+        public static File OpenFile() {
             // TODO: Enable loading of normal text files
 
             // Show dialog for opening a file
@@ -41,19 +48,26 @@ namespace SecureTextEditor.GUI {
             bool? result = dialog.ShowDialog();
             // If no file for opening was selected we can bail out
             if (result == false) {
-                textEncoding = TextEncoding.UTF8;
                 return null;
             }
 
+            // TODO: Check if we have the file already open
             // TODO: Do error checking
+
             // Load file and decrypt with corresponding encoding
             var file = SecureTextFile.Load(dialog.FileName);
-            textEncoding = file.Encoding;
+            var textEncoding = file.Encoding;
             
-            // TODO: Check encoding is valid
             var encoding = GetEncoding(textEncoding);
             var crpytoPlaceholder = new CryptoPlaceholder(encoding);
-            return crpytoPlaceholder.Decrypt(file.Base64Cipher);
+            string text = crpytoPlaceholder.Decrypt(file.Base64Cipher);
+
+            return new File() {
+                Text = text,
+                Encoding = textEncoding,
+                FileName = dialog.SafeFileName,
+                FilePath = dialog.FileName
+            };
         }
 
         private static Encoding GetEncoding(TextEncoding encoding) {
