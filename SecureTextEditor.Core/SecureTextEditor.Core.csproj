@@ -47,8 +47,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CipherMode.cs" />
+    <Compile Include="CipherPadding.cs" />
+    <Compile Include="CryptoEngine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="CryptoPlaceholder.cs" />
     <Compile Include="SecureTextFile.cs" />
     <Compile Include="TextEncoding.cs" />
   </ItemGroup>
