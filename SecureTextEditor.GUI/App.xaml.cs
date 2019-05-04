@@ -13,8 +13,14 @@ namespace SecureTextEditor.GUI {
 
             // TODO: We could try to load in files that get passed in as a command line argument
 
+            // If we get passed in an argument treat it as a path for a file to initially load
+            string path = null;
+            if (e.Args.Length > 0) {
+                path = e.Args[0];
+            }
+
             // Display main window
-            MainWindow = new MainWindow();
+            MainWindow = new MainWindow(path);
             MainWindow.Show();
         }
 

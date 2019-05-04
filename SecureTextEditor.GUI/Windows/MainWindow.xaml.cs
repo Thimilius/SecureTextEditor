@@ -13,7 +13,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
-using System.Windows.Shapes;
 using AdonisUI;
 using Microsoft.Win32;
 using SecureTextEditor.Core;
@@ -29,16 +28,27 @@ namespace SecureTextEditor.GUI {
 
         public TextEditorControl TextEditorControl { get; private set; }
 
-        public MainWindow() { 
+        public MainWindow(string path) { 
             InitializeComponent();
 
             // We need to set the inital theme based on config
             ChangeTheme(AppConfig.Config.Theme);
 
-            // Create text editor with new empty tab
+            // Create text editor
             TextEditorControl = new TextEditorControl(this, EditorTabControl);
             TextEditorControl.TabChanged += OnTabChanged;
-            TextEditorControl.NewTab("");
+
+            // If we get passed in a path try to load in the file
+            if (path != null) {
+                // TODO: Better abstract this logic
+                var file = FileHandler.OpenFile(path, Path.GetFileName(path));
+                if (file != null) {
+                    TextEditorControl.NewTab(file.Text, file.Encoding, file.FileName);
+                    UpdateEncodingUI();
+                }
+            } else {
+                TextEditorControl.NewTab("");
+            }
 
             // Subscribe to global events
             ThemeCheckBoxLightMode.Click += (s, e) => ChangeTheme(Theme.LightMode);

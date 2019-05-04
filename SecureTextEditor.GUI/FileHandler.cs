@@ -39,8 +39,6 @@ namespace SecureTextEditor.GUI {
         }
 
         public static File OpenFile() {
-            // TODO: Enable loading of normal text files
-
             // Show dialog for opening a file
             var dialog = new OpenFileDialog {
                 Filter = FILE_FILTER
@@ -51,11 +49,16 @@ namespace SecureTextEditor.GUI {
                 return null;
             }
 
+            return OpenFile(dialog.FileName, dialog.SafeFileName);
+        }
+
+        public static File OpenFile(string path, string fileName) {
+            // TODO: Enable loading of normal text files
             // TODO: Check if we have the file already open
             // TODO: Do error checking
 
             // Load file and decrypt with corresponding encoding
-            var file = SecureTextFile.Load(dialog.FileName);
+            var file = SecureTextFile.Load(path);
             var textEncoding = file.Encoding;
             
             var encoding = GetEncoding(textEncoding);
@@ -65,8 +68,8 @@ namespace SecureTextEditor.GUI {
             return new File() {
                 Text = text,
                 Encoding = textEncoding,
-                FileName = dialog.SafeFileName,
-                FilePath = dialog.FileName
+                FileName = fileName,
+                FilePath = path
             };
         }
 
