@@ -23,6 +23,12 @@ namespace SecureTextEditor.GUI {
     public partial class SaveWindow : Window {
         public SaveWindow() {
             InitializeComponent();
+
+            // Set up UI
+            CipherModeComboBox.ItemsSource = Enum.GetValues(typeof(CipherMode)).Cast<CipherMode>();
+            CipherModeComboBox.SelectedItem = CipherMode.CBC;
+            CipherPaddingComboBox.ItemsSource = Enum.GetValues(typeof(CipherPadding)).Cast<CipherPadding>();
+            CipherPaddingComboBox.SelectedItem = CipherPadding.PKCS7;
         }
 
         private void CancelSave(object sender, RoutedEventArgs e) {
@@ -33,7 +39,9 @@ namespace SecureTextEditor.GUI {
             TextEditorTab tab = (Owner as MainWindow).TextEditorControl.CurrentTab;
             
             WaitingIndicator.Visibility = Visibility.Visible;
-            await FileHandler.SaveFileAsync(tab.Editor.Text, tab.TextEncoding);
+            CipherMode mode = (CipherMode)CipherModeComboBox.SelectedItem;
+            CipherPadding padding = (CipherPadding)CipherPaddingComboBox.SelectedItem;
+            await FileHandler.SaveFileAsync(tab.Editor.Text, mode, padding, tab.TextEncoding);
 
             CancelButton.IsEnabled = false;
             SaveButton.IsEnabled = false;
