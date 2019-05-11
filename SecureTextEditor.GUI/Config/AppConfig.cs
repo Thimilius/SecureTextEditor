@@ -41,7 +41,6 @@ namespace SecureTextEditor.GUI.Config {
         /// </summary>
         public static void Save() {
             try {
-                // TODO: Save enums as strings instead of numbers
                 string json = JsonConvert.SerializeObject(Config, SERIALIZER_SETTINGS);
                 File.WriteAllText(FILE_PATH, json);
             } catch {

@@ -13,6 +13,8 @@ using SecureTextEditor.GUI.Config;
 namespace SecureTextEditor.GUI.Editor {
     public class TextEditorControl {
         private const int MAX_TABS = 10;
+        private const int ZOOM_MIN_LIMIT = 4;
+        private const int ZOOM_MAX_LIMIT = 60;
 
         private MainWindow m_Window;
         private TabControl m_TabControl;
@@ -95,7 +97,6 @@ namespace SecureTextEditor.GUI.Editor {
         }
 
         public void ZoomReset() {
-            // NOTE: Should this be loaded from config?
             m_Zoom = 16;
             SetZoom();
         }
@@ -107,10 +108,10 @@ namespace SecureTextEditor.GUI.Editor {
         }
 
         private void ClampZoom() {
-            if (m_Zoom < 2) {
-                m_Zoom = 2;
-            } else if (m_Zoom > 50) {
-                m_Zoom = 50;
+            if (m_Zoom < ZOOM_MIN_LIMIT) {
+                m_Zoom = ZOOM_MIN_LIMIT;
+            } else if (m_Zoom > ZOOM_MAX_LIMIT) {
+                m_Zoom = ZOOM_MAX_LIMIT;
             }
         }
 

@@ -107,7 +107,14 @@ namespace SecureTextEditor.GUI {
         }
 
         private void OnZoomChanged(object sender, MouseWheelEventArgs e) {
-            // Handles zoom change via mouse wheel
+            // Handles zoom change via mouse wheel when control is held down
+            if (Keyboard.PrimaryDevice.Modifiers == ModifierKeys.Control) {
+                if (e.Delta > 0) {
+                    TextEditorControl.ZoomIn();
+                } else {
+                    TextEditorControl.ZoomOut();
+                }
+            }
         }
 
         private void OnCloseTab(object sender, RoutedEventArgs e) {
