@@ -44,7 +44,7 @@ namespace SecureTextEditor.GUI.Config {
                 string json = JsonConvert.SerializeObject(Config, SERIALIZER_SETTINGS);
                 File.WriteAllText(FILE_PATH, json);
             } catch {
-                // TODO: Display error feedback
+                // Silently fail because error is not important for user
             }
         }
 
@@ -54,20 +54,20 @@ namespace SecureTextEditor.GUI.Config {
         public static void Load() {
             // If a settings file does not exits fallback to default config
             if (!File.Exists(FILE_PATH)) {
-                ResetSettings();
+                SetDefaultSettings();
+                return;
             }
 
-            // Try loading the file and fallback to default config should that fail
+            // Try loading the config file and if that fails fallback to default
             try {
                 string json = File.ReadAllText(FILE_PATH);
                 Config = JsonConvert.DeserializeObject<Configuration>(json, SERIALIZER_SETTINGS);
             } catch {
-                // TODO: Display error feedback
-                ResetSettings();
+                SetDefaultSettings();
             }
         }
 
-        private static void ResetSettings() {
+        private static void SetDefaultSettings() {
             // Set default config
             Config = new Configuration() {
                 Theme = Theme.DarkMode,

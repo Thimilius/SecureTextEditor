@@ -37,6 +37,7 @@ namespace SecureTextEditor.GUI.Editor {
         }
 
         public void NewTab(string content) {
+            // TODO: Be more intelligent when it comes to increasing the new tab counter
             string name = $"New {m_NewTabCounter++}";
             NewTab(content, new FileMetaData() {
                 Encoding = AppConfig.Config.NewFileTextEncoding,
@@ -46,8 +47,8 @@ namespace SecureTextEditor.GUI.Editor {
         } 
 
         public void NewTab(string content, FileMetaData fileMetaData) {
+            // Currently we have a maximum number of concurrently open tabs
             if (m_TabControl.Items.Count == MAX_TABS) {
-                // TODO: Inform user the tab limit is reached
                 return;
             }
 
@@ -79,8 +80,9 @@ namespace SecureTextEditor.GUI.Editor {
                 return;
             }
 
+            // Prompt the user for saving if the file is dirty
             if (tab.Dirty) {
-                // TODO: Prompt unsaved warning
+                m_Window.PromptSaveDialog();
             }
 
             var item = tab.TabItem;

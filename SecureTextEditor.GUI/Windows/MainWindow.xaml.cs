@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -50,6 +51,7 @@ namespace SecureTextEditor.GUI {
 
             // Subscribe to global events
             EditorTabControl.MouseWheel += OnZoomChanged;
+            Closing += OnWindowClosing;
             ThemeCheckBoxLightMode.Click += (s, e) => ChangeTheme(Theme.LightMode);
             ThemeCheckBoxDarkMode.Click += (s, e) => ChangeTheme(Theme.DarkMode);
             EncodingCheckBoxASCII.Click += (s, e) => ChangeEncoding(TextEncoding.ASCII);
@@ -62,11 +64,34 @@ namespace SecureTextEditor.GUI {
             UpdateWindowTitle();
         }
 
-        private void OnExit(object sender, RoutedEventArgs e) {
+        public bool PromptSaveDialog() {
+            // Prompt the user if the tab is dirty and is not empty
             if (TextEditorControl.CurrentTab.Dirty) {
-                // TODO: Prompt unsaved warning
+                // TODO: Prompt user for every dirty tab, not only the current one
+                bool? result = DialogWindow.Show(this, "Do you want to save the file before closing?", "Save", MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+                if (result.Value) {
+                    PromptSaveWindow();
+                }
+
+                return result.Value;
             }
-            Application.Current.Shutdown();
+
+            return false;
+        }
+
+        private void PromptSaveWindow() {
+            // Open and show the save dialog
+            Window window = new SaveWindow {
+                Owner = this,
+            };
+            window.ShowDialog();
+
+            UpdateUI();
+        }
+
+        private void OnExit(object sender, EventArgs e) {
+            Close();
         }
 
         private void OnNew(object sender, RoutedEventArgs e) {
@@ -82,13 +107,11 @@ namespace SecureTextEditor.GUI {
         }
 
         private void OnSave(object sender, RoutedEventArgs e) {
-            // Open and show the save dialog
-            Window window = new SaveWindow {
-                Owner = this,
-            };
-            window.ShowDialog();
+            PromptSaveWindow();
+        }
 
-            UpdateUI();
+        private void OnWindowClosing(object sender, CancelEventArgs e) {
+            PromptSaveDialog();
         }
 
         private void OnZoomIn(object sender, RoutedEventArgs e) {

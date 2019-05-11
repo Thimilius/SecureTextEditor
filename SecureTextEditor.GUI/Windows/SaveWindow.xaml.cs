@@ -45,8 +45,10 @@ namespace SecureTextEditor.GUI {
             FileMetaData metaData = await FileHandler.SaveFileAsync(tab.Editor.Text, mode, padding, tab.FileMetaData.Encoding);
 
             // Update file meta data and header for the tab that got saved
-            tab.FileMetaData = metaData;
-            tab.SetHeader(metaData.FileName);
+            if (metaData != null) {
+                tab.FileMetaData = metaData;
+                tab.SetHeader(metaData.FileName);
+            }
 
             CancelButton.IsEnabled = false;
             SaveButton.IsEnabled = false;
