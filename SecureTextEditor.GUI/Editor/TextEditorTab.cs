@@ -22,6 +22,15 @@ namespace SecureTextEditor.GUI.Editor {
             };
 
             // Create UI
+            CreateUI(header);
+        }
+
+        public void Focus() {
+            TabItem.Focus();
+            Editor.Focus();
+        }
+
+        private void CreateUI(string header) {
             var contextMenu = new ContextMenu();
             var closeMenuItem = new MenuItem() {
                 Header = "Close",
@@ -49,20 +58,7 @@ namespace SecureTextEditor.GUI.Editor {
             closeButton.Click += OnClose;
             closeMenuItem.Click += OnClose;
 
-            Editor.TextInput += (s, e) => {
-                Dirty = true;
-                UpdateStatus();
-            };
-            Editor.SelectionChanged += (s, e) => UpdateStatus();
-        }
-
-        public void Focus() {
-            TabItem.Focus();
-            Editor.Focus();
-        }
-
-        public void UpdateStatus() {
-
+            Editor.TextInput += (s, e) => Dirty = true;
         }
 
         private void OnClose(object sender, RoutedEventArgs e) {

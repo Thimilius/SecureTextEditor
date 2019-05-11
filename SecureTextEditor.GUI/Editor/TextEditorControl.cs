@@ -17,6 +17,7 @@ namespace SecureTextEditor.GUI.Editor {
         private MainWindow m_Window;
         private TabControl m_TabControl;
         private int m_NewTabCounter;
+        private int m_Zoom; // Actually describes font size
 
         public TextEditorTab CurrentTab { get; private set; }
 
@@ -28,13 +29,16 @@ namespace SecureTextEditor.GUI.Editor {
             m_NewTabCounter = 1;
 
             m_TabControl.SelectionChanged += OnTabControlSelectionChanged;
+
+            // Get zoom from config
+            m_Zoom = AppConfig.Config.Zoom;
         }
 
         public void NewTab(string content) => NewTab(content, AppConfig.Config.NewFileTextEncoding, $"New {m_NewTabCounter++}");
 
         public void NewTab(string content, TextEncoding textEncoding, string header) {
             if (m_TabControl.Items.Count == MAX_TABS) {
-                // TODO: Inform user
+                // TODO: Inform user the tab limit is reached
                 return;
             }
 
@@ -42,6 +46,9 @@ namespace SecureTextEditor.GUI.Editor {
             var tab = new TextEditorTab(this, header, content, textEncoding);
             var item = tab.TabItem;
             var editor = tab.Editor;
+
+            // Set zoom
+            editor.FontSize = m_Zoom;
 
             // Subscribe to tab drag and drop events
             item.PreviewMouseMove += OnTabItemPreviewMouseMove;
@@ -58,6 +65,7 @@ namespace SecureTextEditor.GUI.Editor {
         }
 
         public void CloseTab(TextEditorTab tab) {
+            // We don't bother closing the tab if its the last one and empty
             if (m_TabControl.Items.Count == 1 && tab.Editor.Text == "") {
                 return;
             }
@@ -76,19 +84,51 @@ namespace SecureTextEditor.GUI.Editor {
             }
         }
 
+        public void ZoomIn() {
+            m_Zoom += 2;
+            SetZoom();
+        }
+
+        public void ZoomOut() {
+            m_Zoom -= 2;
+            SetZoom();
+        }
+
+        public void ZoomReset() {
+            // NOTE: Should this be loaded from config?
+            m_Zoom = 16;
+            SetZoom();
+        }
+
+        private void SetZoom() {
+            ClampZoom();
+            CurrentTab.Editor.FontSize = m_Zoom;
+            AppConfig.Config.Zoom = m_Zoom;
+        }
+
+        private void ClampZoom() {
+            if (m_Zoom < 2) {
+                m_Zoom = 2;
+            } else if (m_Zoom > 50) {
+                m_Zoom = 50;
+            }
+        }
+
         private void FocusTab(TextEditorTab tab) {
             tab.Focus();
             CurrentTab = tab;
         }
 
-        // TODO: Support zoom via mouse wheel
-
         private void OnTabControlSelectionChanged(object sender, SelectionChangedEventArgs e) {
             if (e.Source is TabControl) {
                 if (e.AddedItems.Count > 0) {
                     if (e.AddedItems[0] is TabItem tab) {
+                        // Update the current tab
                         CurrentTab = tab.Tag as TextEditorTab;
-                        CurrentTab.UpdateStatus();
+
+                        SetZoom();
+
+                        // Invoke event
                         TabChanged?.Invoke();
                     }
                 }

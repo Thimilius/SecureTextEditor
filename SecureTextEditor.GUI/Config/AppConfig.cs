@@ -1,5 +1,8 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Windows;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using SecureTextEditor.Core;
 
 namespace SecureTextEditor.GUI.Config {
@@ -7,12 +10,26 @@ namespace SecureTextEditor.GUI.Config {
     /// Contains the config used and saved by the application.
     /// </summary>
     public static class AppConfig {
+        /// <summary>
+        /// Dummy config implementation that makes sure all properties are loaded in.
+        /// </summary>
         private class Configuration : IConfig {
-            public Theme Theme { get; set; }
-            public TextEncoding NewFileTextEncoding { get; set; }
+            [JsonProperty(Required = Required.Always)] public Theme Theme { get; set; }
+            [JsonProperty(Required = Required.Always)] public int Zoom { get; set; }
+            [JsonProperty(Required = Required.Always)] public TextEncoding NewFileTextEncoding { get; set; }
         }
 
-        private const string FILE_PATH = ".settings";
+        /// <summary>
+        /// The path to the config file.
+        /// </summary>
+        private const string FILE_PATH = ".config";
+        /// <summary>
+        /// Settings for serializing and deserializing the settings file.
+        /// </summary>
+        private static readonly JsonSerializerSettings SERIALIZER_SETTINGS = new JsonSerializerSettings() {
+            Formatting = Formatting.Indented,
+            Converters = new List<JsonConverter>() { new StringEnumConverter() }
+        };
 
         /// <summary>
         /// Gets the current config.
@@ -24,7 +41,8 @@ namespace SecureTextEditor.GUI.Config {
         /// </summary>
         public static void Save() {
             try {
-                string json = JsonConvert.SerializeObject(Config, Formatting.Indented);
+                // TODO: Save enums as strings instead of numbers
+                string json = JsonConvert.SerializeObject(Config, SERIALIZER_SETTINGS);
                 File.WriteAllText(FILE_PATH, json);
             } catch {
                 // TODO: Display error feedback
@@ -43,7 +61,7 @@ namespace SecureTextEditor.GUI.Config {
             // Try loading the file and fallback to default config should that fail
             try {
                 string json = File.ReadAllText(FILE_PATH);
-                Config = JsonConvert.DeserializeObject<Configuration>(json);
+                Config = JsonConvert.DeserializeObject<Configuration>(json, SERIALIZER_SETTINGS);
             } catch {
                 // TODO: Display error feedback
                 ResetSettings();
@@ -54,6 +72,7 @@ namespace SecureTextEditor.GUI.Config {
             // Set default config
             Config = new Configuration() {
                 Theme = Theme.DarkMode,
+                Zoom = 16,
                 NewFileTextEncoding = TextEncoding.UTF8
             };
         }

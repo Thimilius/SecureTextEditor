@@ -51,6 +51,7 @@ namespace SecureTextEditor.GUI {
             }
 
             // Subscribe to global events
+            EditorTabControl.MouseWheel += OnZoomChanged;
             ThemeCheckBoxLightMode.Click += (s, e) => ChangeTheme(Theme.LightMode);
             ThemeCheckBoxDarkMode.Click += (s, e) => ChangeTheme(Theme.DarkMode);
             EncodingCheckBoxASCII.Click += (s, e) => ChangeEncoding(TextEncoding.ASCII);
@@ -94,12 +95,19 @@ namespace SecureTextEditor.GUI {
         }
 
         private void OnZoomIn(object sender, RoutedEventArgs e) {
+            TextEditorControl.ZoomIn();
         }
 
         private void OnZoomOut(object sender, RoutedEventArgs e) {
+            TextEditorControl.ZoomOut();
         }
 
         private void OnZoomReset(object sender, RoutedEventArgs e) {
+            TextEditorControl.ZoomReset();
+        }
+
+        private void OnZoomChanged(object sender, MouseWheelEventArgs e) {
+            // Handles zoom change via mouse wheel
         }
 
         private void OnCloseTab(object sender, RoutedEventArgs e) {

@@ -10,6 +10,10 @@ namespace SecureTextEditor.GUI.Config {
         /// </summary>
         Theme Theme { get; set; }
         /// <summary>
+        /// Gets or sets the zoom level.
+        /// </summary>
+        int Zoom { get; set; }
+        /// <summary>
         /// Gets or sets the text encoding that new files initially have.
         /// </summary>
         TextEncoding NewFileTextEncoding { get; set; }
