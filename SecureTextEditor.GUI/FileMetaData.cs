@@ -5,5 +5,6 @@ namespace SecureTextEditor.GUI {
         public TextEncoding Encoding { get; set; }
         public string FileName { get; set; }
         public string FilePath { get; set; }
+        public bool IsNew { get; set; }
     }
 }

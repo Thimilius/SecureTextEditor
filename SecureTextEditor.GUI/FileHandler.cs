@@ -38,7 +38,8 @@ namespace SecureTextEditor.GUI {
             return new FileMetaData() {
                 Encoding = textEncoding,
                 FileName = dialog.SafeFileName,
-                FilePath = dialog.FileName
+                FilePath = dialog.FileName,
+                IsNew = false,
             };
         }
 
@@ -74,7 +75,8 @@ namespace SecureTextEditor.GUI {
                 MetaData = new FileMetaData() {
                     Encoding = textEncoding,
                     FileName = fileName,
-                    FilePath = path
+                    FilePath = path,
+                    IsNew = false
                 }
             };
         }

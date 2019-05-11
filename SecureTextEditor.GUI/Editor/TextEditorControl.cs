@@ -18,8 +18,10 @@ namespace SecureTextEditor.GUI.Editor {
 
         private MainWindow m_Window;
         private TabControl m_TabControl;
-        private int m_NewTabCounter;
         private int m_Zoom; // Actually describes font size
+
+        private int m_NewTabCounter;
+        private List<int> m_NewTabCounterList;
 
         public TextEditorTab CurrentTab { get; private set; }
 
@@ -29,6 +31,7 @@ namespace SecureTextEditor.GUI.Editor {
             m_Window = window;
             m_TabControl = tabControl;
             m_NewTabCounter = 1;
+            m_NewTabCounterList = new List<int>();
 
             m_TabControl.SelectionChanged += OnTabControlSelectionChanged;
 
@@ -37,12 +40,23 @@ namespace SecureTextEditor.GUI.Editor {
         }
 
         public void NewTab(string content) {
-            // TODO: Be more intelligent when it comes to increasing the new tab counter
-            string name = $"New {m_NewTabCounter++}";
+            // Figure out the counter for the new tab
+            int counter;
+            if (m_NewTabCounterList.Count > 0) {
+                m_NewTabCounterList.Sort();
+                counter = m_NewTabCounterList[0];
+                m_NewTabCounterList.RemoveAt(0);
+            } else {
+                counter = m_NewTabCounter++;
+            }
+
+            string name = $"New {counter}";
+
             NewTab(content, new FileMetaData() {
                 Encoding = AppConfig.Config.NewFileTextEncoding,
                 FileName = name,
-                FilePath = name
+                FilePath = name,
+                IsNew = true
             });
         } 
 
@@ -88,6 +102,11 @@ namespace SecureTextEditor.GUI.Editor {
             var item = tab.TabItem;
             // Remove the tab
             m_TabControl.Items.Remove(item);
+
+            if (tab.FileMetaData.IsNew) {
+                // This is a little hardcoded but thats fine
+                m_NewTabCounterList.Add(int.Parse(tab.FileMetaData.FileName.Substring(4)));
+            }
 
             // If we have no tabs open any more, open a new empty one
             if (!m_TabControl.HasItems) {
