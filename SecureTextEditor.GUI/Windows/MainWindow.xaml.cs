@@ -24,8 +24,6 @@ namespace SecureTextEditor.GUI {
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow : Window {
-        public Encoding CurrentEncoding => Encoding.UTF8;
-
         public TextEditorControl TextEditorControl { get; private set; }
 
         public MainWindow(string path) { 
@@ -36,15 +34,15 @@ namespace SecureTextEditor.GUI {
 
             // Create text editor
             TextEditorControl = new TextEditorControl(this, EditorTabControl);
-            TextEditorControl.TabChanged += OnTabChanged;
+            TextEditorControl.TabChanged += UpdateUI;
 
             // If we get passed in a path try to load in the file
             if (path != null) {
                 // TODO: Better abstract this logic
                 var file = FileHandler.OpenFile(path, Path.GetFileName(path));
                 if (file != null) {
-                    TextEditorControl.NewTab(file.Text, file.Encoding, file.FileName);
-                    UpdateEncodingUI();
+                    TextEditorControl.NewTab(file.Text, file.MetaData);
+                    UpdateEncodingStatus();
                 }
             } else {
                 TextEditorControl.NewTab("");
@@ -58,17 +56,10 @@ namespace SecureTextEditor.GUI {
             EncodingCheckBoxUTF8.Click += (s, e) => ChangeEncoding(TextEncoding.UTF8);
         }
 
-        public void UpdateEditorStatus() {
-            TextBox editor = TextEditorControl.CurrentTab.Editor;
-
-            // Update status bar texts and take into account empty text editor
-            LinesLabel.Text = $"Lines: {Math.Max(1, editor.LineCount)}";
-            int caretIndex = editor.CaretIndex;
-            int lineIndex = Math.Max(0, editor.GetLineIndexFromCharacterIndex(caretIndex));
-            LineLabel.Text = $"Ln: {lineIndex + 1}";
-            int charIndex = Math.Max(0, editor.GetCharacterIndexFromLineIndex(lineIndex));
-            ColumnLabel.Text = $"Col: {(caretIndex - charIndex) + 1}";
-            SelectionLabel.Text = $"Sel: {editor.SelectionLength}";
+        public void UpdateUI() {
+            UpdateEncodingStatus();
+            UpdateEditorStatus();
+            UpdateWindowTitle();
         }
 
         private void OnExit(object sender, RoutedEventArgs e) {
@@ -85,13 +76,19 @@ namespace SecureTextEditor.GUI {
         private void OnOpen(object sender, RoutedEventArgs e) {
             var file = FileHandler.OpenFile();
             if (file != null) {
-                TextEditorControl.NewTab(file.Text, file.Encoding, file.FileName);
-                UpdateEncodingUI();
+                TextEditorControl.NewTab(file.Text, file.MetaData);
+                UpdateEncodingStatus();
             }
         }
 
         private void OnSave(object sender, RoutedEventArgs e) {
-            ShowSaveWindow();
+            // Open and show the save dialog
+            Window window = new SaveWindow {
+                Owner = this,
+            };
+            window.ShowDialog();
+
+            UpdateUI();
         }
 
         private void OnZoomIn(object sender, RoutedEventArgs e) {
@@ -123,26 +120,14 @@ namespace SecureTextEditor.GUI {
 
         private void OnEncodingChanged(object sender, RoutedEventArgs e) {
             // Update encoding checkboxes
-            EncodingCheckBoxASCII.IsChecked = TextEditorControl.CurrentTab.TextEncoding == TextEncoding.ASCII;
-            EncodingCheckBoxUTF8.IsChecked = TextEditorControl.CurrentTab.TextEncoding == TextEncoding.UTF8;
-        }
-
-        private void OnTabChanged() {
-            UpdateEncodingUI();
-            UpdateEditorStatus();
-        }
-
-        private void ShowSaveWindow() {
-            Window window = new SaveWindow {
-                Owner = this,
-            };
-            window.ShowDialog();
+            EncodingCheckBoxASCII.IsChecked = TextEditorControl.CurrentTab.FileMetaData.Encoding == TextEncoding.ASCII;
+            EncodingCheckBoxUTF8.IsChecked = TextEditorControl.CurrentTab.FileMetaData.Encoding == TextEncoding.UTF8;
         }
 
         private void ChangeEncoding(TextEncoding encoding) {
-            TextEditorControl.CurrentTab.TextEncoding = encoding;
+            TextEditorControl.CurrentTab.FileMetaData.Encoding = encoding;
 
-            UpdateEncodingUI();
+            UpdateEncodingStatus();
         }
 
         private void ChangeTheme(Theme theme) {
@@ -158,7 +143,7 @@ namespace SecureTextEditor.GUI {
             ThemeCheckBoxDarkMode.IsChecked = theme == Theme.DarkMode;
         }
 
-        private void UpdateEncodingUI() {
+        private void UpdateEncodingStatus() {
             string TextEncodingToString(TextEncoding textEncoding) {
                 switch (textEncoding) {
                     case TextEncoding.ASCII: return "ASCII";
@@ -168,11 +153,27 @@ namespace SecureTextEditor.GUI {
             }
 
             // Update encoding checkboxes
-            var encoding = TextEditorControl.CurrentTab.TextEncoding;
+            var encoding = TextEditorControl.CurrentTab.FileMetaData.Encoding;
             EncodingCheckBoxASCII.IsChecked = encoding == TextEncoding.ASCII;
             EncodingCheckBoxUTF8.IsChecked = encoding == TextEncoding.UTF8;
 
             EncodingLabel.Text = $"Encoding: {TextEncodingToString(encoding)}";
+        }
+
+        private void UpdateEditorStatus() {
+            // Update status bar texts and take into account empty text editor
+            TextBox editor = TextEditorControl.CurrentTab.Editor;
+            LinesLabel.Text = $"Lines: {Math.Max(1, editor.LineCount)}";
+            int caretIndex = editor.CaretIndex;
+            int lineIndex = Math.Max(0, editor.GetLineIndexFromCharacterIndex(caretIndex));
+            LineLabel.Text = $"Ln: {lineIndex + 1}";
+            int charIndex = Math.Max(0, editor.GetCharacterIndexFromLineIndex(lineIndex));
+            ColumnLabel.Text = $"Col: {(caretIndex - charIndex) + 1}";
+            SelectionLabel.Text = $"Sel: {editor.SelectionLength}";
+        }
+
+        private void UpdateWindowTitle() {
+            Title = $"Secure Text Editor - {TextEditorControl.CurrentTab.FileMetaData.FilePath}";
         }
     }
 }

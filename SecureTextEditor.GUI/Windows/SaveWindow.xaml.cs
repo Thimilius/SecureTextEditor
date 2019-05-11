@@ -37,11 +37,16 @@ namespace SecureTextEditor.GUI {
 
         private async void Save(object sender, RoutedEventArgs e) {
             TextEditorTab tab = (Owner as MainWindow).TextEditorControl.CurrentTab;
-            
+
+            // Do the actual save
             WaitingIndicator.Visibility = Visibility.Visible;
             CipherMode mode = (CipherMode)CipherModeComboBox.SelectedItem;
             CipherPadding padding = (CipherPadding)CipherPaddingComboBox.SelectedItem;
-            await FileHandler.SaveFileAsync(tab.Editor.Text, mode, padding, tab.TextEncoding);
+            FileMetaData metaData = await FileHandler.SaveFileAsync(tab.Editor.Text, mode, padding, tab.FileMetaData.Encoding);
+
+            // Update file meta data and header for the tab that got saved
+            tab.FileMetaData = metaData;
+            tab.SetHeader(metaData.FileName);
 
             CancelButton.IsEnabled = false;
             SaveButton.IsEnabled = false;

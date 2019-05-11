@@ -8,14 +8,12 @@ namespace SecureTextEditor.GUI {
     public static class FileHandler {
         public class File {
             public string Text { get; set; }
-            public TextEncoding Encoding { get; set; }
-            public string FileName { get; set; }
-            public string FilePath { get; set; }
+            public FileMetaData MetaData { get; set; }
         }
 
         private const string FILE_FILTER = "Secure Text File (" + SecureTextFile.FILE_EXTENSION + ")|*" + SecureTextFile.FILE_EXTENSION;
 
-        public static async Task SaveFileAsync(string text, CipherMode mode, CipherPadding padding, TextEncoding textEncoding) {
+        public static async Task<FileMetaData> SaveFileAsync(string text, CipherMode mode, CipherPadding padding, TextEncoding textEncoding) {
             // Show dialog for saving a file
             SaveFileDialog dialog = new SaveFileDialog() {
                 AddExtension = true,
@@ -24,7 +22,7 @@ namespace SecureTextEditor.GUI {
             bool? result = dialog.ShowDialog();
             // If no path for saving was selected we can bail out
             if (result == false) {
-                return;
+                return null;
             }
 
             await Task.Run(() => {
@@ -36,6 +34,12 @@ namespace SecureTextEditor.GUI {
                 SecureTextFile.Save(file, dialog.FileName);
             });
             await Task.Delay(250);
+
+            return new FileMetaData() {
+                Encoding = textEncoding,
+                FileName = dialog.SafeFileName,
+                FilePath = dialog.FileName
+            };
         }
 
         public static File OpenFile() {
@@ -67,9 +71,11 @@ namespace SecureTextEditor.GUI {
 
             return new File() {
                 Text = text,
-                Encoding = textEncoding,
-                FileName = fileName,
-                FilePath = path
+                MetaData = new FileMetaData() {
+                    Encoding = textEncoding,
+                    FileName = fileName,
+                    FilePath = path
+                }
             };
         }
 

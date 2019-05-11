@@ -36,16 +36,23 @@ namespace SecureTextEditor.GUI.Editor {
             m_Zoom = AppConfig.Config.Zoom;
         }
 
-        public void NewTab(string content) => NewTab(content, AppConfig.Config.NewFileTextEncoding, $"New {m_NewTabCounter++}");
+        public void NewTab(string content) {
+            string name = $"New {m_NewTabCounter++}";
+            NewTab(content, new FileMetaData() {
+                Encoding = AppConfig.Config.NewFileTextEncoding,
+                FileName = name,
+                FilePath = name
+            });
+        } 
 
-        public void NewTab(string content, TextEncoding textEncoding, string header) {
+        public void NewTab(string content, FileMetaData fileMetaData) {
             if (m_TabControl.Items.Count == MAX_TABS) {
                 // TODO: Inform user the tab limit is reached
                 return;
             }
 
             // FIXME: We should use an object pool here to avoid using unnecessary memory
-            var tab = new TextEditorTab(this, header, content, textEncoding);
+            var tab = new TextEditorTab(this, fileMetaData, content);
             var item = tab.TabItem;
             var editor = tab.Editor;
 
@@ -58,8 +65,8 @@ namespace SecureTextEditor.GUI.Editor {
             item.GiveFeedback += OnTabItemGiveFeedback;
 
             // Subscribe to text events
-            editor.TextChanged += (s, e) => m_Window.UpdateEditorStatus();
-            editor.SelectionChanged += (s, e) => m_Window.UpdateEditorStatus();
+            editor.TextChanged += (s, e) => m_Window.UpdateUI();
+            editor.SelectionChanged += (s, e) => m_Window.UpdateUI();
 
             // Add the tab to current tabs and focus it
             m_TabControl.Items.Add(item);

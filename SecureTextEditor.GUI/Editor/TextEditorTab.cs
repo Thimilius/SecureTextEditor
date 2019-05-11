@@ -6,28 +6,34 @@ using SecureTextEditor.Core;
 namespace SecureTextEditor.GUI.Editor {
     public class TextEditorTab {
         private TextEditorControl m_Control;
+        private TextBlock m_Header;
 
         public TabItem TabItem { get; private set; }
         public TextBox Editor { get; private set; }
+        public bool Dirty { get; private set; }
 
-        public TextEncoding TextEncoding { get; set; }
-        public bool Dirty { get; set; }
+        public FileMetaData FileMetaData { get; set; }
 
-        public TextEditorTab(TextEditorControl control, string header, string content, TextEncoding textEncoding) {
-            TextEncoding = textEncoding;
-            Dirty = false;
+        public TextEditorTab(TextEditorControl control, FileMetaData fileMetaData, string content) {
+            FileMetaData = fileMetaData;
             m_Control = control;
+
             Editor = new TextBox {
                 Text = content
             };
+            Dirty = false;
 
             // Create UI
-            CreateUI(header);
+            CreateUI(fileMetaData.FileName);
         }
 
         public void Focus() {
             TabItem.Focus();
             Editor.Focus();
+        }
+
+        public void SetHeader(string header) {
+            m_Header.Text = header;
         }
 
         private void CreateUI(string header) {
@@ -41,9 +47,10 @@ namespace SecureTextEditor.GUI.Editor {
             var stackPanel = new StackPanel() {
                 ContextMenu = contextMenu
             };
-            stackPanel.Children.Add(new TextBlock() {
+            m_Header = new TextBlock() {
                 Text = header
-            });
+            };
+            stackPanel.Children.Add(m_Header);
 
             var closeButton = new Button();
             stackPanel.Children.Add(closeButton);
@@ -58,7 +65,13 @@ namespace SecureTextEditor.GUI.Editor {
             closeButton.Click += OnClose;
             closeMenuItem.Click += OnClose;
 
-            Editor.TextInput += (s, e) => Dirty = true;
+            Editor.TextChanged += (s, e) => {
+                if (!Dirty) {
+                    Dirty = true;
+                    // Show that the file is dirty
+                    m_Header.Text += "*";
+                }
+            };
         }
 
         private void OnClose(object sender, RoutedEventArgs e) {
