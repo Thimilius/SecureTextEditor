@@ -13,7 +13,7 @@ namespace SecureTextEditor.GUI {
 
         private const string FILE_FILTER = "Secure Text File (" + SecureTextFile.FILE_EXTENSION + ")|*" + SecureTextFile.FILE_EXTENSION;
 
-        public static async Task<FileMetaData> SaveFileAsync(string text, CipherMode mode, CipherPadding padding, TextEncoding textEncoding) {
+        public static async Task<FileMetaData> SaveFileAsync(string text, CipherBlockMode mode, CipherBlockPadding padding, TextEncoding textEncoding) {
             // Show dialog for saving a file
             SaveFileDialog dialog = new SaveFileDialog() {
                 AddExtension = true,

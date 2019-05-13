@@ -25,10 +25,10 @@ namespace SecureTextEditor.GUI {
             InitializeComponent();
 
             // Set up UI
-            CipherModeComboBox.ItemsSource = Enum.GetValues(typeof(CipherMode)).Cast<CipherMode>();
-            CipherModeComboBox.SelectedItem = CipherMode.CBC;
-            CipherPaddingComboBox.ItemsSource = Enum.GetValues(typeof(CipherPadding)).Cast<CipherPadding>();
-            CipherPaddingComboBox.SelectedItem = CipherPadding.PKCS7;
+            CipherModeComboBox.ItemsSource = Enum.GetValues(typeof(CipherBlockMode)).Cast<CipherBlockMode>();
+            CipherModeComboBox.SelectedItem = CipherBlockMode.CBC;
+            CipherPaddingComboBox.ItemsSource = Enum.GetValues(typeof(CipherBlockPadding)).Cast<CipherBlockPadding>();
+            CipherPaddingComboBox.SelectedItem = CipherBlockPadding.PKCS7;
         }
 
         private void CancelSave(object sender, RoutedEventArgs e) {
@@ -40,8 +40,8 @@ namespace SecureTextEditor.GUI {
 
             // Do the actual save
             WaitingIndicator.Visibility = Visibility.Visible;
-            CipherMode mode = (CipherMode)CipherModeComboBox.SelectedItem;
-            CipherPadding padding = (CipherPadding)CipherPaddingComboBox.SelectedItem;
+            CipherBlockMode mode = (CipherBlockMode)CipherModeComboBox.SelectedItem;
+            CipherBlockPadding padding = (CipherBlockPadding)CipherPaddingComboBox.SelectedItem;
             FileMetaData metaData = await FileHandler.SaveFileAsync(tab.Editor.Text, mode, padding, tab.FileMetaData.Encoding);
 
             // Update file meta data and header for the tab that got saved

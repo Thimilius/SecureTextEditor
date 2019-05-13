@@ -7,11 +7,11 @@ namespace SecureTextEditor.Core {
         public const string FILE_EXTENSION = ".stxt";
 
         public TextEncoding Encoding { get; }
-        public CipherMode Mode { get; }
-        public CipherPadding Padding { get; }
+        public CipherBlockMode Mode { get; }
+        public CipherBlockPadding Padding { get; }
         public string Base64Cipher { get; }
 
-        public SecureTextFile(TextEncoding encoding, CipherMode mode, CipherPadding padding, string base64Cipher) {
+        public SecureTextFile(TextEncoding encoding, CipherBlockMode mode, CipherBlockPadding padding, string base64Cipher) {
             Encoding = encoding;
             Mode = mode;
             Padding = padding;
