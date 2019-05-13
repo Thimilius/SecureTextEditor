@@ -25,6 +25,8 @@ namespace SecureTextEditor.GUI.Editor {
 
         public TextEditorTab CurrentTab { get; private set; }
 
+        public IEnumerable<TextEditorTab> Tabs => m_TabControl.Items.Cast<TabItem>().Select(i => (TextEditorTab)i.Tag);
+
         public event Action TabChanged;
 
         public TextEditorControl(MainWindow window, TabControl tabControl) {
@@ -71,6 +73,9 @@ namespace SecureTextEditor.GUI.Editor {
             var item = tab.TabItem;
             var editor = tab.Editor;
 
+            // We want to set the tab as the tag object for later use
+            item.Tag = tab;
+
             // Set zoom
             editor.FontSize = m_Zoom;
 
@@ -96,7 +101,7 @@ namespace SecureTextEditor.GUI.Editor {
 
             // Prompt the user for saving if the file is dirty
             if (tab.Dirty) {
-                m_Window.PromptSaveDialog();
+                m_Window.PromptSaveDialog(tab);
             }
 
             var item = tab.TabItem;

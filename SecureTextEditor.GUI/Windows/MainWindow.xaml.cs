@@ -64,25 +64,27 @@ namespace SecureTextEditor.GUI {
             UpdateWindowTitle();
         }
 
-        public bool PromptSaveDialog() {
-            // Prompt the user if the tab is dirty and is not empty
-            if (TextEditorControl.CurrentTab.Dirty) {
-                // TODO: Prompt user for every dirty tab, not only the current one
-                bool? result = DialogWindow.Show(this, "Do you want to save the file before closing?", "Save", MessageBoxButton.YesNo, MessageBoxImage.Question);
+        public void PromptSaveDialog(TextEditorTab tab) {
+            // Show question dialog
+            bool shouldSave = DialogWindow.Show(this, "Do you want to save the file before closing?", "Save", MessageBoxButton.YesNo, MessageBoxImage.Question);
 
-                if (result.Value) {
-                    PromptSaveWindow();
-                }
-
-                return result.Value;
+            if (shouldSave) {
+                PromptSaveWindow(tab);
             }
-
-            return false;
         }
 
-        private void PromptSaveWindow() {
+        private void PromptSaveDialogs() {
+            // Loop through every dirty tab
+            foreach (var tab in TextEditorControl.Tabs.Where(t => t.Dirty)) {
+                // Focus the tab and prompt save dialog for it
+                tab.Focus();
+                PromptSaveDialog(tab);
+            }
+        }
+
+        private void PromptSaveWindow(TextEditorTab tab) {
             // Open and show the save dialog
-            Window window = new SaveWindow {
+            Window window = new SaveWindow(TextEditorControl, tab) {
                 Owner = this,
             };
             window.ShowDialog();
@@ -107,11 +109,11 @@ namespace SecureTextEditor.GUI {
         }
 
         private void OnSave(object sender, RoutedEventArgs e) {
-            PromptSaveWindow();
+            PromptSaveWindow(TextEditorControl.CurrentTab);
         }
 
         private void OnWindowClosing(object sender, CancelEventArgs e) {
-            PromptSaveDialog();
+            PromptSaveDialogs();
         }
 
         private void OnZoomIn(object sender, RoutedEventArgs e) {

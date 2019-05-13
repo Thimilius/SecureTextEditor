@@ -21,23 +21,24 @@ namespace SecureTextEditor.GUI {
             Close();
         }
 
-        public static bool? Show(Window owner, string message, string caption) {
+        public static bool Show(Window owner, string message, string caption) {
             return Show(owner, message, caption, MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
-        public static bool? Show(Window owner, string message, string caption, MessageBoxButton button, MessageBoxImage icon) {
+        public static bool Show(Window owner, string message, string caption, MessageBoxButton button, MessageBoxImage icon) {
             // Create window and set properties
             var dialog = new DialogWindow() {
                 Owner = owner,
                 Title = caption
             };
-            dialog.MessageText.Text = message;
 
+            // Setup message, buttons and icon
+            dialog.MessageText.Text = message;
             SetButtons(dialog, button);
             SetIcon(dialog, icon);
 
             // Show window and return result
-            return dialog.ShowDialog();
+            return dialog.ShowDialog().Value;
         }
 
         private static void SetButtons(DialogWindow dialog, MessageBoxButton button) {

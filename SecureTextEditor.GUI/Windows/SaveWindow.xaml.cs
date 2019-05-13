@@ -1,62 +1,60 @@
-﻿using Microsoft.Win32;
+﻿using System;
+using System.Linq;
+using System.Windows;
 using SecureTextEditor.Core;
 using SecureTextEditor.GUI.Editor;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace SecureTextEditor.GUI {
     /// <summary>
     /// Interaction logic for SaveWindow.xaml
     /// </summary>
     public partial class SaveWindow : Window {
-        public SaveWindow() {
+        private TextEditorControl m_TextEditorControl;
+        private TextEditorTab m_TabToSave;
+
+        public SaveWindow(TextEditorControl control, TextEditorTab tab) {
             InitializeComponent();
 
+            m_TextEditorControl = control;
+            m_TabToSave = tab;
+
+            // TODO: Remember save options for files
+            // TODO: Set default options from config
             // Set up UI
-            CipherModeComboBox.ItemsSource = Enum.GetValues(typeof(CipherBlockMode)).Cast<CipherBlockMode>();
-            CipherModeComboBox.SelectedItem = CipherBlockMode.CBC;
-            CipherPaddingComboBox.ItemsSource = Enum.GetValues(typeof(CipherBlockPadding)).Cast<CipherBlockPadding>();
-            CipherPaddingComboBox.SelectedItem = CipherBlockPadding.PKCS7;
+            CipherBlockModeComboBox.ItemsSource = Enum.GetValues(typeof(CipherBlockMode)).Cast<CipherBlockMode>();
+            CipherBlockModeComboBox.SelectedItem = CipherBlockMode.CBC;
+            CipherBlockPaddingComboBox.ItemsSource = Enum.GetValues(typeof(CipherBlockPadding)).Cast<CipherBlockPadding>();
+            CipherBlockPaddingComboBox.SelectedItem = CipherBlockPadding.PKCS7;
         }
 
         private void CancelSave(object sender, RoutedEventArgs e) {
+            // When canceling we can just close the window
             Close();
         }
 
         private async void Save(object sender, RoutedEventArgs e) {
-            TextEditorControl control = (Owner as MainWindow).TextEditorControl;
-            TextEditorTab tab = control.CurrentTab;
+            // Turn on the save indicator
+            SavingIndicator.Visibility = Visibility.Visible;
 
             // Do the actual save
-            WaitingIndicator.Visibility = Visibility.Visible;
-            CipherBlockMode mode = (CipherBlockMode)CipherModeComboBox.SelectedItem;
-            CipherBlockPadding padding = (CipherBlockPadding)CipherPaddingComboBox.SelectedItem;
-            FileMetaData metaData = await FileHandler.SaveFileAsync(tab.Editor.Text, mode, padding, tab.FileMetaData.Encoding);
+            CipherBlockMode mode = (CipherBlockMode)CipherBlockModeComboBox.SelectedItem;
+            CipherBlockPadding padding = (CipherBlockPadding)CipherBlockPaddingComboBox.SelectedItem;
+            string text = m_TabToSave.Editor.Text;
+            TextEncoding encoding = m_TabToSave.FileMetaData.Encoding;
+            FileMetaData metaData = await FileHandler.SaveFileAsync(text, mode, padding, encoding);
 
             // Update file meta data and header for the tab that got saved
             if (metaData != null) {
                 // This is a little hackey that we do it here but it works
-                control.ProcessClosingTabCounter(tab);
+                m_TextEditorControl.ProcessClosingTabCounter(m_TabToSave);
 
                 // Set new meta data for alreay existing tab and update its header
-                tab.FileMetaData = metaData;
-                tab.SetHeader(metaData.FileName);
+                m_TabToSave.FileMetaData = metaData;
+                m_TabToSave.SetHeader(metaData.FileName);
             }
 
             // Saved files are no longer dirty
-            tab.Dirty = false;
+            m_TabToSave.Dirty = false;
 
             // We can close the dialog when finished
             Close();
