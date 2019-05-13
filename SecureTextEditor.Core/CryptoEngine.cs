@@ -23,6 +23,7 @@ namespace SecureTextEditor.Core {
         private readonly CipherBlockMode m_CipherBlockMode;
         private readonly Encoding m_Encoding;
 
+        // TODO: Replace Encoding with TextEncoding
         public CryptoEngine(CipherBlockMode mode, CipherBlockPadding padding, Encoding encoding) {
             m_CipherBlockMode = mode;
             m_Cipher = GetCipherMode(mode, GetCipherPadding(padding));
@@ -73,7 +74,7 @@ namespace SecureTextEditor.Core {
                 case CipherBlockPadding.TCB: return new TbcPadding();
                 case CipherBlockPadding.X923: return new X923Padding();
                 case CipherBlockPadding.ZeroBytes: return new ZeroBytePadding();
-                default: throw new Exception();
+                default: throw new ArgumentOutOfRangeException(nameof(padding));
             }
         }
 
@@ -82,7 +83,7 @@ namespace SecureTextEditor.Core {
                 case CipherBlockMode.ECB: return new PaddedBufferedBlockCipher(CIPHER_ENGINE, padding);
                 case CipherBlockMode.CBC: return new PaddedBufferedBlockCipher(new CbcBlockCipher(CIPHER_ENGINE), padding);
                 case CipherBlockMode.CTS: return new CtsBlockCipher(CIPHER_ENGINE);
-                default: throw new Exception();
+                default: throw new ArgumentOutOfRangeException(nameof(mode));
             }
         }
 

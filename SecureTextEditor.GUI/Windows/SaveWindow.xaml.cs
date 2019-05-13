@@ -21,6 +21,9 @@ namespace SecureTextEditor.GUI {
 
             // TODO: Remember save options for files
 
+            // FIXME: CTS block mode can only be used when message is more than one block in size
+            //        and should therefore not be an option if that is note the case
+
             // Set up UI
             CipherBlockModeComboBox.ItemsSource = Enum.GetValues(typeof(CipherBlockMode)).Cast<CipherBlockMode>();
             CipherBlockPaddingComboBox.ItemsSource = Enum.GetValues(typeof(CipherBlockPadding)).Cast<CipherBlockPadding>();
