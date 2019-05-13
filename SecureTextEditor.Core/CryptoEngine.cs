@@ -82,7 +82,7 @@ namespace SecureTextEditor.Core {
             switch (mode) {
                 case CipherBlockMode.ECB: return new PaddedBufferedBlockCipher(CIPHER_ENGINE, padding);
                 case CipherBlockMode.CBC: return new PaddedBufferedBlockCipher(new CbcBlockCipher(CIPHER_ENGINE), padding);
-                case CipherBlockMode.CTS: return new CtsBlockCipher(CIPHER_ENGINE);
+                case CipherBlockMode.CTS: return new CtsBlockCipher(new CbcBlockCipher(CIPHER_ENGINE));
                 default: throw new ArgumentOutOfRangeException(nameof(mode));
             }
         }

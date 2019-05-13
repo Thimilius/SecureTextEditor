@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Org.BouncyCastle.Crypto;
 using SecureTextEditor.Core;
 
 namespace SecureTextEditor.Tests {
@@ -35,6 +36,12 @@ namespace SecureTextEditor.Tests {
             string cipher = engine.Encrypt(message);
             string decrypt = engine.Decrypt(cipher);
             Assert.AreEqual(message, decrypt);
+
+            // Check that CTS needs at least one block of input
+            message = "Short message";
+            Assert.ThrowsException<DataLengthException>(() => {
+                engine.Encrypt(message);
+            });
         }
 
         [TestMethod]
