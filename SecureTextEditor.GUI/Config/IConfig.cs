@@ -17,5 +17,9 @@ namespace SecureTextEditor.GUI.Config {
         /// Gets or sets the text encoding that new files initially have.
         /// </summary>
         TextEncoding NewFileTextEncoding { get; set; }
+        /// <summary>
+        /// Gets or sets the default options when saving a file.
+        /// </summary>
+        SecurityOptions DefaultSaveOptions { get; set; }
     }
 }

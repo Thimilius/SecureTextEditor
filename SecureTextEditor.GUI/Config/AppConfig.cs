@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using System.Windows;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using SecureTextEditor.Core;
@@ -17,6 +16,7 @@ namespace SecureTextEditor.GUI.Config {
             [JsonProperty(Required = Required.Always)] public Theme Theme { get; set; }
             [JsonProperty(Required = Required.Always)] public int Zoom { get; set; }
             [JsonProperty(Required = Required.Always)] public TextEncoding NewFileTextEncoding { get; set; }
+            [JsonProperty(Required = Required.Always)] public SecurityOptions DefaultSaveOptions { get; set; }
         }
 
         /// <summary>
@@ -72,7 +72,11 @@ namespace SecureTextEditor.GUI.Config {
             Config = new Configuration() {
                 Theme = Theme.DarkMode,
                 Zoom = 16,
-                NewFileTextEncoding = TextEncoding.UTF8
+                NewFileTextEncoding = TextEncoding.UTF8,
+                DefaultSaveOptions = new SecurityOptions() {
+                    CipherBlockMode = CipherBlockMode.CBC,
+                    CipherBlockPadding = CipherBlockPadding.PKCS7
+                }
             };
         }
     }

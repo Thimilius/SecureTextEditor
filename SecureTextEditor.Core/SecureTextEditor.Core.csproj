@@ -52,6 +52,7 @@
     <Compile Include="CryptoEngine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SecureTextFile.cs" />
+    <Compile Include="SecurityOptions.cs" />
     <Compile Include="TextEncoding.cs" />
   </ItemGroup>
   <ItemGroup>

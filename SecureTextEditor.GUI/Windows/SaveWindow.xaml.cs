@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Windows;
 using SecureTextEditor.Core;
+using SecureTextEditor.GUI.Config;
 using SecureTextEditor.GUI.Editor;
 
 namespace SecureTextEditor.GUI {
@@ -19,12 +20,14 @@ namespace SecureTextEditor.GUI {
             m_TabToSave = tab;
 
             // TODO: Remember save options for files
-            // TODO: Set default options from config
+
             // Set up UI
             CipherBlockModeComboBox.ItemsSource = Enum.GetValues(typeof(CipherBlockMode)).Cast<CipherBlockMode>();
-            CipherBlockModeComboBox.SelectedItem = CipherBlockMode.CBC;
             CipherBlockPaddingComboBox.ItemsSource = Enum.GetValues(typeof(CipherBlockPadding)).Cast<CipherBlockPadding>();
-            CipherBlockPaddingComboBox.SelectedItem = CipherBlockPadding.PKCS7;
+
+            // Set default options from config
+            CipherBlockModeComboBox.SelectedItem = AppConfig.Config.DefaultSaveOptions.CipherBlockMode;
+            CipherBlockPaddingComboBox.SelectedItem = AppConfig.Config.DefaultSaveOptions.CipherBlockPadding;
         }
 
         private void CancelSave(object sender, RoutedEventArgs e) {
