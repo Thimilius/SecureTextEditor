@@ -103,10 +103,7 @@ namespace SecureTextEditor.GUI.Editor {
             // Remove the tab
             m_TabControl.Items.Remove(item);
 
-            if (tab.FileMetaData.IsNew) {
-                // This is a little hardcoded but thats fine
-                m_NewTabCounterList.Add(int.Parse(tab.FileMetaData.FileName.Substring(4)));
-            }
+            ProcessClosingTabCounter(tab);
 
             // If we have no tabs open any more, open a new empty one
             if (!m_TabControl.HasItems) {
@@ -127,6 +124,14 @@ namespace SecureTextEditor.GUI.Editor {
         public void ZoomReset() {
             m_Zoom = 16;
             SetZoom();
+        }
+
+        public void ProcessClosingTabCounter(TextEditorTab tab) {
+            // Only process "new" tabs that were not saved before
+            if (tab.FileMetaData.IsNew) {
+                // This is a little hardcoded but thats fine
+                m_NewTabCounterList.Add(int.Parse(tab.FileMetaData.FileName.Substring(4)));
+            }
         }
 
         private void SetZoom() {

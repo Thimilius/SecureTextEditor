@@ -36,7 +36,8 @@ namespace SecureTextEditor.GUI {
         }
 
         private async void Save(object sender, RoutedEventArgs e) {
-            TextEditorTab tab = (Owner as MainWindow).TextEditorControl.CurrentTab;
+            TextEditorControl control = (Owner as MainWindow).TextEditorControl;
+            TextEditorTab tab = control.CurrentTab;
 
             // Do the actual save
             WaitingIndicator.Visibility = Visibility.Visible;
@@ -46,13 +47,18 @@ namespace SecureTextEditor.GUI {
 
             // Update file meta data and header for the tab that got saved
             if (metaData != null) {
+                // This is a little hackey that we do it here but it works
+                control.ProcessClosingTabCounter(tab);
+
+                // Set new meta data for alreay existing tab and update its header
                 tab.FileMetaData = metaData;
                 tab.SetHeader(metaData.FileName);
             }
 
-            CancelButton.IsEnabled = false;
-            SaveButton.IsEnabled = false;
+            // Saved files are no longer dirty
+            tab.Dirty = false;
 
+            // We can close the dialog when finished
             Close();
         }
     }

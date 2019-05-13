@@ -10,8 +10,8 @@ namespace SecureTextEditor.GUI.Editor {
 
         public TabItem TabItem { get; private set; }
         public TextBox Editor { get; private set; }
-        public bool Dirty { get; private set; }
 
+        public bool Dirty { get; set; }
         public FileMetaData FileMetaData { get; set; }
 
         public TextEditorTab(TextEditorControl control, FileMetaData fileMetaData, string content) {
