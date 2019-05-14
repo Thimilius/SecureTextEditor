@@ -25,10 +25,10 @@ namespace SecureTextEditor.Core {
         private readonly Encoding m_Encoding;
 
         // TODO: Replace Encoding with TextEncoding
-        public CryptoEngine(CipherBlockMode mode, CipherBlockPadding padding, Encoding encoding) {
+        public CryptoEngine(CipherBlockMode mode, CipherBlockPadding padding, TextEncoding encoding) {
             m_CipherBlockMode = mode;
             m_Cipher = GetCipherMode(mode, GetCipherPadding(padding));
-            m_Encoding = encoding;
+            m_Encoding = GetEncoding(encoding);
         }
 
         /// <summary>
@@ -89,6 +89,14 @@ namespace SecureTextEditor.Core {
                 case CipherBlockMode.CFB: return new BufferedBlockCipher(new CfbBlockCipher(CIPHER_ENGINE, STREAM_BLOCK_SIZE));
                 case CipherBlockMode.OFB: return new BufferedBlockCipher(new OfbBlockCipher(CIPHER_ENGINE, STREAM_BLOCK_SIZE));
                 default: throw new ArgumentOutOfRangeException(nameof(mode));
+            }
+        }
+
+        private Encoding GetEncoding(TextEncoding encoding) {
+            switch (encoding) {
+                case TextEncoding.ASCII: return Encoding.ASCII;
+                case TextEncoding.UTF8: return Encoding.UTF8;
+                default: throw new ArgumentOutOfRangeException(nameof(encoding));
             }
         }
 

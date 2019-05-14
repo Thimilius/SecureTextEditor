@@ -13,7 +13,7 @@ namespace SecureTextEditor.GUI {
 
         private const string FILE_FILTER = "Secure Text File (" + SecureTextFile.FILE_EXTENSION + ")|*" + SecureTextFile.FILE_EXTENSION;
 
-        public static async Task<FileMetaData> SaveFileAsync(string text, CipherBlockMode mode, CipherBlockPadding padding, TextEncoding textEncoding) {
+        public static async Task<FileMetaData> SaveFileAsync(string text, CipherBlockMode mode, CipherBlockPadding padding, TextEncoding encoding) {
             // Show dialog for saving a file
             SaveFileDialog dialog = new SaveFileDialog() {
                 AddExtension = true,
@@ -27,16 +27,15 @@ namespace SecureTextEditor.GUI {
 
             await Task.Run(() => {
                 // Encrypt text and save file
-                Encoding encoding = GetEncoding(textEncoding);
                 CryptoEngine crypto = new CryptoEngine(mode, padding, encoding);
                 string base64Cipher = crypto.Encrypt(text);
-                SecureTextFile file = new SecureTextFile(textEncoding, mode, padding, base64Cipher);
+                SecureTextFile file = new SecureTextFile(encoding, mode, padding, base64Cipher);
                 SecureTextFile.Save(file, dialog.FileName);
             });
             await Task.Delay(250);
 
             return new FileMetaData() {
-                Encoding = textEncoding,
+                Encoding = encoding,
                 FileName = dialog.SafeFileName,
                 FilePath = dialog.FileName,
                 IsNew = false,
@@ -64,16 +63,15 @@ namespace SecureTextEditor.GUI {
 
             // Load file and decrypt with corresponding encoding
             var file = SecureTextFile.Load(path);
-            var textEncoding = file.Encoding;
+            var encoding = file.Encoding;
             
-            var encoding = GetEncoding(textEncoding);
             var crpyto = new CryptoEngine(file.Mode, file.Padding, encoding);
             string text = crpyto.Decrypt(file.Base64Cipher);
 
             return new File() {
                 Text = text,
                 MetaData = new FileMetaData() {
-                    Encoding = textEncoding,
+                    Encoding = encoding,
                     FileName = fileName,
                     FilePath = path,
                     IsNew = false
