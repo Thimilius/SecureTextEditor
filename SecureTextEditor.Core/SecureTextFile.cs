@@ -45,9 +45,9 @@ namespace SecureTextEditor.Core {
         /// <param name="options">The security options used for encryption</param>
         /// <param name="encoding">The encoding used for the text</param>
         /// <param name="base64Cipher">The actual cipher encoded in Base64</param>
-        public SecureTextFile(EncryptionOptions options, TextEncoding encoding, string base64Cipher) {
+        public SecureTextFile(EncryptionOptions encryptionOptions, TextEncoding encoding, string base64Cipher) {
             Encoding = encoding;
-            EncryptionOptions = options;
+            EncryptionOptions = encryptionOptions;
             Base64Cipher = base64Cipher;
         }
 

@@ -79,8 +79,10 @@ namespace SecureTextEditor.GUI {
                 Close();
             }
 
-            // Turn off the save indicator
+            // Turn off the save indicator and turn on buttons again
             SavingIndicator.Visibility = Visibility.Hidden;
+            CancelButton.IsEnabled = true;
+            SaveButton.IsEnabled = true;
         }
 
         private void OnClosing(object sender, CancelEventArgs e) {
