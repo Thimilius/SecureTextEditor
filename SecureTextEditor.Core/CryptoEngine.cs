@@ -17,6 +17,7 @@ namespace SecureTextEditor.Core {
 
         private const string KEY = "000102030405060708090a0b0c0d0e0f";
         private const string IV  = "0001020304050607";
+        private const int STREAM_BLOCK_SIZE = 16;
         private static readonly IBlockCipher CIPHER_ENGINE = new AesEngine();
 
         private readonly IBufferedCipher m_Cipher;
@@ -67,6 +68,7 @@ namespace SecureTextEditor.Core {
 
         private IBlockCipherPadding GetCipherPadding(CipherBlockPadding padding) {
             switch (padding) {
+                case CipherBlockPadding.None: return null;
                 case CipherBlockPadding.ISO7816d4: return new ISO7816d4Padding();
                 case CipherBlockPadding.ISO10126d2: return new ISO10126d2Padding();
                 case CipherBlockPadding.PKCS5: return new Pkcs7Padding();
@@ -80,9 +82,12 @@ namespace SecureTextEditor.Core {
 
         private IBufferedCipher GetCipherMode(CipherBlockMode mode, IBlockCipherPadding padding) {
             switch (mode) {
-                case CipherBlockMode.ECB: return new PaddedBufferedBlockCipher(CIPHER_ENGINE, padding);
-                case CipherBlockMode.CBC: return new PaddedBufferedBlockCipher(new CbcBlockCipher(CIPHER_ENGINE), padding);
+                case CipherBlockMode.ECB: return padding == null ? new BufferedBlockCipher(CIPHER_ENGINE) : new PaddedBufferedBlockCipher(CIPHER_ENGINE, padding);
+                case CipherBlockMode.CBC: return padding == null ? new BufferedBlockCipher(new CbcBlockCipher(CIPHER_ENGINE)) : new PaddedBufferedBlockCipher(new CbcBlockCipher(CIPHER_ENGINE), padding);
                 case CipherBlockMode.CTS: return new CtsBlockCipher(new CbcBlockCipher(CIPHER_ENGINE));
+                case CipherBlockMode.CTR: return new BufferedBlockCipher(new SicBlockCipher(CIPHER_ENGINE));
+                case CipherBlockMode.CFB: return new BufferedBlockCipher(new CfbBlockCipher(CIPHER_ENGINE, STREAM_BLOCK_SIZE));
+                case CipherBlockMode.OFB: return new BufferedBlockCipher(new OfbBlockCipher(CIPHER_ENGINE, STREAM_BLOCK_SIZE));
                 default: throw new ArgumentOutOfRangeException(nameof(mode));
             }
         }

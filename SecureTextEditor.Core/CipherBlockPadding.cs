@@ -4,6 +4,10 @@
     /// </summary>
     public enum CipherBlockPadding {
         /// <summary>
+        /// Describes that no padding is used.
+        /// </summary>
+        None,
+        /// <summary>
         /// Describes the ISO107816-4 padding.
         /// </summary>
         ISO7816d4,
