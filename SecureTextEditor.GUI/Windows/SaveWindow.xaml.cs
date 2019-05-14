@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using SecureTextEditor.Core;
@@ -12,6 +13,7 @@ namespace SecureTextEditor.GUI {
     public partial class SaveWindow : Window {
         private TextEditorControl m_TextEditorControl;
         private TextEditorTab m_TabToSave;
+        private bool m_SaveInProgress;
 
         public SaveWindow(TextEditorControl control, TextEditorTab tab) {
             InitializeComponent();
@@ -19,18 +21,22 @@ namespace SecureTextEditor.GUI {
             m_TextEditorControl = control;
             m_TabToSave = tab;
 
+            Closing += OnClosing;
+
             // TODO: Remember save options for files
 
             // FIXME: CTS block mode can only be used when message is more than one block in size
             //        and should therefore not be an option if that is note the case
+
+            // FIXME: No padding should be handled when text is not block size aligned
 
             // Set up UI
             CipherBlockModeComboBox.ItemsSource = Enum.GetValues(typeof(CipherBlockMode)).Cast<CipherBlockMode>();
             CipherBlockPaddingComboBox.ItemsSource = Enum.GetValues(typeof(CipherBlockPadding)).Cast<CipherBlockPadding>();
 
             // Set default options from config
-            CipherBlockModeComboBox.SelectedItem = AppConfig.Config.DefaultSaveOptions.CipherBlockMode;
-            CipherBlockPaddingComboBox.SelectedItem = AppConfig.Config.DefaultSaveOptions.CipherBlockPadding;
+            CipherBlockModeComboBox.SelectedItem = AppConfig.Config.DefaultSaveOptions.BlockMode;
+            CipherBlockPaddingComboBox.SelectedItem = AppConfig.Config.DefaultSaveOptions.BlockPadding;
         }
 
         private void CancelSave(object sender, RoutedEventArgs e) {
@@ -42,14 +48,22 @@ namespace SecureTextEditor.GUI {
             // Turn on the save indicator
             SavingIndicator.Visibility = Visibility.Visible;
 
-            // Do the actual save
+            // Turn off interactability on cancel and save button
+            CancelButton.IsEnabled = false;
+            SaveButton.IsEnabled = false;
+
+            // Gather options for saving
             CipherBlockMode mode = (CipherBlockMode)CipherBlockModeComboBox.SelectedItem;
             CipherBlockPadding padding = (CipherBlockPadding)CipherBlockPaddingComboBox.SelectedItem;
             string text = m_TabToSave.Editor.Text;
             TextEncoding encoding = m_TabToSave.FileMetaData.Encoding;
-            FileMetaData metaData = await FileHandler.SaveFileAsync(text, mode, padding, encoding);
 
-            // Update file meta data and header for the tab that got saved
+            // Do the actual save 
+            m_SaveInProgress = true;
+            FileMetaData metaData = await FileHandler.SaveFileAsync(text, mode, padding, encoding);
+            m_SaveInProgress = false;
+
+            // Proceed only if the file got actually saved
             if (metaData != null) {
                 // This is a little hackey that we do it here but it works
                 m_TextEditorControl.ProcessClosingTabCounter(m_TabToSave);
@@ -57,13 +71,23 @@ namespace SecureTextEditor.GUI {
                 // Set new meta data for alreay existing tab and update its header
                 m_TabToSave.FileMetaData = metaData;
                 m_TabToSave.SetHeader(metaData.FileName);
+
+                // Saved files are no longer dirty
+                m_TabToSave.Dirty = false;
+
+                // We can close the dialog when finished
+                Close();
             }
 
-            // Saved files are no longer dirty
-            m_TabToSave.Dirty = false;
+            // Turn off the save indicator
+            SavingIndicator.Visibility = Visibility.Hidden;
+        }
 
-            // We can close the dialog when finished
-            Close();
+        private void OnClosing(object sender, CancelEventArgs e) {
+            // We want to cancel the window closing when a save is in progress
+            if (m_SaveInProgress) {
+                e.Cancel = true;
+            }
         }
     }
 }

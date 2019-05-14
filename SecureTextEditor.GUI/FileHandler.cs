@@ -29,7 +29,8 @@ namespace SecureTextEditor.GUI {
                 // Encrypt text and save file
                 CryptoEngine crypto = new CryptoEngine(mode, padding, encoding);
                 string base64Cipher = crypto.Encrypt(text);
-                SecureTextFile file = new SecureTextFile(encoding, mode, padding, base64Cipher);
+                EncryptionOptions options = new EncryptionOptions() { BlockMode = mode, BlockPadding = padding };
+                SecureTextFile file = new SecureTextFile(options, encoding, base64Cipher);
                 SecureTextFile.Save(file, dialog.FileName);
             });
             await Task.Delay(250);
@@ -65,7 +66,7 @@ namespace SecureTextEditor.GUI {
             var file = SecureTextFile.Load(path);
             var encoding = file.Encoding;
             
-            var crpyto = new CryptoEngine(file.Mode, file.Padding, encoding);
+            var crpyto = new CryptoEngine(file.EncryptionOptions.BlockMode, file.EncryptionOptions.BlockPadding, encoding);
             string text = crpyto.Decrypt(file.Base64Cipher);
 
             return new File() {
