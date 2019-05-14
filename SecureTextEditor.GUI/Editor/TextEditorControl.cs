@@ -7,7 +7,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using SecureTextEditor.Core;
 using SecureTextEditor.GUI.Config;
 
 namespace SecureTextEditor.GUI.Editor {
@@ -56,9 +55,11 @@ namespace SecureTextEditor.GUI.Editor {
 
             NewTab(content, new FileMetaData() {
                 Encoding = AppConfig.Config.NewFileTextEncoding,
+                EncryptionOptions = AppConfig.Config.DefaultEncryptionOptions,
                 FileName = name,
                 FilePath = name,
-                IsNew = true
+                IsNew = true,
+                IsDirty = false
             });
         } 
 
@@ -94,13 +95,13 @@ namespace SecureTextEditor.GUI.Editor {
         }
 
         public void CloseTab(TextEditorTab tab) {
-            // We don't bother closing the tab if its the last one and empty
-            if (m_TabControl.Items.Count == 1 && tab.Editor.Text == "") {
+            // We don't bother closing the tab if its the last one
+            if (m_TabControl.Items.Count == 1 && tab.Editor.Text == "" && tab.FileMetaData.IsNew) {
                 return;
             }
 
             // Prompt the user for saving if the file is dirty
-            if (tab.Dirty) {
+            if (tab.FileMetaData.IsDirty) {
                 m_Window.PromptSaveDialog(tab);
             }
 

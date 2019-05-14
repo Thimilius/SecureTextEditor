@@ -1,7 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using SecureTextEditor.Core;
 
 namespace SecureTextEditor.GUI.Editor {
     public class TextEditorTab {
@@ -11,7 +10,6 @@ namespace SecureTextEditor.GUI.Editor {
         public TabItem TabItem { get; private set; }
         public TextBox Editor { get; private set; }
 
-        public bool Dirty { get; set; }
         public FileMetaData FileMetaData { get; set; }
 
         public TextEditorTab(TextEditorControl control, FileMetaData fileMetaData, string content) {
@@ -21,7 +19,7 @@ namespace SecureTextEditor.GUI.Editor {
             Editor = new TextBox {
                 Text = content
             };
-            Dirty = false;
+            FileMetaData.IsDirty = false;
 
             // Create UI
             CreateUI(fileMetaData.FileName);
@@ -66,8 +64,8 @@ namespace SecureTextEditor.GUI.Editor {
             closeMenuItem.Click += OnClose;
 
             Editor.TextChanged += (s, e) => {
-                if (!Dirty) {
-                    Dirty = true;
+                if (!FileMetaData.IsDirty) {
+                    FileMetaData.IsDirty = true;
                     // Show that the file is dirty
                     m_Header.Text += "*";
                 }

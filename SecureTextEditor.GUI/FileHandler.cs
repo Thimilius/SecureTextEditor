@@ -25,11 +25,12 @@ namespace SecureTextEditor.GUI {
                 return null;
             }
 
+            EncryptionOptions options = new EncryptionOptions() { BlockMode = mode, BlockPadding = padding };
+
             await Task.Run(() => {
                 // Encrypt text and save file
                 CryptoEngine crypto = new CryptoEngine(mode, padding, encoding);
                 string base64Cipher = crypto.Encrypt(text);
-                EncryptionOptions options = new EncryptionOptions() { BlockMode = mode, BlockPadding = padding };
                 SecureTextFile file = new SecureTextFile(options, encoding, base64Cipher);
                 SecureTextFile.Save(file, dialog.FileName);
             });
@@ -37,9 +38,11 @@ namespace SecureTextEditor.GUI {
 
             return new FileMetaData() {
                 Encoding = encoding,
+                EncryptionOptions = options,
                 FileName = dialog.SafeFileName,
                 FilePath = dialog.FileName,
                 IsNew = false,
+                IsDirty = false
             };
         }
 
@@ -73,19 +76,13 @@ namespace SecureTextEditor.GUI {
                 Text = text,
                 MetaData = new FileMetaData() {
                     Encoding = encoding,
+                    EncryptionOptions = file.EncryptionOptions,
                     FileName = fileName,
                     FilePath = path,
-                    IsNew = false
+                    IsNew = false,
+                    IsDirty = false
                 }
             };
-        }
-
-        private static Encoding GetEncoding(TextEncoding encoding) {
-            switch (encoding) {
-                case TextEncoding.ASCII: return Encoding.ASCII;
-                case TextEncoding.UTF8: return Encoding.UTF8;
-                default: throw new System.Exception();
-            }
         }
     }
 }

@@ -3,19 +3,10 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using AdonisUI;
-using Microsoft.Win32;
 using SecureTextEditor.Core;
 using SecureTextEditor.GUI.Config;
 using SecureTextEditor.GUI.Editor;
@@ -75,7 +66,7 @@ namespace SecureTextEditor.GUI {
 
         private void PromptSaveDialogs() {
             // Loop through every dirty tab
-            foreach (var tab in TextEditorControl.Tabs.Where(t => t.Dirty)) {
+            foreach (var tab in TextEditorControl.Tabs.Where(t => t.FileMetaData.IsDirty)) {
                 // Focus the tab and prompt save dialog for it
                 tab.Focus();
                 PromptSaveDialog(tab);

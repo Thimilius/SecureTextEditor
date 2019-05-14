@@ -21,10 +21,6 @@ namespace SecureTextEditor.GUI {
             m_TextEditorControl = control;
             m_TabToSave = tab;
 
-            Closing += OnClosing;
-
-            // TODO: Remember save options for files
-
             // FIXME: CTS block mode can only be used when message is more than one block in size
             //        and should therefore not be an option if that is note the case
 
@@ -35,8 +31,8 @@ namespace SecureTextEditor.GUI {
             CipherBlockPaddingComboBox.ItemsSource = Enum.GetValues(typeof(CipherBlockPadding)).Cast<CipherBlockPadding>();
 
             // Set default options from config
-            CipherBlockModeComboBox.SelectedItem = AppConfig.Config.DefaultSaveOptions.BlockMode;
-            CipherBlockPaddingComboBox.SelectedItem = AppConfig.Config.DefaultSaveOptions.BlockPadding;
+            CipherBlockModeComboBox.SelectedItem = tab.FileMetaData.EncryptionOptions.BlockMode;
+            CipherBlockPaddingComboBox.SelectedItem = tab.FileMetaData.EncryptionOptions.BlockPadding;
         }
 
         private void CancelSave(object sender, RoutedEventArgs e) {
@@ -72,9 +68,6 @@ namespace SecureTextEditor.GUI {
                 m_TabToSave.FileMetaData = metaData;
                 m_TabToSave.SetHeader(metaData.FileName);
 
-                // Saved files are no longer dirty
-                m_TabToSave.Dirty = false;
-
                 // We can close the dialog when finished
                 Close();
             }
@@ -85,11 +78,12 @@ namespace SecureTextEditor.GUI {
             SaveButton.IsEnabled = true;
         }
 
-        private void OnClosing(object sender, CancelEventArgs e) {
+        protected override void OnClosing(CancelEventArgs e) {
             // We want to cancel the window closing when a save is in progress
             if (m_SaveInProgress) {
                 e.Cancel = true;
             }
+            base.OnClosing(e);
         }
     }
 }

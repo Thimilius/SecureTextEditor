@@ -20,6 +20,6 @@ namespace SecureTextEditor.GUI.Config {
         /// <summary>
         /// Gets or sets the default options when saving a file.
         /// </summary>
-        EncryptionOptions DefaultSaveOptions { get; set; }
+        EncryptionOptions DefaultEncryptionOptions { get; set; }
     }
 }

@@ -16,7 +16,7 @@ namespace SecureTextEditor.GUI.Config {
             [JsonProperty(Required = Required.Always)] public Theme Theme { get; set; }
             [JsonProperty(Required = Required.Always)] public int Zoom { get; set; }
             [JsonProperty(Required = Required.Always)] public TextEncoding NewFileTextEncoding { get; set; }
-            [JsonProperty(Required = Required.Always)] public EncryptionOptions DefaultSaveOptions { get; set; }
+            [JsonProperty(Required = Required.Always)] public EncryptionOptions DefaultEncryptionOptions { get; set; }
         }
 
         /// <summary>
@@ -73,7 +73,7 @@ namespace SecureTextEditor.GUI.Config {
                 Theme = Theme.DarkMode,
                 Zoom = 16,
                 NewFileTextEncoding = TextEncoding.UTF8,
-                DefaultSaveOptions = new EncryptionOptions() {
+                DefaultEncryptionOptions = new EncryptionOptions() {
                     BlockMode = CipherBlockMode.CBC,
                     BlockPadding = CipherBlockPadding.PKCS7
                 }
