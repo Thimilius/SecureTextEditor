@@ -53,9 +53,13 @@ namespace SecureTextEditor.GUI {
 
         public void PromptSaveDialog(TextEditorTab tab) {
             // Show question dialog
-            bool shouldSave = DialogWindow.Show(this, "Do you want to save the file before closing?", "Save", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            bool save = DialogWindow.Show(this,
+                $"Do you want to save \"{tab.FileMetaData.FileName}\" before closing?",
+                "Save",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
 
-            if (shouldSave) {
+            if (save) {
                 PromptSaveWindow(tab);
             }
         }
