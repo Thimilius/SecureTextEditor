@@ -62,7 +62,6 @@ namespace SecureTextEditor.GUI {
 
         public static File OpenFile(string path, string fileName) {
             // TODO: Enable loading of normal text files
-            // TODO: Check if we have the file already open
             // TODO: Do error checking
 
             // Load file and decrypt with corresponding encoding

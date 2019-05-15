@@ -24,7 +24,6 @@ namespace SecureTextEditor.Core {
         private readonly CipherBlockMode m_CipherBlockMode;
         private readonly Encoding m_Encoding;
 
-        // TODO: Replace Encoding with TextEncoding
         public CryptoEngine(CipherBlockMode mode, CipherBlockPadding padding, TextEncoding encoding) {
             m_CipherBlockMode = mode;
             m_Cipher = GetCipherMode(mode, GetCipherPadding(padding));

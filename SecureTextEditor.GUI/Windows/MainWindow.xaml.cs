@@ -30,12 +30,8 @@ namespace SecureTextEditor.GUI {
 
             // If we get passed in a path try to load in the file
             if (path != null) {
-                // TODO: Better abstract this logic
-                var file = FileHandler.OpenFile(path, Path.GetFileName(path));
-                if (file != null) {
-                    TextEditorControl.NewTab(file.Text, file.MetaData);
-                    UpdateEncodingStatus();
-                }
+                OpenFile(path);
+
             } else {
                 TextEditorControl.NewTab("");
             }
@@ -92,11 +88,7 @@ namespace SecureTextEditor.GUI {
         }
 
         private void OnOpen(object sender, RoutedEventArgs e) {
-            var file = FileHandler.OpenFile();
-            if (file != null) {
-                TextEditorControl.NewTab(file.Text, file.MetaData);
-                UpdateEncodingStatus();
-            }
+            OpenFile(null);
         }
 
         private void OnSave(object sender, RoutedEventArgs e) {
@@ -138,6 +130,44 @@ namespace SecureTextEditor.GUI {
             // Update encoding checkboxes
             EncodingCheckBoxASCII.IsChecked = TextEditorControl.CurrentTab.FileMetaData.Encoding == TextEncoding.ASCII;
             EncodingCheckBoxUTF8.IsChecked = TextEditorControl.CurrentTab.FileMetaData.Encoding == TextEncoding.UTF8;
+        }
+
+        private void OpenFile(string path) {
+            bool CheckFileExistence(string filePath) {
+                // We do not need to open the file if we already have it open
+                // Instead we can just focus the corresponding tab
+                if (filePath != null) {
+                    var tabs = TextEditorControl.Tabs.Where(t => t.FileMetaData.FilePath == filePath);
+                    if (tabs.Any()) {
+                        tabs.First().Focus();
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            // We do not bother loading a file that is alredy open
+            if (CheckFileExistence(path)) return;
+
+            // Open the file
+            FileHandler.File file;
+            if (path != null) {
+                file = FileHandler.OpenFile(path, Path.GetFileName(path));
+            } else {
+                file = FileHandler.OpenFile();
+            }
+
+            // We do not bother opening a new tab for a file that is alredy open
+            if (CheckFileExistence(file.MetaData.FilePath)) return;
+
+            if (file != null) {
+                // Open new tab for the file
+                TextEditorControl.NewTab(file.Text, file.MetaData);
+
+                // Update UI
+                UpdateEncodingStatus();
+            }
         }
 
         private void ChangeEncoding(TextEncoding encoding) {
