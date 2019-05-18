@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Win32;
 using SecureTextEditor.Core;
-using SecureTextEditor.GUI.Editor;
 
 namespace SecureTextEditor.GUI {
     public static class FileHandler {
@@ -32,12 +30,13 @@ namespace SecureTextEditor.GUI {
                 // Encrypt text and save file
                 CryptoEngine crypto = new CryptoEngine(options.CipherType, options.CipherBlockMode, options.CipherBlockPadding, encoding);
                 byte[] key = crypto.GenerateKey(options.CipherKeySize);
-                byte[] cipher = crypto.Encrypt(text, key);
+                byte[] iv = crypto.GenerateIV();
+                byte[] cipher = crypto.Encrypt(text, key, iv);
                 SecureTextFile textFile = new SecureTextFile(options, encoding, Convert.ToBase64String(cipher));
                 SecureTextFile.Save(textFile, path);
 
                 // HACK: Hardcoded path to key file
-                KeyFile keyFile = new KeyFile(Convert.ToBase64String(key));
+                KeyFile keyFile = new KeyFile(Convert.ToBase64String(key), Convert.ToBase64String(iv));
                 KeyFile.Save(keyFile, path + KeyFile.FILE_EXTENSION);
             });
             await Task.Delay(250);
@@ -80,7 +79,10 @@ namespace SecureTextEditor.GUI {
             EncryptionOptions options = textFile.EncryptionOptions;
 
             CryptoEngine crpyto = new CryptoEngine(options.CipherType, options.CipherBlockMode, options.CipherBlockPadding, encoding);
-            string text = crpyto.Decrypt(Convert.FromBase64String(textFile.Base64Cipher), Convert.FromBase64String(keyFile.Base64Key));
+            byte[] cipher = Convert.FromBase64String(textFile.Base64Cipher);
+            byte[] key = Convert.FromBase64String(keyFile.Base64Key);
+            byte[] iv = Convert.FromBase64String(keyFile.Base64IV);
+            string text = crpyto.Decrypt(cipher, key, iv);
 
             return new File() {
                 Text = text,

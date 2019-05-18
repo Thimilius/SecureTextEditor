@@ -25,13 +25,19 @@ namespace SecureTextEditor.Core {
         /// The key encoded in Base64.
         /// </summary>
         [JsonProperty(Required = Required.Always)] public string Base64Key { get; }
+        /// <summary>
+        /// The initilization vector encoded in Base64.
+        /// </summary>
+        [JsonProperty(Required = Required.Always)] public string Base64IV { get; }
 
         /// <summary>
         /// Creates a new key file with given properties.
         /// </summary>
         /// <param name="base64Key">The key encoded in Base64</param>
-        public KeyFile(string base64Key) {
+        /// <param name="base64IV">The initilization vector encoded in Base64</param>
+        public KeyFile(string base64Key, string base64IV) {
             Base64Key = base64Key;
+            Base64IV = base64IV;
         }
 
         /// <summary>
