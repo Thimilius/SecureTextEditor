@@ -2,8 +2,8 @@
 using System.ComponentModel;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 using SecureTextEditor.Core;
-using SecureTextEditor.GUI.Config;
 using SecureTextEditor.GUI.Editor;
 
 namespace SecureTextEditor.GUI {
@@ -24,21 +24,27 @@ namespace SecureTextEditor.GUI {
             // FIXME: CTS block mode can only be used when message is more than one block in size
             //        and should therefore not be an option if that is note the case
 
-            // FIXME: No padding should be handled when text is not block size aligned
-
             // Set up UI
             SecurityTypeComboBox.ItemsSource = Enum.GetValues(typeof(SecurityType)).Cast<SecurityType>();
-            // HACK: Setting of the key sizes could maybe be a little prettier
+            CipherTypeComboBox.ItemsSource = Enum.GetValues(typeof(CipherType)).Cast<CipherType>();
             KeySizeComboBox.ItemsSource = new int[] { 128, 192, 256 };
             CipherBlockModeComboBox.ItemsSource = Enum.GetValues(typeof(CipherBlockMode)).Cast<CipherBlockMode>();
-            CipherBlockPaddingComboBox.ItemsSource = Enum.GetValues(typeof(CipherBlockPadding)).Cast<CipherBlockPadding>();
+            // NOTE: Should we allow no padding?
+            CipherBlockPaddingComboBox.ItemsSource = Enum.GetValues(typeof(CipherBlockPadding)).Cast<CipherBlockPadding>().Where(p => p != CipherBlockPadding.None);
 
             // Set default options from config
             EncryptionOptions options = tab.FileMetaData.EncryptionOptions;
             SecurityTypeComboBox.SelectedItem = options.Type;
-            KeySizeComboBox.SelectedItem = options.KeySize;
-            CipherBlockModeComboBox.SelectedItem = options.BlockMode;
-            CipherBlockPaddingComboBox.SelectedItem = options.BlockPadding;
+            CipherTypeComboBox.SelectedItem = options.CipherType;
+            KeySizeComboBox.SelectedItem = options.CipherKeySize;
+            CipherBlockModeComboBox.SelectedItem = options.CipherBlockMode;
+            CipherBlockPaddingComboBox.SelectedItem = options.CipherBlockPadding;
+
+            // Add events for visibility control
+            CipherTypeComboBox.SelectionChanged += (o, e) => OnCipherTypeSelectionChanged((CipherType)e.AddedItems[0]);
+
+            // Do initial visibilty control
+            OnCipherTypeSelectionChanged((CipherType)CipherTypeComboBox.SelectedItem);
         }
 
         private void CancelSave(object sender, RoutedEventArgs e) {
@@ -55,11 +61,13 @@ namespace SecureTextEditor.GUI {
             SaveButton.IsEnabled = false;
 
             // Gather options for saving
-            SecurityType type = (SecurityType)SecurityTypeComboBox.SelectedItem;
-            CipherBlockMode mode = (CipherBlockMode)CipherBlockModeComboBox.SelectedItem;
-            CipherBlockPadding padding = (CipherBlockPadding)CipherBlockPaddingComboBox.SelectedItem;
-            int keySize = (int)KeySizeComboBox.SelectedItem;
-            EncryptionOptions options = new EncryptionOptions() { Type = type, KeySize = keySize, BlockMode = mode, BlockPadding = padding };
+            EncryptionOptions options = new EncryptionOptions() {
+                Type = (SecurityType)SecurityTypeComboBox.SelectedItem,
+                CipherType = (CipherType)CipherTypeComboBox.SelectedItem,
+                CipherKeySize = (int)KeySizeComboBox.SelectedItem,
+                CipherBlockMode = (CipherBlockMode)CipherBlockModeComboBox.SelectedItem,
+                CipherBlockPadding = (CipherBlockPadding)CipherBlockPaddingComboBox.SelectedItem
+            };
             TextEncoding encoding = m_TabToSave.FileMetaData.Encoding;
             string text = m_TabToSave.Editor.Text;
 
@@ -85,6 +93,10 @@ namespace SecureTextEditor.GUI {
             SavingIndicator.Visibility = Visibility.Hidden;
             CancelButton.IsEnabled = true;
             SaveButton.IsEnabled = true;
+        }
+
+        private void OnCipherTypeSelectionChanged(CipherType type) {
+            CipherBlockOptions.Visibility = type == CipherType.Block ? Visibility.Visible : Visibility.Hidden;
         }
 
         protected override void OnClosing(CancelEventArgs e) {

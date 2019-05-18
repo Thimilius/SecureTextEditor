@@ -9,22 +9,21 @@ using Org.BouncyCastle.Crypto.Paddings;
 using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Utilities.Encoders;
 
 namespace SecureTextEditor.Core {
     public class CryptoEngine {
-        // TODO: We need a stream cipher abstraction
         // TODO: Generate iv instead of being it hardcoded
 
         private const string IV  = "0001020304050607";
         private const int STREAM_BLOCK_SIZE = 16;
         private static readonly IBlockCipher CIPHER_ENGINE = new AesEngine();
 
+        private readonly CipherType m_Type;
         private readonly IBufferedCipher m_Cipher;
         private readonly CipherBlockMode m_CipherBlockMode;
         private readonly Encoding m_Encoding;
 
-        public CryptoEngine(CipherBlockMode mode, CipherBlockPadding padding, TextEncoding encoding) {
+        public CryptoEngine(CipherType type, CipherBlockMode mode, CipherBlockPadding padding, TextEncoding encoding) {
             m_CipherBlockMode = mode;
             m_Cipher = GetCipherMode(mode, GetCipherPadding(padding));
             m_Encoding = GetEncoding(encoding);

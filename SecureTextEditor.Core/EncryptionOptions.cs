@@ -10,16 +10,20 @@ namespace SecureTextEditor.Core {
         /// </summary>
         [JsonProperty(Required = Required.Always)] public SecurityType Type { get; set; }
         /// <summary>
+        /// The type of AES encryption.
+        /// </summary>
+        [JsonProperty(Required = Required.Always)] public CipherType CipherType { get; set; }
+        /// <summary>
         /// The size of the key used in AES encryption.
         /// </summary>
-        [JsonProperty(Required = Required.Always)] public int KeySize { get; set; }
+        [JsonProperty(Required = Required.Always)] public int CipherKeySize { get; set; }
         /// <summary>
         /// The block mode used in AES encryption.
         /// </summary>
-        [JsonProperty(Required = Required.Always)] public CipherBlockMode BlockMode { get; set; }
+        [JsonProperty(Required = Required.Always)] public CipherBlockMode CipherBlockMode { get; set; }
         /// <summary>
         /// The block padding used in AES encryption.
         /// </summary>
-        [JsonProperty(Required = Required.Always)] public CipherBlockPadding BlockPadding { get; set; }
+        [JsonProperty(Required = Required.Always)] public CipherBlockPadding CipherBlockPadding { get; set; }
     }
 }

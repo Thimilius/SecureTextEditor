@@ -75,9 +75,10 @@ namespace SecureTextEditor.GUI.Config {
                 NewFileTextEncoding = TextEncoding.UTF8,
                 DefaultEncryptionOptions = new EncryptionOptions() {
                     Type = SecurityType.AES,
-                    KeySize = 192,
-                    BlockMode = CipherBlockMode.CBC,
-                    BlockPadding = CipherBlockPadding.PKCS7
+                    CipherType = CipherType.Block,
+                    CipherKeySize = 192,
+                    CipherBlockMode = CipherBlockMode.CBC,
+                    CipherBlockPadding = CipherBlockPadding.PKCS7
                 }
             };
         }

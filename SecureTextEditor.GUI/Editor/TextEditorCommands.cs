@@ -20,8 +20,8 @@ namespace SecureTextEditor.GUI.Editor {
 
         static TextEditorCommands() {
             // Initialize commands with keyboard shortcuts
-            ZoomInCommand.InputGestures.Add(new KeyGesture(Key.OemPlus, ModifierKeys.Control));
-            ZoomOutCommand.InputGestures.Add(new KeyGesture(Key.OemMinus, ModifierKeys.Control));
+            ZoomInCommand.InputGestures.Add(new KeyGesture(Key.OemPlus, ModifierKeys.Control, "Crtl+Plus"));
+            ZoomOutCommand.InputGestures.Add(new KeyGesture(Key.OemMinus, ModifierKeys.Control, "Crtl+Minus"));
             CloseTabCommand.InputGestures.Add(new KeyGesture(Key.W, ModifierKeys.Control));
         }
     }

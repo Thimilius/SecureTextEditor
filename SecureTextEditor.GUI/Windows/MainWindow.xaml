@@ -21,7 +21,7 @@
         <CommandBinding Command="Open" Executed="OnOpen" />
         <CommandBinding Command="Save" Executed="OnSave" />
         <CommandBinding Command="Close" Executed="OnExit" />
-
+        
         <!-- Define text editor commands -->
         <CommandBinding Command="{x:Static editor:TextEditorCommands.ZoomInCommand}" Executed="OnZoomIn" />
         <CommandBinding Command="{x:Static editor:TextEditorCommands.ZoomOutCommand}" Executed="OnZoomOut" />
@@ -51,8 +51,8 @@
                 </MenuItem>
                 <MenuItem Header="View" Height="25">
                     <MenuItem Header="Zoom">
-                        <MenuItem Header="Zoom In" Command="{x:Static editor:TextEditorCommands.ZoomInCommand}" InputGestureText="Crtl+Plus" />
-                        <MenuItem Header="Zoom Out" Command="{x:Static editor:TextEditorCommands.ZoomOutCommand}" InputGestureText="Crtl+Minus" />
+                        <MenuItem Header="Zoom In" Command="{x:Static editor:TextEditorCommands.ZoomInCommand}" />
+                        <MenuItem Header="Zoom Out" Command="{x:Static editor:TextEditorCommands.ZoomOutCommand}" />
                         <MenuItem Header="Reset Zoom" Click="OnZoomReset" />
                     </MenuItem>
                     <MenuItem Header="Theme" Name="ThemeMenu">
