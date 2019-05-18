@@ -12,8 +12,9 @@ using Org.BouncyCastle.Security;
 
 namespace SecureTextEditor.Core {
     public class CryptoEngine {
-        // TODO: We need an IV abstraction
         // TODO: We need a stream cipher abstraction
+        // TODO: We need a way to specify key size
+        // TODO: Generate key and iv instead of being it hardcoded
 
         private const string KEY = "000102030405060708090a0b0c0d0e0f";
         private const string IV  = "0001020304050607";

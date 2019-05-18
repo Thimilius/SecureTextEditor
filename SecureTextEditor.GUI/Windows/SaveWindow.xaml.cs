@@ -27,10 +27,12 @@ namespace SecureTextEditor.GUI {
             // FIXME: No padding should be handled when text is not block size aligned
 
             // Set up UI
+            SecurityTypeComboBox.ItemsSource = Enum.GetValues(typeof(SecurityType)).Cast<SecurityType>();
             CipherBlockModeComboBox.ItemsSource = Enum.GetValues(typeof(CipherBlockMode)).Cast<CipherBlockMode>();
             CipherBlockPaddingComboBox.ItemsSource = Enum.GetValues(typeof(CipherBlockPadding)).Cast<CipherBlockPadding>();
 
             // Set default options from config
+            SecurityTypeComboBox.SelectedItem = tab.FileMetaData.EncryptionOptions.Type;
             CipherBlockModeComboBox.SelectedItem = tab.FileMetaData.EncryptionOptions.BlockMode;
             CipherBlockPaddingComboBox.SelectedItem = tab.FileMetaData.EncryptionOptions.BlockPadding;
         }
@@ -49,14 +51,16 @@ namespace SecureTextEditor.GUI {
             SaveButton.IsEnabled = false;
 
             // Gather options for saving
+            SecurityType type = (SecurityType)SecurityTypeComboBox.SelectedItem;
             CipherBlockMode mode = (CipherBlockMode)CipherBlockModeComboBox.SelectedItem;
             CipherBlockPadding padding = (CipherBlockPadding)CipherBlockPaddingComboBox.SelectedItem;
-            string text = m_TabToSave.Editor.Text;
+            EncryptionOptions options = new EncryptionOptions() { Type = type, BlockMode = mode, BlockPadding = padding };
             TextEncoding encoding = m_TabToSave.FileMetaData.Encoding;
+            string text = m_TabToSave.Editor.Text;
 
             // Do the actual save 
             m_SaveInProgress = true;
-            FileMetaData metaData = await FileHandler.SaveFileAsync(text, mode, padding, encoding);
+            FileMetaData metaData = await FileHandler.SaveFileAsync(options, encoding, text);
             m_SaveInProgress = false;
 
             // Proceed only if the file got actually saved

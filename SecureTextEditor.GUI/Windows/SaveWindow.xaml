@@ -38,14 +38,27 @@
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="2*" />
+                <RowDefinition Height="2*" />
+                <RowDefinition Height="1.5*" />
+            </Grid.RowDefinitions>
+            
+            <!-- Security option -->
+            <StackPanel Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="2" VerticalAlignment="Center" HorizontalAlignment="Center">
+                <Label Grid.Column="1" Margin="0 0 0 5" Content="Security Type:" />
+                <ComboBox Name="SecurityTypeComboBox" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center" Width="200" />
+            </StackPanel>
+
             <!-- Cipher mode option -->
-            <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center">
+            <StackPanel Grid.Column="1" Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center">
                 <Label Grid.Column="1" Margin="0 0 0 5" Content="Cipher Mode:" />
                 <ComboBox Name="CipherBlockModeComboBox" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center" Width="200" />
             </StackPanel>
-            
+
             <!-- Cipher padding option -->
-            <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center">
+            <StackPanel Grid.Column="2" Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center">
                 <Label Grid.Column="2" Margin="0 0 0 5" Content="Cipher Padding:" />
                 <ComboBox Name="CipherBlockPaddingComboBox" Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center" Width="200" />
             </StackPanel>

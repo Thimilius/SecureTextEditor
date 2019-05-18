@@ -53,6 +53,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SecureTextFile.cs" />
     <Compile Include="EncryptionOptions.cs" />
+    <Compile Include="SecurityType.cs" />
     <Compile Include="TextEncoding.cs" />
   </ItemGroup>
   <ItemGroup>

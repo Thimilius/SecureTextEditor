@@ -25,19 +25,19 @@ namespace SecureTextEditor.Core {
         /// <summary>
         /// Version number for the secure text file for compatability reasons.
         /// </summary>
-        public string Version { get; } = "0.1";
+        [JsonProperty(Required = Required.Always)] public string Version { get; } = "0.1";
         /// <summary>
         /// The options used for encryption.
         /// </summary>
-        public EncryptionOptions EncryptionOptions { get; }
+        [JsonProperty(Required = Required.Always)] public EncryptionOptions EncryptionOptions { get; }
         /// <summary>
         /// The encoding used for the text.
         /// </summary>
-        public TextEncoding Encoding { get; }
+        [JsonProperty(Required = Required.Always)] public TextEncoding Encoding { get; }
         /// <summary>
         /// The actual cipher encoded in Base64.
         /// </summary>
-        public string Base64Cipher { get; }
+        [JsonProperty(Required = Required.Always)] public string Base64Cipher { get; }
 
         /// <summary>
         /// Creates a new secure text file with given properties

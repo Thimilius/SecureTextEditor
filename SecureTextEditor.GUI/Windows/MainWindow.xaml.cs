@@ -31,7 +31,6 @@ namespace SecureTextEditor.GUI {
             // If we get passed in a path try to load in the file
             if (path != null) {
                 OpenFile(path);
-
             } else {
                 TextEditorControl.NewTab("");
             }
@@ -162,7 +161,8 @@ namespace SecureTextEditor.GUI {
                 file = FileHandler.OpenFile();
             }
 
-            // We do not bother opening a new tab for a file that is alredy open
+            // FIXME: This check could be done before we actually read in the file
+            // We do not bother opening a new tab for a file that is already open
             if (CheckFileExistence(file.MetaData.FilePath)) return;
 
             if (file != null) {

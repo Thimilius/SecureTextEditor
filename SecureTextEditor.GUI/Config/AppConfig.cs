@@ -74,6 +74,7 @@ namespace SecureTextEditor.GUI.Config {
                 Zoom = 16,
                 NewFileTextEncoding = TextEncoding.UTF8,
                 DefaultEncryptionOptions = new EncryptionOptions() {
+                    Type = SecurityType.AES,
                     BlockMode = CipherBlockMode.CBC,
                     BlockPadding = CipherBlockPadding.PKCS7
                 }

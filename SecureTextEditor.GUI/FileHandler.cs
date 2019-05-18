@@ -13,7 +13,7 @@ namespace SecureTextEditor.GUI {
 
         private const string FILE_FILTER = "Secure Text File (" + SecureTextFile.FILE_EXTENSION + ")|*" + SecureTextFile.FILE_EXTENSION;
 
-        public static async Task<FileMetaData> SaveFileAsync(string text, CipherBlockMode mode, CipherBlockPadding padding, TextEncoding encoding) {
+        public static async Task<FileMetaData> SaveFileAsync(EncryptionOptions options, TextEncoding encoding, string text) {
             // Show dialog for saving a file
             SaveFileDialog dialog = new SaveFileDialog() {
                 AddExtension = true,
@@ -25,11 +25,9 @@ namespace SecureTextEditor.GUI {
                 return null;
             }
 
-            EncryptionOptions options = new EncryptionOptions() { BlockMode = mode, BlockPadding = padding };
-
             await Task.Run(() => {
                 // Encrypt text and save file
-                CryptoEngine crypto = new CryptoEngine(mode, padding, encoding);
+                CryptoEngine crypto = new CryptoEngine(options.BlockMode, options.BlockPadding, encoding);
                 string base64Cipher = crypto.Encrypt(text);
                 SecureTextFile file = new SecureTextFile(options, encoding, base64Cipher);
                 SecureTextFile.Save(file, dialog.FileName);
