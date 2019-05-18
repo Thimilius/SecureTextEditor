@@ -16,7 +16,9 @@ namespace SecureTextEditor.Core {
 
         private const string IV  = "0001020304050607";
         private const int STREAM_BLOCK_SIZE = 16;
-        private static readonly IBlockCipher CIPHER_ENGINE = new AesEngine();
+        private static readonly IBlockCipher BLOCK_CIPHER_ENGINE = new AesEngine();
+        private static readonly IStreamCipher STREAM_CIPHER_ENGINE = new RC4Engine();
+        private static readonly int[] ACCEPTED_KEY_SIZES = new int[] { 128, 192, 256 };
 
         private readonly CipherType m_Type;
         private readonly IBufferedCipher m_Cipher;
@@ -24,8 +26,9 @@ namespace SecureTextEditor.Core {
         private readonly Encoding m_Encoding;
 
         public CryptoEngine(CipherType type, CipherBlockMode mode, CipherBlockPadding padding, TextEncoding encoding) {
+            m_Type = type;
             m_CipherBlockMode = mode;
-            m_Cipher = GetCipherMode(mode, GetCipherPadding(padding));
+            m_Cipher = GetCipherMode(type, mode, GetCipherPadding(padding));
             m_Encoding = GetEncoding(encoding);
         }
 
@@ -36,7 +39,7 @@ namespace SecureTextEditor.Core {
         /// <returns>The encrypted cipher</returns>
         public byte[] Encrypt(string message, byte[] key) {
             byte[] iv = null;
-            if (m_CipherBlockMode != CipherBlockMode.ECB) {
+            if (m_Type != CipherType.Stream && m_CipherBlockMode != CipherBlockMode.ECB) {
                 iv = m_Encoding.GetBytes(IV);
             }
 
@@ -55,7 +58,7 @@ namespace SecureTextEditor.Core {
         /// <returns>The plain message</returns>
         public string Decrypt(byte[] cipher, byte[] key) {
             byte[] iv = null;
-            if (m_CipherBlockMode != CipherBlockMode.ECB) {
+            if (m_Type != CipherType.Stream && m_CipherBlockMode != CipherBlockMode.ECB) {
                 iv = m_Encoding.GetBytes(IV);
             }
 
@@ -69,10 +72,35 @@ namespace SecureTextEditor.Core {
             return m_Encoding.GetString(result.Take(length).ToArray());
         }
 
+        /// <summary>
+        /// Generates a key for use with this engine.
+        /// </summary>
+        /// <param name="keySize">The size of the key</param>
+        /// <returns>The generated key</returns>
         public byte[] GenerateKey(int keySize) {
+            if (!ACCEPTED_KEY_SIZES.Contains(keySize)) {
+                throw new ArgumentException("Invalid key size", nameof(keySize));
+            }
+
             CipherKeyGenerator generator = new CipherKeyGenerator();
             generator.Init(new KeyGenerationParameters(new SecureRandom(), keySize));
             return generator.GenerateKey();
+        }
+
+        private IBufferedCipher GetCipherMode(CipherType type, CipherBlockMode mode, IBlockCipherPadding padding) {
+            if (type == CipherType.Block) {
+                switch (mode) {
+                    case CipherBlockMode.ECB: return padding == null ? new BufferedBlockCipher(BLOCK_CIPHER_ENGINE) : new PaddedBufferedBlockCipher(BLOCK_CIPHER_ENGINE, padding);
+                    case CipherBlockMode.CBC: return padding == null ? new BufferedBlockCipher(new CbcBlockCipher(BLOCK_CIPHER_ENGINE)) : new PaddedBufferedBlockCipher(new CbcBlockCipher(BLOCK_CIPHER_ENGINE), padding);
+                    case CipherBlockMode.CTS: return new CtsBlockCipher(new CbcBlockCipher(BLOCK_CIPHER_ENGINE));
+                    case CipherBlockMode.CTR: return new BufferedBlockCipher(new SicBlockCipher(BLOCK_CIPHER_ENGINE));
+                    case CipherBlockMode.CFB: return new BufferedBlockCipher(new CfbBlockCipher(BLOCK_CIPHER_ENGINE, STREAM_BLOCK_SIZE));
+                    case CipherBlockMode.OFB: return new BufferedBlockCipher(new OfbBlockCipher(BLOCK_CIPHER_ENGINE, STREAM_BLOCK_SIZE));
+                    default: throw new ArgumentOutOfRangeException(nameof(mode));
+                }
+            } else {
+                return new BufferedStreamCipher(STREAM_CIPHER_ENGINE);
+            }
         }
 
         private IBlockCipherPadding GetCipherPadding(CipherBlockPadding padding) {
@@ -89,18 +117,6 @@ namespace SecureTextEditor.Core {
             }
         }
 
-        private IBufferedCipher GetCipherMode(CipherBlockMode mode, IBlockCipherPadding padding) {
-            switch (mode) {
-                case CipherBlockMode.ECB: return padding == null ? new BufferedBlockCipher(CIPHER_ENGINE) : new PaddedBufferedBlockCipher(CIPHER_ENGINE, padding);
-                case CipherBlockMode.CBC: return padding == null ? new BufferedBlockCipher(new CbcBlockCipher(CIPHER_ENGINE)) : new PaddedBufferedBlockCipher(new CbcBlockCipher(CIPHER_ENGINE), padding);
-                case CipherBlockMode.CTS: return new CtsBlockCipher(new CbcBlockCipher(CIPHER_ENGINE));
-                case CipherBlockMode.CTR: return new BufferedBlockCipher(new SicBlockCipher(CIPHER_ENGINE));
-                case CipherBlockMode.CFB: return new BufferedBlockCipher(new CfbBlockCipher(CIPHER_ENGINE, STREAM_BLOCK_SIZE));
-                case CipherBlockMode.OFB: return new BufferedBlockCipher(new OfbBlockCipher(CIPHER_ENGINE, STREAM_BLOCK_SIZE));
-                default: throw new ArgumentOutOfRangeException(nameof(mode));
-            }
-        }
-
         private Encoding GetEncoding(TextEncoding encoding) {
             switch (encoding) {
                 case TextEncoding.ASCII: return Encoding.ASCII;
@@ -109,7 +125,7 @@ namespace SecureTextEditor.Core {
             }
         }
 
-        private ICipherParameters GetCipherParameters(byte[] key, byte[] iv = null) {
+        private ICipherParameters GetCipherParameters(byte[] key, byte[] iv) {
             ICipherParameters result = new KeyParameter(key);
             if (iv != null) {
                 result = new ParametersWithIV(result, iv);
