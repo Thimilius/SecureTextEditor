@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -6,17 +7,15 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Paddings;
 using Org.BouncyCastle.Crypto.Modes;
-using System;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities.Encoders;
 
 namespace SecureTextEditor.Core {
     public class CryptoEngine {
         // TODO: We need a stream cipher abstraction
-        // TODO: We need a way to specify key size
-        // TODO: Generate key and iv instead of being it hardcoded
+        // TODO: Generate iv instead of being it hardcoded
 
-        private const string KEY = "000102030405060708090a0b0c0d0e0f";
         private const string IV  = "0001020304050607";
         private const int STREAM_BLOCK_SIZE = 16;
         private static readonly IBlockCipher CIPHER_ENGINE = new AesEngine();
@@ -35,35 +34,46 @@ namespace SecureTextEditor.Core {
         /// Encrypts a plain message with the initilaized mode and returns the result encoded in Base64.
         /// </summary>
         /// <param name="message">The message to encrypt</param>
-        /// <returns>The encrypted cipher encoded in Base64</returns>
-        public string Encrypt(string message) {
+        /// <returns>The encrypted cipher</returns>
+        public byte[] Encrypt(string message, byte[] key) {
             byte[] iv = null;
             if (m_CipherBlockMode != CipherBlockMode.ECB) {
                 iv = m_Encoding.GetBytes(IV);
             }
-            ICipherParameters parameters = GetCipherParameters(m_Encoding.GetBytes(KEY), iv);
-            byte[] result = EncryptDecrypt(true, m_Encoding.GetBytes(message), parameters);
-            return Convert.ToBase64String(result);
+
+            ICipherParameters parameters = GetCipherParameters(key, iv);
+            m_Cipher.Init(true, parameters);
+
+            byte[] result = m_Cipher.DoFinal(m_Encoding.GetBytes(message));
+
+            return result;
         }
 
         /// <summary>
         /// Decrypts a given cipher encoded in Base64 an returns the plain message.
         /// </summary>
-        /// <param name="cipher">The cipher encoded in Base64 to decrypt</param>
+        /// <param name="cipher">The encrypted cipher</param>
         /// <returns>The plain message</returns>
-        public string Decrypt(string cipher) {
+        public string Decrypt(byte[] cipher, byte[] key) {
             byte[] iv = null;
             if (m_CipherBlockMode != CipherBlockMode.ECB) {
                 iv = m_Encoding.GetBytes(IV);
             }
-            ICipherParameters parameters = GetCipherParameters(m_Encoding.GetBytes(KEY), iv);
-            byte[] result = EncryptDecrypt(false, Convert.FromBase64String(cipher), parameters);
-            return m_Encoding.GetString(result);
+
+            ICipherParameters parameters = GetCipherParameters(key, iv);
+            m_Cipher.Init(false, parameters);
+
+            byte[] result = new byte[m_Cipher.GetOutputSize(cipher.Length)];
+            int length = m_Cipher.ProcessBytes(cipher, 0, cipher.Length, result, 0);
+            length += m_Cipher.DoFinal(result, length);
+
+            return m_Encoding.GetString(result.Take(length).ToArray());
         }
 
-        private byte[] EncryptDecrypt(bool encrypt, byte[] input, ICipherParameters parameters) {
-            m_Cipher.Init(encrypt, parameters);
-            return m_Cipher.DoFinal(input);
+        public byte[] GenerateKey(int keySize) {
+            CipherKeyGenerator generator = new CipherKeyGenerator();
+            generator.Init(new KeyGenerationParameters(new SecureRandom(), keySize));
+            return generator.GenerateKey();
         }
 
         private IBlockCipherPadding GetCipherPadding(CipherBlockPadding padding) {

@@ -72,8 +72,8 @@
 
             <!-- Security option -->
             <StackPanel Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="2" Orientation="Horizontal">
-                <Label Grid.Column="1" Margin="0 0 10 0" VerticalAlignment="Center" Content="Security Type:" />
-                <ComboBox Name="SecurityTypeComboBox" Grid.Column="1" />
+                <Label Margin="0 0 10 0" VerticalAlignment="Center" Content="Security Type:" />
+                <ComboBox Name="SecurityTypeComboBox" />
             </StackPanel>
             
             <!-- AES options -->
@@ -84,16 +84,27 @@
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    
+                    <!-- Key size option -->
+                    <StackPanel Grid.Column="0" Grid.ColumnSpan="2">
+                        <Label Content="Key Size:" />
+                        <ComboBox Name="KeySizeComboBox" />
+                    </StackPanel>
+                    
                     <!-- Cipher mode option -->
-                    <StackPanel Grid.Column="0">
-                        <Label Grid.Column="1" Content="Cipher Mode:" />
-                        <ComboBox Name="CipherBlockModeComboBox" Grid.Column="1" />
+                    <StackPanel Grid.Column="0" Grid.Row="1">
+                        <Label Content="Cipher Mode:" />
+                        <ComboBox Name="CipherBlockModeComboBox" />
                     </StackPanel>
 
                     <!-- Cipher padding option -->
-                    <StackPanel Grid.Column="1">
-                        <Label Grid.Column="2" Content="Cipher Padding:" />
-                        <ComboBox Name="CipherBlockPaddingComboBox" Grid.Column="2" />
+                    <StackPanel Grid.Column="1" Grid.Row="1">
+                        <Label Content="Cipher Padding:" />
+                        <ComboBox Name="CipherBlockPaddingComboBox" />
                     </StackPanel>
                 </Grid>
             </Border>

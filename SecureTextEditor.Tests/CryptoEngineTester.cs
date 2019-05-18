@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Utilities.Encoders;
 using SecureTextEditor.Core;
 
 namespace SecureTextEditor.Tests {
@@ -11,6 +12,7 @@ namespace SecureTextEditor.Tests {
         private const string BLOCK_ALIGNED_MESSAGE   = "This is my secrect text message!";
         private const string BLOCK_UNALIGNED_MESSAGE = "This is my secrect text message";
         private const string MESSAGE_UNDER_ONE_BLOCK = "Short message!";
+        private static readonly byte[] KEY = Hex.Decode("000102030405060708090a0b0c0d0e0f");
 
         private static readonly CipherBlockPadding[] CIPHER_BLOCK_PADDINGS = (CipherBlockPadding[])Enum.GetValues(typeof(CipherBlockPadding));
          
@@ -27,8 +29,8 @@ namespace SecureTextEditor.Tests {
                     message = BLOCK_ALIGNED_MESSAGE;
                 }
 
-                string cipher = engine.Encrypt(message);
-                string decrypt = engine.Decrypt(cipher);
+                byte[] cipher = engine.Encrypt(message, KEY);
+                string decrypt = engine.Decrypt(cipher, KEY);
                 Assert.AreEqual(message, decrypt);
             }
         }
@@ -44,8 +46,8 @@ namespace SecureTextEditor.Tests {
                     message = BLOCK_ALIGNED_MESSAGE;
                 }
 
-                string cipher = engine.Encrypt(message);
-                string decrypt = engine.Decrypt(cipher);
+                byte[] cipher = engine.Encrypt(message, KEY);
+                string decrypt = engine.Decrypt(cipher, KEY);
                 Assert.AreEqual(message, decrypt);
             }
         }
@@ -53,37 +55,37 @@ namespace SecureTextEditor.Tests {
         [TestMethod]
         public void CTS_Test() {
             CryptoEngine engine = new CryptoEngine(CipherBlockMode.CTS, CipherBlockPadding.PKCS7, TextEncoding.UTF8);
-            string cipher = engine.Encrypt(BLOCK_UNALIGNED_MESSAGE);
-            string decrypt = engine.Decrypt(cipher);
+            byte[] cipher = engine.Encrypt(BLOCK_UNALIGNED_MESSAGE, KEY);
+            string decrypt = engine.Decrypt(cipher, KEY);
             Assert.AreEqual(BLOCK_UNALIGNED_MESSAGE, decrypt);
 
             // Check that CTS needs at least one block of input
             Assert.ThrowsException<DataLengthException>(() => {
-                engine.Encrypt(MESSAGE_UNDER_ONE_BLOCK);
+                engine.Encrypt(MESSAGE_UNDER_ONE_BLOCK, KEY);
             });
         }
 
         [TestMethod]
         public void CTR_Test() {
             CryptoEngine engine = new CryptoEngine(CipherBlockMode.CTR, CipherBlockPadding.None, TextEncoding.UTF8);
-            string cipher = engine.Encrypt(BLOCK_UNALIGNED_MESSAGE);
-            string decrypt = engine.Decrypt(cipher);
+            byte[] cipher = engine.Encrypt(BLOCK_UNALIGNED_MESSAGE, KEY);
+            string decrypt = engine.Decrypt(cipher, KEY);
             Assert.AreEqual(BLOCK_UNALIGNED_MESSAGE, decrypt);
         }
 
         [TestMethod]
         public void CFB_Test() {
             CryptoEngine engine = new CryptoEngine(CipherBlockMode.CFB, CipherBlockPadding.None, TextEncoding.UTF8);
-            string cipher = engine.Encrypt(BLOCK_UNALIGNED_MESSAGE);
-            string decrypt = engine.Decrypt(cipher);
+            byte[] cipher = engine.Encrypt(BLOCK_UNALIGNED_MESSAGE, KEY);
+            string decrypt = engine.Decrypt(cipher, KEY);
             Assert.AreEqual(BLOCK_UNALIGNED_MESSAGE, decrypt);
         }
 
         [TestMethod]
         public void OFB_Test() {
             CryptoEngine engine = new CryptoEngine(CipherBlockMode.OFB, CipherBlockPadding.None, TextEncoding.UTF8);
-            string cipher = engine.Encrypt(BLOCK_UNALIGNED_MESSAGE);
-            string decrypt = engine.Decrypt(cipher);
+            byte[] cipher = engine.Encrypt(BLOCK_UNALIGNED_MESSAGE, KEY);
+            string decrypt = engine.Decrypt(cipher, KEY);
             Assert.AreEqual(BLOCK_UNALIGNED_MESSAGE, decrypt);
         }
 

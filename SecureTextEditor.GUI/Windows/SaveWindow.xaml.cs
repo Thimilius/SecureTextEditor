@@ -28,13 +28,17 @@ namespace SecureTextEditor.GUI {
 
             // Set up UI
             SecurityTypeComboBox.ItemsSource = Enum.GetValues(typeof(SecurityType)).Cast<SecurityType>();
+            // HACK: Setting of the key sizes could maybe be a little prettier
+            KeySizeComboBox.ItemsSource = new int[] { 128, 192, 256 };
             CipherBlockModeComboBox.ItemsSource = Enum.GetValues(typeof(CipherBlockMode)).Cast<CipherBlockMode>();
             CipherBlockPaddingComboBox.ItemsSource = Enum.GetValues(typeof(CipherBlockPadding)).Cast<CipherBlockPadding>();
 
             // Set default options from config
-            SecurityTypeComboBox.SelectedItem = tab.FileMetaData.EncryptionOptions.Type;
-            CipherBlockModeComboBox.SelectedItem = tab.FileMetaData.EncryptionOptions.BlockMode;
-            CipherBlockPaddingComboBox.SelectedItem = tab.FileMetaData.EncryptionOptions.BlockPadding;
+            EncryptionOptions options = tab.FileMetaData.EncryptionOptions;
+            SecurityTypeComboBox.SelectedItem = options.Type;
+            KeySizeComboBox.SelectedItem = options.KeySize;
+            CipherBlockModeComboBox.SelectedItem = options.BlockMode;
+            CipherBlockPaddingComboBox.SelectedItem = options.BlockPadding;
         }
 
         private void CancelSave(object sender, RoutedEventArgs e) {
@@ -54,7 +58,8 @@ namespace SecureTextEditor.GUI {
             SecurityType type = (SecurityType)SecurityTypeComboBox.SelectedItem;
             CipherBlockMode mode = (CipherBlockMode)CipherBlockModeComboBox.SelectedItem;
             CipherBlockPadding padding = (CipherBlockPadding)CipherBlockPaddingComboBox.SelectedItem;
-            EncryptionOptions options = new EncryptionOptions() { Type = type, BlockMode = mode, BlockPadding = padding };
+            int keySize = (int)KeySizeComboBox.SelectedItem;
+            EncryptionOptions options = new EncryptionOptions() { Type = type, KeySize = keySize, BlockMode = mode, BlockPadding = padding };
             TextEncoding encoding = m_TabToSave.FileMetaData.Encoding;
             string text = m_TabToSave.Editor.Text;
 

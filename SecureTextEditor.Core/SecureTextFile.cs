@@ -40,7 +40,7 @@ namespace SecureTextEditor.Core {
         [JsonProperty(Required = Required.Always)] public string Base64Cipher { get; }
 
         /// <summary>
-        /// Creates a new secure text file with given properties
+        /// Creates a new secure text file with given properties.
         /// </summary>
         /// <param name="options">The security options used for encryption</param>
         /// <param name="encoding">The encoding used for the text</param>

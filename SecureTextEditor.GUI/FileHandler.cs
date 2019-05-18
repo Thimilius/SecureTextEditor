@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Win32;
 using SecureTextEditor.Core;
@@ -25,12 +26,19 @@ namespace SecureTextEditor.GUI {
                 return null;
             }
 
+            string path = dialog.FileName;
+
             await Task.Run(() => {
                 // Encrypt text and save file
                 CryptoEngine crypto = new CryptoEngine(options.BlockMode, options.BlockPadding, encoding);
-                string base64Cipher = crypto.Encrypt(text);
-                SecureTextFile file = new SecureTextFile(options, encoding, base64Cipher);
-                SecureTextFile.Save(file, dialog.FileName);
+                byte[] key = crypto.GenerateKey(options.KeySize);
+                byte[] cipher = crypto.Encrypt(text, key);
+                SecureTextFile textFile = new SecureTextFile(options, encoding, Convert.ToBase64String(cipher));
+                SecureTextFile.Save(textFile, path);
+
+                // HACK: Hardcoded path to key file
+                KeyFile keyFile = new KeyFile(Convert.ToBase64String(key));
+                KeyFile.Save(keyFile, path + KeyFile.FILE_EXTENSION);
             });
             await Task.Delay(250);
 
@@ -38,7 +46,7 @@ namespace SecureTextEditor.GUI {
                 Encoding = encoding,
                 EncryptionOptions = options,
                 FileName = dialog.SafeFileName,
-                FilePath = dialog.FileName,
+                FilePath = path,
                 IsNew = false,
                 IsDirty = false
             };
@@ -63,17 +71,22 @@ namespace SecureTextEditor.GUI {
             // TODO: Do error checking
 
             // Load file and decrypt with corresponding encoding
-            var file = SecureTextFile.Load(path);
-            var encoding = file.Encoding;
-            
-            var crpyto = new CryptoEngine(file.EncryptionOptions.BlockMode, file.EncryptionOptions.BlockPadding, encoding);
-            string text = crpyto.Decrypt(file.Base64Cipher);
+            SecureTextFile textFile = SecureTextFile.Load(path);
+
+            // HACK: Hardcoded path to key file
+            KeyFile keyFile = KeyFile.Load(path + KeyFile.FILE_EXTENSION);
+
+            TextEncoding encoding = textFile.Encoding;
+            EncryptionOptions options = textFile.EncryptionOptions;
+
+            CryptoEngine crpyto = new CryptoEngine(options.BlockMode, options.BlockPadding, encoding);
+            string text = crpyto.Decrypt(Convert.FromBase64String(textFile.Base64Cipher), Convert.FromBase64String(keyFile.Base64Key));
 
             return new File() {
                 Text = text,
                 MetaData = new FileMetaData() {
                     Encoding = encoding,
-                    EncryptionOptions = file.EncryptionOptions,
+                    EncryptionOptions = options,
                     FileName = fileName,
                     FilePath = path,
                     IsNew = false,

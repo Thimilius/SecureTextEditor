@@ -50,6 +50,7 @@
     <Compile Include="CipherBlockMode.cs" />
     <Compile Include="CipherBlockPadding.cs" />
     <Compile Include="CryptoEngine.cs" />
+    <Compile Include="KeyFile.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SecureTextFile.cs" />
     <Compile Include="EncryptionOptions.cs" />
