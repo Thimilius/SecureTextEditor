@@ -161,11 +161,11 @@ namespace SecureTextEditor.GUI {
                 file = FileHandler.OpenFile();
             }
 
-            // FIXME: This check could be done before we actually read in the file
-            // We do not bother opening a new tab for a file that is already open
-            if (CheckFileExistence(file.MetaData.FilePath)) return;
-
             if (file != null) {
+                // FIXME: This check could be done before we actually read in the file
+                // We do not bother opening a new tab for a file that is already open
+                if (CheckFileExistence(file.MetaData.FilePath)) return;
+
                 // Open new tab for the file
                 TextEditorControl.NewTab(file.Text, file.MetaData);
 
