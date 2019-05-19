@@ -27,99 +27,113 @@
             <RowDefinition Height="25" />
         </Grid.RowDefinitions>
 
-        <Label Grid.Column="1" Content="Save Options" HorizontalAlignment="Center"/>
-
         <!-- Save options -->
         <Grid Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="3" >
             <Grid.Resources>
                 <Style TargetType="Border">
                     <Setter Property="BorderThickness" Value="2" />
+                    <Setter Property="Background" Value="{DynamicResource {x:Static adonisUi:Brushes.Layer2BackgroundBrush}}" />
                     <Setter Property="BorderBrush" Value="{DynamicResource {x:Static adonisUi:Brushes.Layer1BackgroundBrush}}" />
-                    <Setter Property="Grid.Column" Value="1" />
-                    <Setter Property="Grid.Row" Value="2" />
-                    <Setter Property="Grid.ColumnSpan" Value="2" />
-                </Style>
-
-                <Style TargetType="StackPanel">
-                    <Setter Property="VerticalAlignment" Value="Center" />
-                    <Setter Property="HorizontalAlignment" Value="Center" />
-                </Style>
-
-                <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
-                    <Setter Property="VerticalAlignment" Value="Center" />
-                    <Setter Property="HorizontalAlignment" Value="Center" />
-                    <Setter Property="Width" Value="200" />
-                </Style>
-
-                <Style TargetType="Label" BasedOn="{StaticResource {x:Type Label}}">
-                    <Setter Property="Margin" Value="0 0 0 5" />
                 </Style>
             </Grid.Resources>
-            
+
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="4*" />
-                <ColumnDefinition Width="4*" />
+                <ColumnDefinition Width="8*" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
             <Grid.RowDefinitions>
-                <RowDefinition Height="0.25*" />
-                <RowDefinition Height="1.5*" />
-                <RowDefinition Height="4*" />
+                <RowDefinition Height="10*" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <!-- Security option -->
-            <StackPanel Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="2" Orientation="Horizontal">
-                <Label Margin="0 0 10 0" VerticalAlignment="Center" Content="Security Type:" />
-                <ComboBox Name="SecurityTypeComboBox" />
-            </StackPanel>
-            
-            <!-- AES options -->
-            <Border Name="AESOptions" Background="{DynamicResource {x:Static adonisUi:Brushes.Layer2BackgroundBrush}}">
+            <Border Grid.Column="1">
                 <Grid>
+                    <Grid.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="BorderThickness" Value="0" />
+                            <Setter Property="BorderBrush" Value="Transparent" />
+                            <Setter Property="Grid.Row" Value="1" />
+                        </Style>
+
+                        <Style TargetType="StackPanel">
+                            <Setter Property="VerticalAlignment" Value="Center" />
+                            <Setter Property="HorizontalAlignment" Value="Center" />
+                        </Style>
+
+                        <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
+                            <Setter Property="VerticalAlignment" Value="Center" />
+                            <Setter Property="HorizontalAlignment" Value="Center" />
+                            <Setter Property="Width" Value="200" />
+                        </Style>
+
+                        <Style TargetType="Label" BasedOn="{StaticResource {x:Type Label}}">
+                            <Setter Property="Margin" Value="0 0 0 4" />
+                        </Style>
+                    </Grid.Resources>
+                    
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*" />
-                        <RowDefinition Height="*" />
+                        <RowDefinition Height="3*" />
                     </Grid.RowDefinitions>
 
-                    <!-- Cipher type option -->
-                    <StackPanel Grid.Column="0" Grid.Row="0">
-                        <Label Content="Cipher type:" />
-                        <ComboBox Name="CipherTypeComboBox" />
+                    <!-- Security option -->
+                    <StackPanel Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2">
+                        <Label VerticalAlignment="Center" Content="Security Type:" />
+                        <ComboBox Name="SecurityTypeComboBox" />
                     </StackPanel>
 
-                    <!-- Key size option -->
-                    <StackPanel Grid.Column="1" Grid.Row="0">
-                        <Label Content="Key Size:" />
-                        <ComboBox Name="KeySizeComboBox" />
-                    </StackPanel>
+                    <!-- AES options -->
+                    <Border Name="AESOptions">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
 
-                    <!-- Cipher block options -->
-                    <Grid Name="CipherBlockOptions" Grid.Row="1" Grid.ColumnSpan="2">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        
-                        <!-- Cipher block mode option -->
-                        <StackPanel Grid.Column="0">
-                            <Label Content="Block Mode:" />
-                            <ComboBox Name="CipherBlockModeComboBox" />
-                        </StackPanel>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
 
-                        <!-- Cipher block padding option -->
-                        <StackPanel Grid.Column="1">
-                            <Label Content="Block Padding:" />
-                            <ComboBox Name="CipherBlockPaddingComboBox" />
-                        </StackPanel>
-                    </Grid>
+                            <!-- Cipher type option -->
+                            <StackPanel Grid.Column="0" Grid.Row="0">
+                                <Label Content="Cipher type:" />
+                                <ComboBox Name="CipherTypeComboBox" />
+                            </StackPanel>
+
+                            <!-- Key size option -->
+                            <StackPanel Grid.Column="1" Grid.Row="0">
+                                <Label Content="Key Size:" />
+                                <ComboBox Name="KeySizeComboBox" />
+                            </StackPanel>
+
+                            <!-- Cipher block options -->
+                            <Grid Name="CipherBlockOptions" Grid.Row="1" Grid.ColumnSpan="2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Cipher block mode option -->
+                                <StackPanel Grid.Column="0">
+                                    <Label Content="Block Mode:" />
+                                    <ComboBox Name="CipherBlockModeComboBox" />
+                                </StackPanel>
+
+                                <!-- Cipher block padding option -->
+                                <StackPanel Grid.Column="1">
+                                    <Label Content="Block Padding:" />
+                                    <ComboBox Name="CipherBlockPaddingComboBox" />
+                                </StackPanel>
+                            </Grid>
+                        </Grid>
+                    </Border>
                 </Grid>
             </Border>
         </Grid>
