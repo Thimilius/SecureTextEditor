@@ -13,10 +13,12 @@ namespace SecureTextEditor.Tests {
         private const string BLOCK_UNALIGNED_MESSAGE = "This is my secrect text message";
         private const string MESSAGE_UNDER_ONE_BLOCK = "Short message!";
         private static readonly byte[] KEY = Hex.Decode("000102030405060708090a0b0c0d0e0f");
+        private static readonly byte[] IV = Hex.Decode("000102030405060708090a0b0c0d0e0f");
 
         private static readonly CipherBlockPadding[] CIPHER_BLOCK_PADDINGS = (CipherBlockPadding[])Enum.GetValues(typeof(CipherBlockPadding));
          
         // TODO: Test weak and semi-weak keys
+        // TODO: Test generation of key and iv
 
         [TestMethod]
         public void ECB_Test() {
@@ -29,8 +31,8 @@ namespace SecureTextEditor.Tests {
                     message = BLOCK_ALIGNED_MESSAGE;
                 }
 
-                byte[] cipher = engine.Encrypt(message, KEY);
-                string decrypt = engine.Decrypt(cipher, KEY);
+                byte[] cipher = engine.Encrypt(message, KEY, IV);
+                string decrypt = engine.Decrypt(cipher, KEY, IV);
                 Assert.AreEqual(message, decrypt);
             }
         }
@@ -46,8 +48,8 @@ namespace SecureTextEditor.Tests {
                     message = BLOCK_ALIGNED_MESSAGE;
                 }
 
-                byte[] cipher = engine.Encrypt(message, KEY);
-                string decrypt = engine.Decrypt(cipher, KEY);
+                byte[] cipher = engine.Encrypt(message, KEY, IV);
+                string decrypt = engine.Decrypt(cipher, KEY, IV);
                 Assert.AreEqual(message, decrypt);
             }
         }
@@ -55,37 +57,37 @@ namespace SecureTextEditor.Tests {
         [TestMethod]
         public void CTS_Test() {
             CryptoEngine engine = new CryptoEngine(CipherType.Block, CipherBlockMode.CTS, CipherBlockPadding.PKCS7, TextEncoding.UTF8);
-            byte[] cipher = engine.Encrypt(BLOCK_UNALIGNED_MESSAGE, KEY);
-            string decrypt = engine.Decrypt(cipher, KEY);
+            byte[] cipher = engine.Encrypt(BLOCK_UNALIGNED_MESSAGE, KEY, IV);
+            string decrypt = engine.Decrypt(cipher, KEY, IV);
             Assert.AreEqual(BLOCK_UNALIGNED_MESSAGE, decrypt);
 
             // Check that CTS needs at least one block of input
             Assert.ThrowsException<DataLengthException>(() => {
-                engine.Encrypt(MESSAGE_UNDER_ONE_BLOCK, KEY);
+                engine.Encrypt(MESSAGE_UNDER_ONE_BLOCK, KEY, IV);
             });
         }
 
         [TestMethod]
         public void CTR_Test() {
             CryptoEngine engine = new CryptoEngine(CipherType.Block, CipherBlockMode.CTR, CipherBlockPadding.None, TextEncoding.UTF8);
-            byte[] cipher = engine.Encrypt(BLOCK_UNALIGNED_MESSAGE, KEY);
-            string decrypt = engine.Decrypt(cipher, KEY);
+            byte[] cipher = engine.Encrypt(BLOCK_UNALIGNED_MESSAGE, KEY, IV);
+            string decrypt = engine.Decrypt(cipher, KEY, IV);
             Assert.AreEqual(BLOCK_UNALIGNED_MESSAGE, decrypt);
         }
 
         [TestMethod]
         public void CFB_Test() {
             CryptoEngine engine = new CryptoEngine(CipherType.Block, CipherBlockMode.CFB, CipherBlockPadding.None, TextEncoding.UTF8);
-            byte[] cipher = engine.Encrypt(BLOCK_UNALIGNED_MESSAGE, KEY);
-            string decrypt = engine.Decrypt(cipher, KEY);
+            byte[] cipher = engine.Encrypt(BLOCK_UNALIGNED_MESSAGE, KEY, IV);
+            string decrypt = engine.Decrypt(cipher, KEY, IV);
             Assert.AreEqual(BLOCK_UNALIGNED_MESSAGE, decrypt);
         }
 
         [TestMethod]
         public void OFB_Test() {
             CryptoEngine engine = new CryptoEngine(CipherType.Block, CipherBlockMode.OFB, CipherBlockPadding.None, TextEncoding.UTF8);
-            byte[] cipher = engine.Encrypt(BLOCK_UNALIGNED_MESSAGE, KEY);
-            string decrypt = engine.Decrypt(cipher, KEY);
+            byte[] cipher = engine.Encrypt(BLOCK_UNALIGNED_MESSAGE, KEY, IV);
+            string decrypt = engine.Decrypt(cipher, KEY, IV);
             Assert.AreEqual(BLOCK_UNALIGNED_MESSAGE, decrypt);
         }
 

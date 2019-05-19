@@ -87,17 +87,13 @@ namespace SecureTextEditor.Core {
         }
 
         /// <summary>
-        /// Generates an initilization vector if the configuration needs it otherwise returns null.
+        /// Generates an initilization vector.
         /// </summary>
-        /// <returns>The generated initilization vector (Can be null)</returns>
+        /// <returns>The generated initilization vector</returns>
         public byte[] GenerateIV() {
-            if (m_Type == CipherType.Stream || m_CipherBlockMode == CipherBlockMode.ECB) {
-                return null;
-            } else {
-                byte[] iv = new byte[m_Cipher.GetBlockSize()];
-                new SecureRandom().NextBytes(iv);
-                return iv;
-            }
+            byte[] iv = new byte[m_Cipher.GetBlockSize()];
+            new SecureRandom().NextBytes(iv);
+            return iv;
         }
 
         private IBufferedCipher GetCipher(CipherType type, CipherBlockMode mode, IBlockCipherPadding padding) {
@@ -140,10 +136,11 @@ namespace SecureTextEditor.Core {
 
         private ICipherParameters GetCipherParameters(byte[] key, byte[] iv) {
             ICipherParameters result = new KeyParameter(key);
-            if (iv != null) {
-                result = new ParametersWithIV(result, iv);
+            if (iv == null || m_Type == CipherType.Stream || m_CipherBlockMode == CipherBlockMode.ECB) {
+                return result;
+            } else {
+                return new ParametersWithIV(result, iv);
             }
-            return result;
         }
     }
 }
