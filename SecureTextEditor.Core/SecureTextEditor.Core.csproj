@@ -51,6 +51,8 @@
     <Compile Include="Cipher\CipherPadding.cs" />
     <Compile Include="Cipher\CipherType.cs" />
     <Compile Include="Cipher\CipherEngine.cs" />
+    <Compile Include="Digest\DigestEngine.cs" />
+    <Compile Include="Digest\DigestType.cs" />
     <Compile Include="Options\EncryptionOptionsAES.cs" />
     <Compile Include="KeyFile.cs" />
     <Compile Include="Options\EncryptionOptionsRC4.cs" />
