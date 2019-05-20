@@ -4,6 +4,10 @@
     /// </summary>
     public enum CipherMode {
         /// <summary>
+        /// Describes no mode.
+        /// </summary>
+        None,
+        /// <summary>
         /// Describes the Electronic Code Block mode.
         /// </summary>
         ECB,

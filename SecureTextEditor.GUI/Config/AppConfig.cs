@@ -3,6 +3,7 @@ using System.IO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using SecureTextEditor.Core;
+using SecureTextEditor.Core.Options;
 
 namespace SecureTextEditor.GUI.Config {
     /// <summary>
@@ -16,7 +17,8 @@ namespace SecureTextEditor.GUI.Config {
             [JsonProperty(Required = Required.Always)] public Theme Theme { get; set; }
             [JsonProperty(Required = Required.Always)] public int Zoom { get; set; }
             [JsonProperty(Required = Required.Always)] public TextEncoding NewFileTextEncoding { get; set; }
-            [JsonProperty(Required = Required.Always)] public EncryptionOptions DefaultEncryptionOptions { get; set; }
+            [JsonProperty(Required = Required.Always)] public EncryptionType DefaultEncryptionType { get; set; }
+            [JsonProperty(Required = Required.Always)] public IDictionary<EncryptionType, EncryptionOptions> DefaultEncryptionOptions { get; set; }
         }
 
         /// <summary>
@@ -73,12 +75,16 @@ namespace SecureTextEditor.GUI.Config {
                 Theme = Theme.DarkMode,
                 Zoom = 16,
                 NewFileTextEncoding = TextEncoding.UTF8,
-                DefaultEncryptionOptions = new EncryptionOptions() {
-                    Type = SecurityType.AES,
-                    CipherType = CipherType.Block,
-                    KeySize = 192,
-                    AESMode = CipherMode.CBC,
-                    AESPadding = CipherPadding.PKCS7
+                DefaultEncryptionType = EncryptionType.AES,
+                DefaultEncryptionOptions = new Dictionary<EncryptionType, EncryptionOptions>() {
+                    { EncryptionType.AES, new EncryptionOptionsAES() {
+                        KeySize = 192,
+                        Mode = CipherMode.CBC,
+                        Padding = CipherPadding.PKCS7
+                    } },
+                    { EncryptionType.RC4, new EncryptionOptionsRC4() {
+                        KeySize = 192
+                    } },
                 }
             };
         }

@@ -84,8 +84,8 @@
 
                     <!-- Security option -->
                     <StackPanel Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2">
-                        <Label VerticalAlignment="Center" Content="Security Type:" />
-                        <ComboBox Name="SecurityTypeComboBox" />
+                        <Label VerticalAlignment="Center" Content="Encryption Type:" />
+                        <ComboBox Name="EncryptionTypeComboBox" />
                     </StackPanel>
 
                     <!-- AES options -->
@@ -121,8 +121,8 @@
                         </Grid>
                     </Border>
 
-                    <!-- ARC4 options -->
-                    <Border Name="ARC4Options">
+                    <!--ARC4 options -->
+                    <Border Name="RC4Options">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
@@ -137,7 +137,7 @@
                             <!-- Key size option -->
                             <StackPanel Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="0">
                                 <Label Content="Key Size:" />
-                                <ComboBox Name="ARC4KeySizeComboBox" />
+                                <ComboBox Name="RC4KeySizeComboBox" />
                             </StackPanel>
                         </Grid>
                     </Border>

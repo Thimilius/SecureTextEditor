@@ -55,7 +55,7 @@ namespace SecureTextEditor.GUI.Editor {
 
             NewTab(content, new FileMetaData() {
                 Encoding = AppConfig.Config.NewFileTextEncoding,
-                EncryptionOptions = AppConfig.Config.DefaultEncryptionOptions,
+                EncryptionOptions = AppConfig.Config.DefaultEncryptionOptions[AppConfig.Config.DefaultEncryptionType],
                 FileName = name,
                 FilePath = name,
                 IsNew = true,

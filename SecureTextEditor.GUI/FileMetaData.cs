@@ -1,4 +1,5 @@
 ﻿using SecureTextEditor.Core;
+using SecureTextEditor.Core.Options;
 
 namespace SecureTextEditor.GUI {
     /// <summary>

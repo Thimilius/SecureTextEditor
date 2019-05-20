@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Microsoft.Win32;
 using SecureTextEditor.Core;
+using SecureTextEditor.Core.Options;
 
 namespace SecureTextEditor.GUI {
     public static class FileHandler {
@@ -28,7 +29,8 @@ namespace SecureTextEditor.GUI {
 
             await Task.Run(() => {
                 // Encrypt text and save file
-                CryptoEngine crypto = new CryptoEngine(options.CipherType, options.AESMode, options.AESPadding, encoding);
+                CryptoEngine crypto = GetCryptoEngine(options, encoding);
+
                 byte[] key = crypto.GenerateKey(options.KeySize);
                 byte[] iv = crypto.GenerateIV();
                 byte[] cipher = crypto.Encrypt(text, key, iv);
@@ -78,7 +80,7 @@ namespace SecureTextEditor.GUI {
             TextEncoding encoding = textFile.Encoding;
             EncryptionOptions options = textFile.EncryptionOptions;
 
-            CryptoEngine crpyto = new CryptoEngine(options.CipherType, options.AESMode, options.AESPadding, encoding);
+            CryptoEngine crpyto = GetCryptoEngine(options, encoding);
             byte[] cipher = Convert.FromBase64String(textFile.Base64Cipher);
             byte[] key = Convert.FromBase64String(keyFile.Base64Key);
             byte[] iv = Convert.FromBase64String(keyFile.Base64IV);
@@ -95,6 +97,16 @@ namespace SecureTextEditor.GUI {
                     IsDirty = false
                 }
             };
+        }
+
+        private static CryptoEngine GetCryptoEngine(EncryptionOptions options, TextEncoding encoding) {
+            if (options is EncryptionOptionsAES optionsAES) {
+                return new CryptoEngine(optionsAES.CipherType, optionsAES.Mode, optionsAES.Padding, encoding);
+            } else if (options is EncryptionOptionsRC4 optionsRC4) {
+                return new CryptoEngine(optionsRC4.CipherType, CipherMode.None, CipherPadding.None, encoding);
+            } else {
+                return null;
+            }
         }
     }
 }

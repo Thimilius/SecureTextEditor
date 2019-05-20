@@ -1,4 +1,6 @@
-﻿using SecureTextEditor.Core;
+﻿using System.Collections.Generic;
+using SecureTextEditor.Core;
+using SecureTextEditor.Core.Options;
 
 namespace SecureTextEditor.GUI.Config {
     /// <summary>
@@ -18,8 +20,12 @@ namespace SecureTextEditor.GUI.Config {
         /// </summary>
         TextEncoding NewFileTextEncoding { get; set; }
         /// <summary>
-        /// Gets or sets the default options when saving a file.
+        /// Gets or sets the default emcryption type when saving a file.
         /// </summary>
-        EncryptionOptions DefaultEncryptionOptions { get; set; }
+        EncryptionType DefaultEncryptionType { get; set; }
+        /// <summary>
+        /// Gets or sets the default encryption options for the corresponding type.
+        /// </summary>
+        IDictionary<EncryptionType, EncryptionOptions> DefaultEncryptionOptions { get; set; }
     }
 }

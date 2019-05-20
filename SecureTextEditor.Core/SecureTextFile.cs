@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using SecureTextEditor.Core.Options;
 
 namespace SecureTextEditor.Core {
     /// <summary>
@@ -19,7 +20,8 @@ namespace SecureTextEditor.Core {
         /// </summary>
         private static readonly JsonSerializerSettings SERIALIZER_SETTINGS = new JsonSerializerSettings() {
             Formatting = Formatting.Indented,
-            Converters = new List<JsonConverter>() { new StringEnumConverter() }
+            Converters = new List<JsonConverter>() { new StringEnumConverter() },
+            TypeNameHandling = TypeNameHandling.Auto
         };
 
         /// <summary>

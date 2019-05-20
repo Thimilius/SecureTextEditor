@@ -4,6 +4,8 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using SecureTextEditor.Core;
+using SecureTextEditor.Core.Options;
+using SecureTextEditor.GUI.Config;
 using SecureTextEditor.GUI.Editor;
 
 namespace SecureTextEditor.GUI {
@@ -25,28 +27,29 @@ namespace SecureTextEditor.GUI {
             //        and should therefore not be an option if that is note the case
 
             // Set up UI
-            SecurityTypeComboBox.ItemsSource = Enum.GetValues(typeof(SecurityType)).Cast<SecurityType>();
+            EncryptionTypeComboBox.ItemsSource = Enum.GetValues(typeof(EncryptionType)).Cast<EncryptionType>();
             AESKeySizeComboBox.ItemsSource = new int[] { 128, 192, 256 };
-            AESModeComboBox.ItemsSource = Enum.GetValues(typeof(CipherMode)).Cast<CipherMode>();
-            // NOTE: Should we allow no padding?
+            AESModeComboBox.ItemsSource = Enum.GetValues(typeof(CipherMode)).Cast<CipherMode>().Where(m => m != CipherMode.None);
             AESPaddingComboBox.ItemsSource = Enum.GetValues(typeof(CipherPadding)).Cast<CipherPadding>().Where(p => p != CipherPadding.None);
-            ARC4KeySizeComboBox.ItemsSource = new int[] { 128, 192, 256 };
+            RC4KeySizeComboBox.ItemsSource = new int[] { 128, 192, 256 };
 
-            // Set default options from config
+            // Set default options
             EncryptionOptions options = tab.FileMetaData.EncryptionOptions;
-            SecurityTypeComboBox.SelectedItem = options.Type;
+            EncryptionTypeComboBox.SelectedItem = options.Type;
             AESKeySizeComboBox.SelectedItem = options.KeySize;
-            AESModeComboBox.SelectedItem = options.AESMode;
-            AESPaddingComboBox.SelectedItem = options.AESPadding;
-            ARC4KeySizeComboBox.SelectedItem = options.KeySize;
+            RC4KeySizeComboBox.SelectedItem = options.KeySize;
+
+            EncryptionOptionsAES optionsAES = GetEncryptionOptions<EncryptionOptionsAES>(options, EncryptionType.AES);
+            AESModeComboBox.SelectedItem = optionsAES.Mode;
+            AESPaddingComboBox.SelectedItem = optionsAES.Padding;
 
             // Set up events
-            SecurityTypeComboBox.SelectionChanged += (s, e) => OnSecurityTypeSelectionChanged((SecurityType)SecurityTypeComboBox.SelectedItem);
+            EncryptionTypeComboBox.SelectionChanged += (s, e) => OnSecurityTypeSelectionChanged((EncryptionType)EncryptionTypeComboBox.SelectedItem);
             AESModeComboBox.SelectionChanged += (s, e) => OnAESModeSelectionChanged((CipherMode)AESModeComboBox.SelectedItem);
 
             // Set up initial ui visibility
             OnSecurityTypeSelectionChanged(options.Type);
-            OnAESModeSelectionChanged(options.AESMode);
+            OnAESModeSelectionChanged(optionsAES.Mode);
         }
 
         private void CancelSave(object sender, RoutedEventArgs e) {
@@ -63,20 +66,24 @@ namespace SecureTextEditor.GUI {
             SaveButton.IsEnabled = false;
 
             // Figure out correct cipher type depending on selected security type
-            SecurityType securityType = (SecurityType)SecurityTypeComboBox.SelectedItem;
-            CipherType cipherType = CipherType.Block;
-            if (securityType == SecurityType.ARC4) {
-                cipherType = CipherType.Stream;
-            }
-            
+            EncryptionType encryptionType = (EncryptionType)EncryptionTypeComboBox.SelectedItem;
+
             // Gather options for saving
-            EncryptionOptions options = new EncryptionOptions() {
-                Type = securityType,
-                KeySize = (int)AESKeySizeComboBox.SelectedItem,
-                CipherType = cipherType,
-                AESMode = (CipherMode)AESModeComboBox.SelectedItem,
-                AESPadding = (CipherPadding)AESPaddingComboBox.SelectedItem
-            };
+            EncryptionOptions options = null;
+            switch (encryptionType) {
+                case EncryptionType.AES:
+                    options = new EncryptionOptionsAES() {
+                        Mode = (CipherMode)AESModeComboBox.SelectedItem,
+                        Padding = (CipherPadding)AESPaddingComboBox.SelectedItem
+                    };
+                    break;
+                case EncryptionType.RC4:
+                    options = new EncryptionOptionsRC4();
+                    break;
+                default:
+                    break;
+            }
+            options.KeySize = (int)AESKeySizeComboBox.SelectedItem;
             TextEncoding encoding = m_TabToSave.FileMetaData.Encoding;
             string text = m_TabToSave.Editor.Text;
 
@@ -104,13 +111,17 @@ namespace SecureTextEditor.GUI {
             SaveButton.IsEnabled = true;
         }
 
-        private void OnSecurityTypeSelectionChanged(SecurityType type) {
-            AESOptions.Visibility = type == SecurityType.AES ? Visibility.Visible : Visibility.Hidden;
-            ARC4Options.Visibility = type == SecurityType.ARC4 ? Visibility.Visible : Visibility.Hidden;
+        private void OnSecurityTypeSelectionChanged(EncryptionType type) {
+            AESOptions.Visibility = type == EncryptionType.AES ? Visibility.Visible : Visibility.Hidden;
+            RC4Options.Visibility = type == EncryptionType.RC4 ? Visibility.Visible : Visibility.Hidden;
         }
 
         private void OnAESModeSelectionChanged(CipherMode mode) {
             AESPaddingComboBox.IsEnabled = mode == CipherMode.ECB || mode == CipherMode.CBC;
+        }
+
+        private T GetEncryptionOptions<T>(EncryptionOptions options, EncryptionType type) where T : EncryptionOptions {
+            return (options as T) ?? (T)AppConfig.Config.DefaultEncryptionOptions[type];
         }
 
         protected override void OnClosing(CancelEventArgs e) {
