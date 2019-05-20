@@ -3,6 +3,7 @@ using System.IO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using SecureTextEditor.Core;
+using SecureTextEditor.Core.Cipher;
 using SecureTextEditor.Core.Options;
 
 namespace SecureTextEditor.GUI.Config {

@@ -2,8 +2,8 @@
 using System.ComponentModel;
 using System.Linq;
 using System.Windows;
-using System.Windows.Controls;
 using SecureTextEditor.Core;
+using SecureTextEditor.Core.Cipher;
 using SecureTextEditor.Core.Options;
 using SecureTextEditor.GUI.Config;
 using SecureTextEditor.GUI.Editor;

@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using SecureTextEditor.Core.Cipher;
 
 namespace SecureTextEditor.Core.Options {
     public class EncryptionOptionsAES : EncryptionOptions {

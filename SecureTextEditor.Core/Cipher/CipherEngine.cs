@@ -8,7 +8,7 @@ using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 
-namespace SecureTextEditor.Core {
+namespace SecureTextEditor.Core.Cipher {
     /// <summary>
     /// Cryptographic engine abstracting block (AES) and stream (RC4) ciphers.
     /// </summary>

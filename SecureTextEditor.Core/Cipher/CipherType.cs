@@ -1,4 +1,4 @@
-﻿namespace SecureTextEditor.Core {
+﻿namespace SecureTextEditor.Core.Cipher {
     /// <summary>
     /// Describes the cipher type used for encryption.
     /// </summary>

@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Microsoft.Win32;
 using SecureTextEditor.Core;
+using SecureTextEditor.Core.Cipher;
 using SecureTextEditor.Core.Options;
 
 namespace SecureTextEditor.GUI {
@@ -68,7 +69,6 @@ namespace SecureTextEditor.GUI {
         }
 
         public static File OpenFile(string path, string fileName) {
-            // TODO: Enable loading of normal text files
             // TODO: Do error checking
 
             // Load file and decrypt with corresponding encoding

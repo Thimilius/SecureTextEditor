@@ -5,10 +5,11 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Utilities.Encoders;
 using SecureTextEditor.Core;
+using SecureTextEditor.Core.Cipher;
 
 namespace SecureTextEditor.Tests {
     [TestClass]
-    public class CryptoEngineTester {
+    public class CipherEngineTester {
         private const string BLOCK_ALIGNED_MESSAGE   = "This is my secrect text message!";
         private const string BLOCK_UNALIGNED_MESSAGE = "This is my secrect text message";
         private const string MESSAGE_UNDER_ONE_BLOCK = "Short message!";

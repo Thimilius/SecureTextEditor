@@ -95,11 +95,6 @@ namespace SecureTextEditor.GUI {
         }
 
         private void OnSave(object sender, RoutedEventArgs e) {
-            // TODO: Implement proper save logic (no prompt)
-            PromptSaveWindow(TextEditorControl.CurrentTab);
-        }
-
-        private void OnSaveAs(object sender, RoutedEventArgs e) {
             PromptSaveWindow(TextEditorControl.CurrentTab);
         }
 
