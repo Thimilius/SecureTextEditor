@@ -12,7 +12,7 @@ namespace SecureTextEditor.Core {
     /// <summary>
     /// Cryptographic engine abstracting block (AES) and stream (RC4) ciphers.
     /// </summary>
-    public class CryptoEngine {
+    public class CipherEngine {
         private const int STREAM_BLOCK_SIZE = 16;
         private static readonly IBlockCipher BLOCK_CIPHER_ENGINE = new AesEngine();
         private static readonly IStreamCipher STREAM_CIPHER_ENGINE = new RC4Engine();
@@ -30,7 +30,7 @@ namespace SecureTextEditor.Core {
         /// <param name="mode">The cipher block mode to use</param>
         /// <param name="padding">The cipher block padding to use</param>
         /// <param name="encoding">The encoding to use</param>
-        public CryptoEngine(CipherType type, CipherMode mode, CipherPadding padding, TextEncoding encoding) {
+        public CipherEngine(CipherType type, CipherMode mode, CipherPadding padding, TextEncoding encoding) {
             m_Type = type;
             m_CipherBlockMode = mode;
             m_Cipher = GetCipher(type, mode, GetCipherPadding(padding));

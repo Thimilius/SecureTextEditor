@@ -29,11 +29,11 @@ namespace SecureTextEditor.GUI {
 
             await Task.Run(() => {
                 // Encrypt text and save file
-                CryptoEngine crypto = GetCryptoEngine(options, encoding);
+                CipherEngine engine = GetCryptoEngine(options, encoding);
 
-                byte[] key = crypto.GenerateKey(options.KeySize);
-                byte[] iv = crypto.GenerateIV();
-                byte[] cipher = crypto.Encrypt(text, key, iv);
+                byte[] key = engine.GenerateKey(options.KeySize);
+                byte[] iv = engine.GenerateIV();
+                byte[] cipher = engine.Encrypt(text, key, iv);
                 SecureTextFile textFile = new SecureTextFile(options, encoding, Convert.ToBase64String(cipher));
                 SecureTextFile.Save(textFile, path);
 
@@ -80,11 +80,11 @@ namespace SecureTextEditor.GUI {
             TextEncoding encoding = textFile.Encoding;
             EncryptionOptions options = textFile.EncryptionOptions;
 
-            CryptoEngine crpyto = GetCryptoEngine(options, encoding);
+            CipherEngine engine = GetCryptoEngine(options, encoding);
             byte[] cipher = Convert.FromBase64String(textFile.Base64Cipher);
             byte[] key = Convert.FromBase64String(keyFile.Base64Key);
             byte[] iv = Convert.FromBase64String(keyFile.Base64IV);
-            string text = crpyto.Decrypt(cipher, key, iv);
+            string text = engine.Decrypt(cipher, key, iv);
 
             return new File() {
                 Text = text,
@@ -99,11 +99,11 @@ namespace SecureTextEditor.GUI {
             };
         }
 
-        private static CryptoEngine GetCryptoEngine(EncryptionOptions options, TextEncoding encoding) {
+        private static CipherEngine GetCryptoEngine(EncryptionOptions options, TextEncoding encoding) {
             if (options is EncryptionOptionsAES optionsAES) {
-                return new CryptoEngine(optionsAES.CipherType, optionsAES.Mode, optionsAES.Padding, encoding);
+                return new CipherEngine(optionsAES.CipherType, optionsAES.Mode, optionsAES.Padding, encoding);
             } else if (options is EncryptionOptionsRC4 optionsRC4) {
-                return new CryptoEngine(optionsRC4.CipherType, CipherMode.None, CipherPadding.None, encoding);
+                return new CipherEngine(optionsRC4.CipherType, CipherMode.None, CipherPadding.None, encoding);
             } else {
                 return null;
             }
