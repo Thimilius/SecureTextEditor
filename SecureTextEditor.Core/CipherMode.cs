@@ -2,7 +2,7 @@
     /// <summary>
     /// Describes the cipher block mode used when encrypting.
     /// </summary>
-    public enum CipherBlockMode {
+    public enum CipherMode {
         /// <summary>
         /// Describes the Electronic Code Block mode.
         /// </summary>

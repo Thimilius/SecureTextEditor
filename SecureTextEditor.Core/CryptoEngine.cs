@@ -19,7 +19,7 @@ namespace SecureTextEditor.Core {
         private static readonly int[] ACCEPTED_KEY_SIZES = new int[] { 128, 192, 256 };
 
         private readonly CipherType m_Type;
-        private readonly CipherBlockMode m_CipherBlockMode;
+        private readonly CipherMode m_CipherBlockMode;
         private readonly IBufferedCipher m_Cipher;
         private readonly Encoding m_Encoding;
 
@@ -30,7 +30,7 @@ namespace SecureTextEditor.Core {
         /// <param name="mode">The cipher block mode to use</param>
         /// <param name="padding">The cipher block padding to use</param>
         /// <param name="encoding">The encoding to use</param>
-        public CryptoEngine(CipherType type, CipherBlockMode mode, CipherBlockPadding padding, TextEncoding encoding) {
+        public CryptoEngine(CipherType type, CipherMode mode, CipherPadding padding, TextEncoding encoding) {
             m_Type = type;
             m_CipherBlockMode = mode;
             m_Cipher = GetCipher(type, mode, GetCipherPadding(padding));
@@ -96,15 +96,15 @@ namespace SecureTextEditor.Core {
             return iv;
         }
 
-        private IBufferedCipher GetCipher(CipherType type, CipherBlockMode mode, IBlockCipherPadding padding) {
+        private IBufferedCipher GetCipher(CipherType type, CipherMode mode, IBlockCipherPadding padding) {
             if (type == CipherType.Block) {
                 switch (mode) {
-                    case CipherBlockMode.ECB: return padding == null ? new BufferedBlockCipher(BLOCK_CIPHER_ENGINE) : new PaddedBufferedBlockCipher(BLOCK_CIPHER_ENGINE, padding);
-                    case CipherBlockMode.CBC: return padding == null ? new BufferedBlockCipher(new CbcBlockCipher(BLOCK_CIPHER_ENGINE)) : new PaddedBufferedBlockCipher(new CbcBlockCipher(BLOCK_CIPHER_ENGINE), padding);
-                    case CipherBlockMode.CTS: return new CtsBlockCipher(new CbcBlockCipher(BLOCK_CIPHER_ENGINE));
-                    case CipherBlockMode.CTR: return new BufferedBlockCipher(new SicBlockCipher(BLOCK_CIPHER_ENGINE));
-                    case CipherBlockMode.CFB: return new BufferedBlockCipher(new CfbBlockCipher(BLOCK_CIPHER_ENGINE, STREAM_BLOCK_SIZE));
-                    case CipherBlockMode.OFB: return new BufferedBlockCipher(new OfbBlockCipher(BLOCK_CIPHER_ENGINE, STREAM_BLOCK_SIZE));
+                    case CipherMode.ECB: return padding == null ? new BufferedBlockCipher(BLOCK_CIPHER_ENGINE) : new PaddedBufferedBlockCipher(BLOCK_CIPHER_ENGINE, padding);
+                    case CipherMode.CBC: return padding == null ? new BufferedBlockCipher(new CbcBlockCipher(BLOCK_CIPHER_ENGINE)) : new PaddedBufferedBlockCipher(new CbcBlockCipher(BLOCK_CIPHER_ENGINE), padding);
+                    case CipherMode.CTS: return new CtsBlockCipher(new CbcBlockCipher(BLOCK_CIPHER_ENGINE));
+                    case CipherMode.CTR: return new BufferedBlockCipher(new SicBlockCipher(BLOCK_CIPHER_ENGINE));
+                    case CipherMode.CFB: return new BufferedBlockCipher(new CfbBlockCipher(BLOCK_CIPHER_ENGINE, STREAM_BLOCK_SIZE));
+                    case CipherMode.OFB: return new BufferedBlockCipher(new OfbBlockCipher(BLOCK_CIPHER_ENGINE, STREAM_BLOCK_SIZE));
                     default: throw new ArgumentOutOfRangeException(nameof(mode));
                 }
             } else {
@@ -112,16 +112,16 @@ namespace SecureTextEditor.Core {
             }
         }
 
-        private IBlockCipherPadding GetCipherPadding(CipherBlockPadding padding) {
+        private IBlockCipherPadding GetCipherPadding(CipherPadding padding) {
             switch (padding) {
-                case CipherBlockPadding.None: return null;
-                case CipherBlockPadding.ISO7816d4: return new ISO7816d4Padding();
-                case CipherBlockPadding.ISO10126d2: return new ISO10126d2Padding();
-                case CipherBlockPadding.PKCS5: return new Pkcs7Padding();
-                case CipherBlockPadding.PKCS7: return new Pkcs7Padding();
-                case CipherBlockPadding.TCB: return new TbcPadding();
-                case CipherBlockPadding.X923: return new X923Padding();
-                case CipherBlockPadding.ZeroBytes: return new ZeroBytePadding();
+                case CipherPadding.None: return null;
+                case CipherPadding.ISO7816d4: return new ISO7816d4Padding();
+                case CipherPadding.ISO10126d2: return new ISO10126d2Padding();
+                case CipherPadding.PKCS5: return new Pkcs7Padding();
+                case CipherPadding.PKCS7: return new Pkcs7Padding();
+                case CipherPadding.TCB: return new TbcPadding();
+                case CipherPadding.X923: return new X923Padding();
+                case CipherPadding.ZeroBytes: return new ZeroBytePadding();
                 default: throw new ArgumentOutOfRangeException(nameof(padding));
             }
         }
@@ -136,7 +136,7 @@ namespace SecureTextEditor.Core {
 
         private ICipherParameters GetCipherParameters(byte[] key, byte[] iv) {
             ICipherParameters result = new KeyParameter(key);
-            if (iv == null || m_Type == CipherType.Stream || m_CipherBlockMode == CipherBlockMode.ECB) {
+            if (iv == null || m_Type == CipherType.Stream || m_CipherBlockMode == CipherMode.ECB) {
                 return result;
             } else {
                 return new ParametersWithIV(result, iv);

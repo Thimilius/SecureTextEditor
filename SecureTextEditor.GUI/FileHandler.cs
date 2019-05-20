@@ -28,8 +28,8 @@ namespace SecureTextEditor.GUI {
 
             await Task.Run(() => {
                 // Encrypt text and save file
-                CryptoEngine crypto = new CryptoEngine(options.CipherType, options.CipherBlockMode, options.CipherBlockPadding, encoding);
-                byte[] key = crypto.GenerateKey(options.CipherKeySize);
+                CryptoEngine crypto = new CryptoEngine(options.CipherType, options.AESMode, options.AESPadding, encoding);
+                byte[] key = crypto.GenerateKey(options.KeySize);
                 byte[] iv = crypto.GenerateIV();
                 byte[] cipher = crypto.Encrypt(text, key, iv);
                 SecureTextFile textFile = new SecureTextFile(options, encoding, Convert.ToBase64String(cipher));
@@ -78,7 +78,7 @@ namespace SecureTextEditor.GUI {
             TextEncoding encoding = textFile.Encoding;
             EncryptionOptions options = textFile.EncryptionOptions;
 
-            CryptoEngine crpyto = new CryptoEngine(options.CipherType, options.CipherBlockMode, options.CipherBlockPadding, encoding);
+            CryptoEngine crpyto = new CryptoEngine(options.CipherType, options.AESMode, options.AESPadding, encoding);
             byte[] cipher = Convert.FromBase64String(textFile.Base64Cipher);
             byte[] key = Convert.FromBase64String(keyFile.Base64Key);
             byte[] iv = Convert.FromBase64String(keyFile.Base64IV);

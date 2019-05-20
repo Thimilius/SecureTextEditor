@@ -2,7 +2,7 @@
     /// <summary>
     /// Describes the cipher padding used when encrypting.
     /// </summary>
-    public enum CipherBlockPadding {
+    public enum CipherPadding {
         /// <summary>
         /// Describes that no padding is used.
         /// </summary>

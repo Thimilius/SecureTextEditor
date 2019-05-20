@@ -16,14 +16,14 @@ namespace SecureTextEditor.Core {
         /// <summary>
         /// The size of the key used in AES encryption.
         /// </summary>
-        [JsonProperty(Required = Required.Always)] public int CipherKeySize { get; set; }
+        [JsonProperty(Required = Required.Always)] public int KeySize { get; set; }
         /// <summary>
         /// The block mode used in AES encryption.
         /// </summary>
-        [JsonProperty(Required = Required.Always)] public CipherBlockMode CipherBlockMode { get; set; }
+        [JsonProperty(Required = Required.Always)] public CipherMode AESMode { get; set; }
         /// <summary>
         /// The block padding used in AES encryption.
         /// </summary>
-        [JsonProperty(Required = Required.Always)] public CipherBlockPadding CipherBlockPadding { get; set; }
+        [JsonProperty(Required = Required.Always)] public CipherPadding AESPadding { get; set; }
     }
 }

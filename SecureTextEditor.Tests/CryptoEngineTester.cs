@@ -15,7 +15,7 @@ namespace SecureTextEditor.Tests {
         private static readonly byte[] KEY = Hex.Decode("000102030405060708090a0b0c0d0e0f");
         private static readonly byte[] IV = Hex.Decode("000102030405060708090a0b0c0d0e0f");
 
-        private static readonly CipherBlockPadding[] CIPHER_BLOCK_PADDINGS = (CipherBlockPadding[])Enum.GetValues(typeof(CipherBlockPadding));
+        private static readonly CipherPadding[] CIPHER_BLOCK_PADDINGS = (CipherPadding[])Enum.GetValues(typeof(CipherPadding));
          
         // TODO: Test weak and semi-weak keys
         // TODO: Test generation of key and iv
@@ -23,11 +23,11 @@ namespace SecureTextEditor.Tests {
         [TestMethod]
         public void ECB_Test() {
             foreach (var padding in CIPHER_BLOCK_PADDINGS) {
-                CryptoEngine engine = new CryptoEngine(CipherType.Block, CipherBlockMode.ECB, padding, TextEncoding.UTF8);
+                CryptoEngine engine = new CryptoEngine(CipherType.Block, CipherMode.ECB, padding, TextEncoding.UTF8);
 
                 // Use block aligned message for no padding
                 string message = BLOCK_UNALIGNED_MESSAGE;
-                if (padding == CipherBlockPadding.None) {
+                if (padding == CipherPadding.None) {
                     message = BLOCK_ALIGNED_MESSAGE;
                 }
 
@@ -40,11 +40,11 @@ namespace SecureTextEditor.Tests {
         [TestMethod]
         public void CBC_Test() {
             foreach (var padding in CIPHER_BLOCK_PADDINGS) {
-                CryptoEngine engine = new CryptoEngine(CipherType.Block, CipherBlockMode.CBC, padding, TextEncoding.UTF8);
+                CryptoEngine engine = new CryptoEngine(CipherType.Block, CipherMode.CBC, padding, TextEncoding.UTF8);
 
                 // Use block aligned message for no padding
                 string message = BLOCK_UNALIGNED_MESSAGE;
-                if (padding == CipherBlockPadding.None) {
+                if (padding == CipherPadding.None) {
                     message = BLOCK_ALIGNED_MESSAGE;
                 }
 
@@ -56,7 +56,7 @@ namespace SecureTextEditor.Tests {
 
         [TestMethod]
         public void CTS_Test() {
-            CryptoEngine engine = new CryptoEngine(CipherType.Block, CipherBlockMode.CTS, CipherBlockPadding.PKCS7, TextEncoding.UTF8);
+            CryptoEngine engine = new CryptoEngine(CipherType.Block, CipherMode.CTS, CipherPadding.PKCS7, TextEncoding.UTF8);
             byte[] cipher = engine.Encrypt(BLOCK_UNALIGNED_MESSAGE, KEY, IV);
             string decrypt = engine.Decrypt(cipher, KEY, IV);
             Assert.AreEqual(BLOCK_UNALIGNED_MESSAGE, decrypt);
@@ -69,7 +69,7 @@ namespace SecureTextEditor.Tests {
 
         [TestMethod]
         public void CTR_Test() {
-            CryptoEngine engine = new CryptoEngine(CipherType.Block, CipherBlockMode.CTR, CipherBlockPadding.None, TextEncoding.UTF8);
+            CryptoEngine engine = new CryptoEngine(CipherType.Block, CipherMode.CTR, CipherPadding.None, TextEncoding.UTF8);
             byte[] cipher = engine.Encrypt(BLOCK_UNALIGNED_MESSAGE, KEY, IV);
             string decrypt = engine.Decrypt(cipher, KEY, IV);
             Assert.AreEqual(BLOCK_UNALIGNED_MESSAGE, decrypt);
@@ -77,7 +77,7 @@ namespace SecureTextEditor.Tests {
 
         [TestMethod]
         public void CFB_Test() {
-            CryptoEngine engine = new CryptoEngine(CipherType.Block, CipherBlockMode.CFB, CipherBlockPadding.None, TextEncoding.UTF8);
+            CryptoEngine engine = new CryptoEngine(CipherType.Block, CipherMode.CFB, CipherPadding.None, TextEncoding.UTF8);
             byte[] cipher = engine.Encrypt(BLOCK_UNALIGNED_MESSAGE, KEY, IV);
             string decrypt = engine.Decrypt(cipher, KEY, IV);
             Assert.AreEqual(BLOCK_UNALIGNED_MESSAGE, decrypt);
@@ -85,7 +85,7 @@ namespace SecureTextEditor.Tests {
 
         [TestMethod]
         public void OFB_Test() {
-            CryptoEngine engine = new CryptoEngine(CipherType.Block, CipherBlockMode.OFB, CipherBlockPadding.None, TextEncoding.UTF8);
+            CryptoEngine engine = new CryptoEngine(CipherType.Block, CipherMode.OFB, CipherPadding.None, TextEncoding.UTF8);
             byte[] cipher = engine.Encrypt(BLOCK_UNALIGNED_MESSAGE, KEY, IV);
             string decrypt = engine.Decrypt(cipher, KEY, IV);
             Assert.AreEqual(BLOCK_UNALIGNED_MESSAGE, decrypt);
@@ -94,14 +94,14 @@ namespace SecureTextEditor.Tests {
         [TestMethod]
         public void Block_Mode_Out_Of_Range_Test() {
             Assert.ThrowsException<ArgumentOutOfRangeException>(() => {
-                new CryptoEngine(CipherType.Block, (CipherBlockMode)999, CipherBlockPadding.PKCS7, TextEncoding.UTF8);
+                new CryptoEngine(CipherType.Block, (CipherMode)999, CipherPadding.PKCS7, TextEncoding.UTF8);
             });
         }
 
         [TestMethod]
         public void Block_Padding_Out_Of_Range_Test() {
             Assert.ThrowsException<ArgumentOutOfRangeException>(() => {
-                new CryptoEngine(CipherType.Block, CipherBlockMode.CBC, (CipherBlockPadding)999, TextEncoding.UTF8);
+                new CryptoEngine(CipherType.Block, CipherMode.CBC, (CipherPadding)999, TextEncoding.UTF8);
             });
         }
     }

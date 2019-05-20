@@ -47,8 +47,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CipherBlockMode.cs" />
-    <Compile Include="CipherBlockPadding.cs" />
+    <Compile Include="CipherMode.cs" />
+    <Compile Include="CipherPadding.cs" />
     <Compile Include="CipherType.cs" />
     <Compile Include="CryptoEngine.cs" />
     <Compile Include="KeyFile.cs" />

@@ -6,6 +6,10 @@
         /// <summary>
         /// Describes encryption with the AES algorithm.
         /// </summary>
-        AES
+        AES,
+        /// <summary>
+        /// Describes encryption with the RC4 algorithm.
+        /// </summary>
+        ARC4
     }
 }
