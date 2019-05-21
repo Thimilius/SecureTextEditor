@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using System.Windows;
 using Microsoft.Win32;
 using SecureTextEditor.Core;
 using SecureTextEditor.Core.Cipher;
@@ -12,13 +13,14 @@ namespace SecureTextEditor.GUI {
             public FileMetaData MetaData { get; set; }
         }
 
-        private const string FILE_FILTER = "Secure Text File (" + SecureTextFile.FILE_EXTENSION + ")|*" + SecureTextFile.FILE_EXTENSION;
+        private const string STXT_FILE_FILTER = "Secure Text File (" + SecureTextFile.FILE_EXTENSION + ")|*" + SecureTextFile.FILE_EXTENSION;
+        private const string KEY_FILE_FILTER = "Key File (" + KeyFile.FILE_EXTENSION + ")|*" + KeyFile.FILE_EXTENSION;
 
         public static async Task<FileMetaData> SaveFileAsync(EncryptionOptions options, TextEncoding encoding, string text) {
             // Show dialog for saving a file
             SaveFileDialog dialog = new SaveFileDialog() {
                 AddExtension = true,
-                Filter = FILE_FILTER
+                Filter = STXT_FILE_FILTER
             };
             bool? result = dialog.ShowDialog();
             // If no path for saving was selected we can bail out
@@ -57,7 +59,7 @@ namespace SecureTextEditor.GUI {
         public static File OpenFile() {
             // Show dialog for opening a file
             var dialog = new OpenFileDialog {
-                Filter = FILE_FILTER
+                Filter = STXT_FILE_FILTER
             };
             bool? result = dialog.ShowDialog();
             // If no file for opening was selected we can bail out
@@ -74,8 +76,26 @@ namespace SecureTextEditor.GUI {
             // Load file and decrypt with corresponding encoding
             SecureTextFile textFile = SecureTextFile.Load(path);
 
-            // HACK: Hardcoded path to key file
-            KeyFile keyFile = KeyFile.Load(path + KeyFile.FILE_EXTENSION);
+            // Try loading in the key file at the same location
+            string keyPath = path + KeyFile.FILE_EXTENSION;
+            KeyFile keyFile;
+            if (System.IO.File.Exists(keyPath)) {
+                keyFile = KeyFile.Load(keyPath);
+            } else {
+                DialogWindow.Show(Application.Current.MainWindow, "The file you want to open requires a key file to decrypt!", "Key File Required", MessageBoxButton.OK, MessageBoxImage.Information);
+                
+                // Show dialog for opening a file
+                var dialog = new OpenFileDialog {
+                    Filter = KEY_FILE_FILTER
+                };
+                bool? result = dialog.ShowDialog();
+                // If no file for opening was selected we can bail out
+                if (result == false) {
+                    return null;
+                }
+
+                keyFile = KeyFile.Load(dialog.FileName);
+            }
 
             TextEncoding encoding = textFile.Encoding;
             EncryptionOptions options = textFile.EncryptionOptions;
