@@ -103,7 +103,7 @@
 
                             <!-- Digest type option -->
                             <StackPanel Grid.Column="0" Grid.Row="0">
-                                <Label Content="DigestType:" />
+                                <Label Content="Digest Type:" />
                                 <ComboBox Name="AESDigestTypeComboBox" />
                             </StackPanel>
                             
@@ -142,7 +142,7 @@
 
                             <!-- Digest type option -->
                             <StackPanel Grid.Column="0" Grid.Row="0">
-                                <Label Content="DigestType:" />
+                                <Label Content="Digest Type:" />
                                 <ComboBox Name="RC4DigestTypeComboBox" />
                             </StackPanel>
 
