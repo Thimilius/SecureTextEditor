@@ -4,6 +4,7 @@ using System.Windows;
 using Microsoft.Win32;
 using SecureTextEditor.Core;
 using SecureTextEditor.Core.Cipher;
+using SecureTextEditor.Core.Digest;
 using SecureTextEditor.Core.Options;
 
 namespace SecureTextEditor.GUI {
@@ -32,12 +33,16 @@ namespace SecureTextEditor.GUI {
 
             await Task.Run(() => {
                 // Encrypt text and save file
-                CipherEngine engine = GetCryptoEngine(options, encoding);
+                CipherEngine cipherEngine = GetCryptoEngine(options, encoding);
+                byte[] key = cipherEngine.GenerateKey(options.KeySize);
+                byte[] iv = cipherEngine.GenerateIV();
+                byte[] cipher = cipherEngine.Encrypt(text, key, iv);
 
-                byte[] key = engine.GenerateKey(options.KeySize);
-                byte[] iv = engine.GenerateIV();
-                byte[] cipher = engine.Encrypt(text, key, iv);
-                SecureTextFile textFile = new SecureTextFile(options, encoding, Convert.ToBase64String(cipher));
+                // We compute the digest from the encrypted cipher
+                DigestEngine digestEngine = new DigestEngine(options.DigestType);
+                byte[] digest = digestEngine.Digest(cipher);
+
+                SecureTextFile textFile = new SecureTextFile(options, encoding, Convert.ToBase64String(digest), Convert.ToBase64String(cipher));
                 SecureTextFile.Save(textFile, path);
 
                 // HACK: Hardcoded path to key file
@@ -82,7 +87,13 @@ namespace SecureTextEditor.GUI {
             if (System.IO.File.Exists(keyPath)) {
                 keyFile = KeyFile.Load(keyPath);
             } else {
-                DialogWindow.Show(Application.Current.MainWindow, "The file you want to open requires a key file to decrypt!", "Key File Required", MessageBoxButton.OK, MessageBoxImage.Information);
+                DialogWindow.Show(
+                    Application.Current.MainWindow,
+                    "The file you want to open requires a key file to decrypt!",
+                    "Key File Required",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information
+                );
                 
                 // Show dialog for opening a file
                 var dialog = new OpenFileDialog {
@@ -99,12 +110,29 @@ namespace SecureTextEditor.GUI {
 
             TextEncoding encoding = textFile.Encoding;
             EncryptionOptions options = textFile.EncryptionOptions;
-
-            CipherEngine engine = GetCryptoEngine(options, encoding);
             byte[] cipher = Convert.FromBase64String(textFile.Base64Cipher);
+
+            // Compare saved and new computed digest
+            DigestEngine digestEngine = new DigestEngine(options.DigestType);
+            byte[] newDigest = digestEngine.Digest(cipher);
+            byte[] oldDigest = Convert.FromBase64String(textFile.Base64Digest);
+            if (!digestEngine.AreEqual(newDigest, oldDigest)) {
+                DialogWindow.Show(
+                    Application.Current.MainWindow,
+                    "It appears the file got tampered with!\nIt can not be restored correctly!",
+                    "File Tampered",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
+
+                return null;
+            }
+
+            // Decrypt cipher
+            CipherEngine cipherEngine = GetCryptoEngine(options, encoding);
             byte[] key = Convert.FromBase64String(keyFile.Base64Key);
             byte[] iv = Convert.FromBase64String(keyFile.Base64IV);
-            string text = engine.Decrypt(cipher, key, iv);
+            string text = cipherEngine.Decrypt(cipher, key, iv);
 
             return new File() {
                 Text = text,

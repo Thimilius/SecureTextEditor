@@ -22,7 +22,7 @@
         <TextBlock Grid.Row="0" Name="IconText" VerticalAlignment="Center" HorizontalAlignment="Center"
                    Text="&#xf05a;" FontSize="25" FontFamily="{StaticResource FontAwesome}" />
 
-        <TextBlock Grid.Row="1" Name="MessageText" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center" />
+        <TextBlock Grid.Row="1" Name="MessageText" FontSize="13" VerticalAlignment="Center" TextAlignment="Center" HorizontalAlignment="Center" />
 
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center">
             <StackPanel.Resources>

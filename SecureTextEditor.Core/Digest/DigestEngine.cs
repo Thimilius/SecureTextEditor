@@ -25,6 +25,23 @@ namespace SecureTextEditor.Core.Digest {
             }
         }
 
+        public bool AreEqual(byte[] a, byte[] b) {
+            // If the length does not match the arrays are not equal
+            if (a.Length != b.Length) {
+                return false;
+            }
+
+            for (int i = 0; i < a.Length; i++) {
+                // If one element differs the arrays are not equal
+                if (a[i] != b[i]) {
+                    return false;
+                }
+            }
+
+            // If we get here we know both arrays are equal
+            return true;
+        }
+
         private byte[] DigestSHA256(byte[] input) {
             IDigest digest = new Sha256Digest();
             digest.BlockUpdate(input, 0, input.Length);

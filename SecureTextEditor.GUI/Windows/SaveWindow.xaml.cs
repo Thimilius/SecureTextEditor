@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows;
 using SecureTextEditor.Core;
 using SecureTextEditor.Core.Cipher;
+using SecureTextEditor.Core.Digest;
 using SecureTextEditor.Core.Options;
 using SecureTextEditor.GUI.Config;
 using SecureTextEditor.GUI.Editor;
@@ -30,6 +31,8 @@ namespace SecureTextEditor.GUI {
             EncryptionTypeComboBox.ItemsSource = Enum.GetValues(typeof(EncryptionType)).Cast<EncryptionType>();
             AESKeySizeComboBox.ItemsSource = new int[] { 128, 192, 256 };
             AESModeComboBox.ItemsSource = Enum.GetValues(typeof(CipherMode)).Cast<CipherMode>().Where(m => m != CipherMode.None);
+            AESDigestTypeComboBox.ItemsSource = Enum.GetValues(typeof(DigestType)).Cast<DigestType>();
+            RC4DigestTypeComboBox.ItemsSource = Enum.GetValues(typeof(DigestType)).Cast<DigestType>();
             AESPaddingComboBox.ItemsSource = Enum.GetValues(typeof(CipherPadding)).Cast<CipherPadding>().Where(p => p != CipherPadding.None);
             RC4KeySizeComboBox.ItemsSource = new int[] { 128, 192, 256 };
 
@@ -38,6 +41,8 @@ namespace SecureTextEditor.GUI {
             EncryptionTypeComboBox.SelectedItem = options.Type;
             AESKeySizeComboBox.SelectedItem = options.KeySize;
             RC4KeySizeComboBox.SelectedItem = options.KeySize;
+            AESDigestTypeComboBox.SelectedItem = options.DigestType;
+            RC4DigestTypeComboBox.SelectedItem = options.DigestType;
 
             EncryptionOptionsAES optionsAES = GetEncryptionOptions<EncryptionOptionsAES>(options, EncryptionType.AES);
             AESModeComboBox.SelectedItem = optionsAES.Mode;
@@ -73,12 +78,15 @@ namespace SecureTextEditor.GUI {
             switch (encryptionType) {
                 case EncryptionType.AES:
                     options = new EncryptionOptionsAES() {
+                        DigestType = (DigestType)AESDigestTypeComboBox.SelectedItem,
                         Mode = (CipherMode)AESModeComboBox.SelectedItem,
                         Padding = (CipherPadding)AESPaddingComboBox.SelectedItem
                     };
                     break;
                 case EncryptionType.RC4:
-                    options = new EncryptionOptionsRC4();
+                    options = new EncryptionOptionsRC4() {
+                        DigestType = (DigestType)RC4DigestTypeComboBox.SelectedItem
+                    };
                     break;
                 default:
                     break;

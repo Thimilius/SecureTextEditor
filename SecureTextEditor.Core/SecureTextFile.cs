@@ -37,6 +37,10 @@ namespace SecureTextEditor.Core {
         /// </summary>
         [JsonProperty(Required = Required.Always)] public TextEncoding Encoding { get; }
         /// <summary>
+        /// The digest computed from the cipher encoded in Base64.
+        /// </summary>
+        [JsonProperty(Required = Required.Always)] public string Base64Digest { get; }
+        /// <summary>
         /// The actual cipher encoded in Base64.
         /// </summary>
         [JsonProperty(Required = Required.Always)] public string Base64Cipher { get; }
@@ -46,10 +50,12 @@ namespace SecureTextEditor.Core {
         /// </summary>
         /// <param name="options">The security options used for encryption</param>
         /// <param name="encoding">The encoding used for the text</param>
+        /// <param name="base64Digest">The digest computed from the cipher encoded in Base64</param>
         /// <param name="base64Cipher">The actual cipher encoded in Base64</param>
-        public SecureTextFile(EncryptionOptions encryptionOptions, TextEncoding encoding, string base64Cipher) {
+        public SecureTextFile(EncryptionOptions encryptionOptions, TextEncoding encoding, string base64Digest, string base64Cipher) {
             Encoding = encoding;
             EncryptionOptions = encryptionOptions;
+            Base64Digest = base64Digest;
             Base64Cipher = base64Cipher;
         }
 

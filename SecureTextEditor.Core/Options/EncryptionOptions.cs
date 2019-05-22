@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using SecureTextEditor.Core.Cipher;
+using SecureTextEditor.Core.Digest;
 
 namespace SecureTextEditor.Core.Options {
     /// <summary>
@@ -14,6 +15,10 @@ namespace SecureTextEditor.Core.Options {
         /// The cipher type used in encryption.
         /// </summary>
         [JsonProperty(Required = Required.Always)] public abstract CipherType CipherType { get; }
+        /// <summary>
+        /// The digest type used for hashing.
+        /// </summary>
+        [JsonProperty(Required = Required.Always)] public DigestType DigestType { get; set; }
         /// <summary>
         /// The size of the key used in for encryption.
         /// </summary>
