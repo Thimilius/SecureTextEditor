@@ -10,13 +10,24 @@ using Org.BouncyCastle.Security;
 
 namespace SecureTextEditor.Core.Cipher {
     /// <summary>
-    /// Cryptographic engine abstracting block (AES) and stream (RC4) ciphers.
+    /// Cryptographic engine abstracting a block (AES) and stream (RC4) cipher.
     /// </summary>
     public class CipherEngine {
-        private const int STREAM_BLOCK_SIZE = 16;
+        /// <summary>
+        /// The size of a block in AES encryption.
+        /// </summary>
+        public const int BLOCK_SIZE = 16;
+        /// <summary>
+        /// The keys accepted in AES encryption.
+        /// </summary>
+        public static readonly int[] AES_ACCEPTED_KEYS = new int[] { 128, 192, 256 };
+        /// <summary>
+        /// The keys accepted in RC4 encryption.
+        /// </summary>
+        public static readonly int[] RC4_ACCEPTED_KEYS = new int[] { 40, 56, 64, 80, 128, 160, 192, 256, 512, 1024, 2048 };
+
         private static readonly IBlockCipher BLOCK_CIPHER_ENGINE = new AesEngine();
         private static readonly IStreamCipher STREAM_CIPHER_ENGINE = new RC4Engine();
-        private static readonly int[] ACCEPTED_KEY_SIZES = new int[] { 128, 192, 256 };
 
         private readonly CipherType m_Type;
         private readonly CipherMode m_CipherBlockMode;
@@ -77,7 +88,7 @@ namespace SecureTextEditor.Core.Cipher {
         /// <param name="keySize">The size of the key</param>
         /// <returns>The generated key</returns>
         public byte[] GenerateKey(int keySize) {
-            if (!ACCEPTED_KEY_SIZES.Contains(keySize)) {
+            if (!AES_ACCEPTED_KEYS.Contains(keySize)) {
                 throw new ArgumentException("Invalid key size", nameof(keySize));
             }
 
@@ -103,8 +114,8 @@ namespace SecureTextEditor.Core.Cipher {
                     case CipherMode.CBC: return padding == null ? new BufferedBlockCipher(new CbcBlockCipher(BLOCK_CIPHER_ENGINE)) : new PaddedBufferedBlockCipher(new CbcBlockCipher(BLOCK_CIPHER_ENGINE), padding);
                     case CipherMode.CTS: return new CtsBlockCipher(new CbcBlockCipher(BLOCK_CIPHER_ENGINE));
                     case CipherMode.CTR: return new BufferedBlockCipher(new SicBlockCipher(BLOCK_CIPHER_ENGINE));
-                    case CipherMode.CFB: return new BufferedBlockCipher(new CfbBlockCipher(BLOCK_CIPHER_ENGINE, STREAM_BLOCK_SIZE));
-                    case CipherMode.OFB: return new BufferedBlockCipher(new OfbBlockCipher(BLOCK_CIPHER_ENGINE, STREAM_BLOCK_SIZE));
+                    case CipherMode.CFB: return new BufferedBlockCipher(new CfbBlockCipher(BLOCK_CIPHER_ENGINE, BLOCK_SIZE));
+                    case CipherMode.OFB: return new BufferedBlockCipher(new OfbBlockCipher(BLOCK_CIPHER_ENGINE, BLOCK_SIZE));
                     default: throw new ArgumentOutOfRangeException(nameof(mode));
                 }
             } else {

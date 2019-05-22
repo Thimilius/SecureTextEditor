@@ -15,29 +15,25 @@ namespace SecureTextEditor.GUI {
     /// Interaction logic for SaveWindow.xaml
     /// </summary>
     public partial class SaveWindow : Window {
-        private TextEditorControl m_TextEditorControl;
-        private TextEditorTab m_TabToSave;
+        private ITextEditorControl m_TextEditorControl;
+        private ITextEditorTab m_TabToSave;
         private bool m_SaveInProgress;
+        private bool m_CTSPaddingAvailable;
 
-        public SaveWindow(TextEditorControl control, TextEditorTab tab) {
+        public SaveWindow(ITextEditorControl control, ITextEditorTab tab) {
             InitializeComponent();
 
             m_TextEditorControl = control;
             m_TabToSave = tab;
-
-            // FIXME: CTS block mode should only be usable when message is more than one block in size
-            //        and should therefore not be an option if that is note the case
-
-            // FIXME: Padding and Mode should be two way dependent
-
+            m_CTSPaddingAvailable = m_TabToSave.Editor.Text.Length > CipherEngine.BLOCK_SIZE;
+            
             // Set up UI
             EncryptionTypeComboBox.ItemsSource = GetEnumValues<EncryptionType>();
-            AESKeySizeComboBox.ItemsSource = new int[] { 128, 192, 256 };
-            AESModeComboBox.ItemsSource = GetEnumValues(CipherMode.None);
+            AESKeySizeComboBox.ItemsSource = CipherEngine.AES_ACCEPTED_KEYS;
             AESDigestTypeComboBox.ItemsSource = GetEnumValues<DigestType>();
-            RC4DigestTypeComboBox.ItemsSource = GetEnumValues<DigestType>();
             AESPaddingComboBox.ItemsSource = GetEnumValues<CipherPadding>();
-            RC4KeySizeComboBox.ItemsSource = new int[] { 128, 192, 256 };
+            RC4DigestTypeComboBox.ItemsSource = GetEnumValues<DigestType>();
+            RC4KeySizeComboBox.ItemsSource = CipherEngine.RC4_ACCEPTED_KEYS;
 
             // Set default options
             EncryptionOptions options = tab.FileMetaData.EncryptionOptions;
@@ -47,7 +43,7 @@ namespace SecureTextEditor.GUI {
             AESDigestTypeComboBox.SelectedItem = options.DigestType;
             RC4DigestTypeComboBox.SelectedItem = options.DigestType;
 
-            EncryptionOptionsAES optionsAES = GetEncryptionOptions<EncryptionOptionsAES>(options, EncryptionType.AES);
+            EncryptionOptionsAES optionsAES = GetDefaultEncryptionOptions<EncryptionOptionsAES>(options, EncryptionType.AES);
             AESModeComboBox.SelectedItem = optionsAES.Mode;
             AESPaddingComboBox.SelectedItem = optionsAES.Padding;
 
@@ -58,6 +54,14 @@ namespace SecureTextEditor.GUI {
             // Set up initial ui visibility
             OnSecurityTypeSelectionChanged(options.Type);
             OnAESPaddingSelectionChanged(optionsAES.Padding);
+
+            // The selection of the mode is a littly hacky because of the weird dependency to the padding
+            if (AESModeComboBox.Items.Contains(optionsAES.Mode)) {
+                AESModeComboBox.SelectedItem = optionsAES.Mode;
+            } else {
+                AESPaddingComboBox.SelectedItem = CipherPadding.None;
+                AESModeComboBox.SelectedItem = optionsAES.Mode;
+            }
         }
 
         private void CancelSave(object sender, RoutedEventArgs e) {
@@ -72,41 +76,18 @@ namespace SecureTextEditor.GUI {
             // Turn off interactability on cancel and save button
             CancelButton.IsEnabled = false;
             SaveButton.IsEnabled = false;
-
-            // Figure out correct cipher type depending on selected security type
-            EncryptionType encryptionType = (EncryptionType)EncryptionTypeComboBox.SelectedItem;
-
-            // Gather options for saving
-            EncryptionOptions options = null;
-            switch (encryptionType) {
-                case EncryptionType.AES:
-                    options = new EncryptionOptionsAES() {
-                        DigestType = (DigestType)AESDigestTypeComboBox.SelectedItem,
-                        Mode = (CipherMode)AESModeComboBox.SelectedItem,
-                        Padding = (CipherPadding)AESPaddingComboBox.SelectedItem
-                    };
-                    break;
-                case EncryptionType.RC4:
-                    options = new EncryptionOptionsRC4() {
-                        DigestType = (DigestType)RC4DigestTypeComboBox.SelectedItem
-                    };
-                    break;
-                default:
-                    break;
-            }
-            options.KeySize = (int)AESKeySizeComboBox.SelectedItem;
-            TextEncoding encoding = m_TabToSave.FileMetaData.Encoding;
-            string text = m_TabToSave.Editor.Text;
-
+            
             // Do the actual save 
             m_SaveInProgress = true;
-            FileMetaData metaData = await FileHandler.SaveFileAsync(options, encoding, text);
+            TextEncoding encoding = m_TabToSave.FileMetaData.Encoding;
+            string text = m_TabToSave.Editor.Text;
+            FileMetaData metaData = await FileHandler.SaveFileAsync(BuildEncryptionOptions(), encoding, text);
             m_SaveInProgress = false;
 
             // Proceed only if the file got actually saved
             if (metaData != null) {
                 // This is a little hackey that we do it here but it works
-                m_TextEditorControl.ProcessClosingTabCounter(m_TabToSave);
+                m_TextEditorControl.NotifyThatTabGotClosed(m_TabToSave);
 
                 // Set new meta data for alreay existing tab and update its header
                 m_TabToSave.FileMetaData = metaData;
@@ -129,11 +110,37 @@ namespace SecureTextEditor.GUI {
 
         private void OnAESPaddingSelectionChanged(CipherPadding padding) {
             if (padding == CipherPadding.None) {
-                AESModeComboBox.ItemsSource = GetEnumValues(CipherMode.ECB, CipherMode.CBC, CipherMode.None);
-                AESModeComboBox.SelectedIndex = 0;
+                // Only modes that have no padding should be available
+                if (m_CTSPaddingAvailable) {
+                    AESModeComboBox.ItemsSource = GetEnumValues(CipherMode.ECB, CipherMode.CBC, CipherMode.None);
+                } else {
+                    AESModeComboBox.ItemsSource = GetEnumValues(CipherMode.CTS, CipherMode.ECB, CipherMode.CBC, CipherMode.None);
+                }
             } else {
+                // Only modes that have a padding should be available
                 AESModeComboBox.ItemsSource = GetEnumValues(CipherMode.CTS, CipherMode.CTR, CipherMode.CFB, CipherMode.OFB, CipherMode.None);
-                AESModeComboBox.SelectedIndex = 0;
+            }
+
+            // When changing just select the first element
+            AESModeComboBox.SelectedIndex = 0;
+        }
+
+        private EncryptionOptions BuildEncryptionOptions() {
+            EncryptionType encryptionType = (EncryptionType)EncryptionTypeComboBox.SelectedItem;
+            switch (encryptionType) {
+                case EncryptionType.AES:
+                    return new EncryptionOptionsAES() {
+                        DigestType = (DigestType)AESDigestTypeComboBox.SelectedItem,
+                        KeySize = (int)AESKeySizeComboBox.SelectedItem,
+                        Mode = (CipherMode)AESModeComboBox.SelectedItem,
+                        Padding = (CipherPadding)AESPaddingComboBox.SelectedItem
+                    };
+                case EncryptionType.RC4:
+                    return new EncryptionOptionsRC4() {
+                        DigestType = (DigestType)RC4DigestTypeComboBox.SelectedItem,
+                        KeySize = (int)RC4KeySizeComboBox.SelectedItem,
+                    };
+                default: throw new InvalidOperationException();
             }
         }
 
@@ -141,7 +148,7 @@ namespace SecureTextEditor.GUI {
             return Enum.GetValues(typeof(T)).Cast<T>().Except(without);
         }
 
-        private T GetEncryptionOptions<T>(EncryptionOptions options, EncryptionType type) where T : EncryptionOptions {
+        private T GetDefaultEncryptionOptions<T>(EncryptionOptions options, EncryptionType type) where T : EncryptionOptions {
             return (options as T) ?? (T)AppConfig.Config.DefaultEncryptionOptions[type];
         }
 

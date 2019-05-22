@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using AdonisUI;
+using Microsoft.Win32;
 using SecureTextEditor.Core;
 using SecureTextEditor.GUI.Config;
 using SecureTextEditor.GUI.Editor;
@@ -16,9 +17,9 @@ namespace SecureTextEditor.GUI {
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow : Window {
-        public TextEditorControl TextEditorControl { get; private set; }
+        public ITextEditorControl TextEditorControl { get; private set; }
 
-        public MainWindow(string path) { 
+        public MainWindow() { 
             InitializeComponent();
 
             // We need to set the inital theme based on config
@@ -28,12 +29,8 @@ namespace SecureTextEditor.GUI {
             TextEditorControl = new TextEditorControl(this, EditorTabControl);
             TextEditorControl.TabChanged += UpdateUI;
 
-            // If we get passed in a path try to load in the file
-            if (path != null) {
-                OpenFile(path);
-            } else {
-                TextEditorControl.NewTab("");
-            }
+            // Open an inital empty tab
+            TextEditorControl.NewTab("");
 
             // Subscribe to global events
             EditorTabControl.MouseWheel += OnZoomChanged;
@@ -44,13 +41,62 @@ namespace SecureTextEditor.GUI {
             EncodingCheckBoxUTF8.Click += (s, e) => ChangeEncoding(TextEncoding.UTF8);
         }
 
+        public void OpenFile(string path) {
+            bool IsFileAlreadyLoaded(string filePath) {
+                // We do not need to open the file if we already have it open
+                // Instead we can just focus the corresponding tab
+                if (filePath != null) {
+                    var tabs = TextEditorControl.Tabs.Where(t => t.FileMetaData.FilePath == filePath);
+                    if (tabs.Any()) {
+                        TextEditorControl.FocusTab(tabs.First());
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            // We do not bother loading a file that is alredy open
+            if (IsFileAlreadyLoaded(path)) return;
+
+            // Check if we need to show the open file dialog first
+            FileHandler.File file;
+            string fileName = Path.GetFileName(path);
+            if (path == null) { 
+                // Show dialog for opening a file
+                var dialog = new OpenFileDialog {
+                    Filter = FileHandler.STXT_FILE_FILTER
+                };
+                bool? result = dialog.ShowDialog();
+
+                path = dialog.FileName;
+                fileName = dialog.SafeFileName;
+
+                // If no file for opening was selected we can bail out
+                if (result == false || IsFileAlreadyLoaded(path)) {
+                    return;
+                }
+            }
+
+            // Open actual file
+            file = FileHandler.OpenFile(path, fileName);
+
+            if (file != null) {
+                // Open new tab for the file
+                TextEditorControl.NewTab(file.Text, file.MetaData);
+
+                // Update UI
+                UpdateEncodingStatus();
+            }
+        }
+
         public void UpdateUI() {
             UpdateEncodingStatus();
             UpdateEditorStatus();
             UpdateWindowTitle();
         }
 
-        public void PromptSaveDialog(TextEditorTab tab) {
+        public void PromptSaveDialog(ITextEditorTab tab) {
             // Show question dialog
             bool save = DialogWindow.Show(this,
                 $"Do you want to save \"{tab.FileMetaData.FileName}\" before closing?",
@@ -67,12 +113,12 @@ namespace SecureTextEditor.GUI {
             // Loop through every dirty tab
             foreach (var tab in TextEditorControl.Tabs.Where(t => t.FileMetaData.IsDirty)) {
                 // Focus the tab and prompt save dialog for it
-                tab.Focus();
+                TextEditorControl.FocusTab(tab);
                 PromptSaveDialog(tab);
             }
         }
 
-        private void PromptSaveWindow(TextEditorTab tab) {
+        private void PromptSaveWindow(ITextEditorTab tab) {
             // Open and show the save dialog
             Window window = new SaveWindow(TextEditorControl, tab) {
                 Owner = this,
@@ -133,45 +179,6 @@ namespace SecureTextEditor.GUI {
             // Update encoding checkboxes
             EncodingCheckBoxASCII.IsChecked = TextEditorControl.CurrentTab.FileMetaData.Encoding == TextEncoding.ASCII;
             EncodingCheckBoxUTF8.IsChecked = TextEditorControl.CurrentTab.FileMetaData.Encoding == TextEncoding.UTF8;
-        }
-
-        private void OpenFile(string path) {
-            bool CheckFileExistence(string filePath) {
-                // We do not need to open the file if we already have it open
-                // Instead we can just focus the corresponding tab
-                if (filePath != null) {
-                    var tabs = TextEditorControl.Tabs.Where(t => t.FileMetaData.FilePath == filePath);
-                    if (tabs.Any()) {
-                        tabs.First().Focus();
-                        return true;
-                    }
-                }
-
-                return false;
-            }
-
-            // We do not bother loading a file that is alredy open
-            if (CheckFileExistence(path)) return;
-
-            // Open the file
-            FileHandler.File file;
-            if (path != null) {
-                file = FileHandler.OpenFile(path, Path.GetFileName(path));
-            } else {
-                file = FileHandler.OpenFile();
-            }
-
-            if (file != null) {
-                // FIXME: This check could be done before we actually read in the file
-                // We do not bother opening a new tab for a file that is already open
-                if (CheckFileExistence(file.MetaData.FilePath)) return;
-
-                // Open new tab for the file
-                TextEditorControl.NewTab(file.Text, file.MetaData);
-
-                // Update UI
-                UpdateEncodingStatus();
-            }
         }
 
         private void ChangeEncoding(TextEncoding encoding) {

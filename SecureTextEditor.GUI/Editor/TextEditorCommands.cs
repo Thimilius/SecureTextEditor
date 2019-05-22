@@ -22,7 +22,7 @@ namespace SecureTextEditor.GUI.Editor {
             // Initialize commands with keyboard shortcuts
             ZoomInCommand.InputGestures.Add(new KeyGesture(Key.OemPlus, ModifierKeys.Control, "Crtl+Plus"));
             ZoomOutCommand.InputGestures.Add(new KeyGesture(Key.OemMinus, ModifierKeys.Control, "Crtl+Minus"));
-            CloseTabCommand.InputGestures.Add(new KeyGesture(Key.W, ModifierKeys.Control));
+            CloseTabCommand.InputGestures.Add(new KeyGesture(Key.W, ModifierKeys.Control, "Crtl+W"));
         }
     }
 }

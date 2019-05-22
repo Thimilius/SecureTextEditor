@@ -14,8 +14,8 @@ namespace SecureTextEditor.GUI {
             public FileMetaData MetaData { get; set; }
         }
 
-        private const string STXT_FILE_FILTER = "Secure Text File (" + SecureTextFile.FILE_EXTENSION + ")|*" + SecureTextFile.FILE_EXTENSION;
-        private const string KEY_FILE_FILTER = "Key File (" + KeyFile.FILE_EXTENSION + ")|*" + KeyFile.FILE_EXTENSION;
+        public const string STXT_FILE_FILTER = "Secure Text File (" + SecureTextFile.FILE_EXTENSION + ")|*" + SecureTextFile.FILE_EXTENSION;
+        public const string KEY_FILE_FILTER = "Key File (" + KeyFile.FILE_EXTENSION + ")|*" + KeyFile.FILE_EXTENSION;
 
         public static async Task<FileMetaData> SaveFileAsync(EncryptionOptions options, TextEncoding encoding, string text) {
             // Show dialog for saving a file
@@ -45,7 +45,7 @@ namespace SecureTextEditor.GUI {
                 SecureTextFile textFile = new SecureTextFile(options, encoding, Convert.ToBase64String(digest), Convert.ToBase64String(cipher));
                 SecureTextFile.Save(textFile, path);
 
-                // HACK: Hardcoded path to key file
+                // Save key file next to text file
                 KeyFile keyFile = new KeyFile(Convert.ToBase64String(key), Convert.ToBase64String(iv));
                 KeyFile.Save(keyFile, path + KeyFile.FILE_EXTENSION);
             });
@@ -59,20 +59,6 @@ namespace SecureTextEditor.GUI {
                 IsNew = false,
                 IsDirty = false
             };
-        }
-
-        public static File OpenFile() {
-            // Show dialog for opening a file
-            var dialog = new OpenFileDialog {
-                Filter = STXT_FILE_FILTER
-            };
-            bool? result = dialog.ShowDialog();
-            // If no file for opening was selected we can bail out
-            if (result == false) {
-                return null;
-            }
-
-            return OpenFile(dialog.FileName, dialog.SafeFileName);
         }
 
         public static File OpenFile(string path, string fileName) {

@@ -120,7 +120,7 @@
                     <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}" />
                 </StackPanel>
 
-                <TextBlock Name="EncodingLabel" Grid.Column="8" VerticalAlignment="Center" Text="Encoding: UTF-8" />
+                <TextBlock Name="EncodingLabel" Grid.Column="8" VerticalAlignment="Center" />
 
                 <!-- Vertical seperator -->
                 <StackPanel Grid.Column="9" Orientation="Horizontal">

@@ -10,7 +10,7 @@ using System.Windows.Media;
 using SecureTextEditor.GUI.Config;
 
 namespace SecureTextEditor.GUI.Editor {
-    public class TextEditorControl {
+    public class TextEditorControl : ITextEditorControl {
         private const int MAX_TABS = 10;
         private const int ZOOM_MIN_LIMIT = 4;
         private const int ZOOM_MAX_LIMIT = 60;
@@ -22,9 +22,9 @@ namespace SecureTextEditor.GUI.Editor {
         private int m_NewTabCounter;
         private List<int> m_NewTabCounterList;
 
-        public TextEditorTab CurrentTab { get; private set; }
+        public ITextEditorTab CurrentTab { get; private set; }
 
-        public IEnumerable<TextEditorTab> Tabs => m_TabControl.Items.Cast<TabItem>().Select(i => (TextEditorTab)i.Tag);
+        public IEnumerable<ITextEditorTab> Tabs => m_TabControl.Items.Cast<TabItem>().Select(i => (ITextEditorTab)i.Tag);
 
         public event Action TabChanged;
 
@@ -41,17 +41,7 @@ namespace SecureTextEditor.GUI.Editor {
         }
 
         public void NewTab(string content) {
-            // Figure out the counter for the new tab
-            int counter;
-            if (m_NewTabCounterList.Count > 0) {
-                m_NewTabCounterList.Sort();
-                counter = m_NewTabCounterList[0];
-                m_NewTabCounterList.RemoveAt(0);
-            } else {
-                counter = m_NewTabCounter++;
-            }
-
-            string name = $"New {counter}";
+            string name = $"New {GetTabCounter()}";
 
             NewTab(content, new FileMetaData() {
                 Encoding = AppConfig.Config.NewFileTextEncoding,
@@ -94,7 +84,7 @@ namespace SecureTextEditor.GUI.Editor {
             FocusTab(tab);
         }
 
-        public void CloseTab(TextEditorTab tab) {
+        public void CloseTab(ITextEditorTab tab) {
             // We don't bother closing the tab if its the last one
             if (m_TabControl.Items.Count == 1 && tab.Editor.Text == "" && tab.FileMetaData.IsNew) {
                 return;
@@ -109,12 +99,17 @@ namespace SecureTextEditor.GUI.Editor {
             // Remove the tab
             m_TabControl.Items.Remove(item);
 
-            ProcessClosingTabCounter(tab);
+            NotifyThatTabGotClosed(tab);
 
             // If we have no tabs open any more, open a new empty one
             if (!m_TabControl.HasItems) {
                 NewTab("");
             }
+        }
+
+        public void FocusTab(ITextEditorTab tab) {
+            CurrentTab = tab;
+            tab.FocusControls();
         }
 
         public void ZoomIn() {
@@ -132,7 +127,7 @@ namespace SecureTextEditor.GUI.Editor {
             SetZoom();
         }
 
-        public void ProcessClosingTabCounter(TextEditorTab tab) {
+        public void NotifyThatTabGotClosed(ITextEditorTab tab) {
             // Only process "new" tabs that were not saved before
             if (tab.FileMetaData.IsNew) {
                 // This is a little hardcoded but thats fine
@@ -147,6 +142,7 @@ namespace SecureTextEditor.GUI.Editor {
         }
 
         private void ClampZoom() {
+            // We clamp the zoom value to its limits
             if (m_Zoom < ZOOM_MIN_LIMIT) {
                 m_Zoom = ZOOM_MIN_LIMIT;
             } else if (m_Zoom > ZOOM_MAX_LIMIT) {
@@ -154,9 +150,16 @@ namespace SecureTextEditor.GUI.Editor {
             }
         }
 
-        private void FocusTab(TextEditorTab tab) {
-            tab.Focus();
-            CurrentTab = tab;
+        private int GetTabCounter() {
+            // Figure out the counter for the new tab
+            if (m_NewTabCounterList.Count > 0) {
+                m_NewTabCounterList.Sort();
+                int counter = m_NewTabCounterList[0];
+                m_NewTabCounterList.RemoveAt(0);
+                return counter;
+            } else {
+                return m_NewTabCounter++;
+            }
         }
 
         private void OnTabControlSelectionChanged(object sender, SelectionChangedEventArgs e) {
@@ -176,10 +179,12 @@ namespace SecureTextEditor.GUI.Editor {
         }
 
         private void OnTabItemPreviewMouseMove(object sender, MouseEventArgs e) {
+            // Check we clicked on an actual TabItem
             if (!(e.Source is TabItem tabItem)) {
                 return;
             }
 
+            // Notify system of drag and drop 
             if (Mouse.PrimaryDevice.LeftButton == MouseButtonState.Pressed) {
                 DragDrop.DoDragDrop(tabItem, tabItem, DragDropEffects.All);
             }
@@ -191,6 +196,7 @@ namespace SecureTextEditor.GUI.Editor {
 
                 // Go the visual tree up to find our actual TabItem
                 while (current != null) {
+                    // Check for found TabItem
                     if (current is TabItem tabItem) {
                         return tabItem;
                     }

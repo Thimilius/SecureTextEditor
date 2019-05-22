@@ -3,7 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 
 namespace SecureTextEditor.GUI.Editor {
-    public class TextEditorTab {
+    public class TextEditorTab : ITextEditorTab {
         private TextEditorControl m_Control;
         private TextBlock m_Header;
 
@@ -25,7 +25,7 @@ namespace SecureTextEditor.GUI.Editor {
             CreateUI(fileMetaData.FileName);
         }
 
-        public void Focus() {
+        public void FocusControls() {
             TabItem.Focus();
             Editor.Focus();
         }
@@ -35,14 +35,15 @@ namespace SecureTextEditor.GUI.Editor {
         }
 
         private void CreateUI(string header) {
-            var contextMenu = new ContextMenu();
-            var closeMenuItem = new MenuItem() {
+            ContextMenu contextMenu = new ContextMenu();
+            string shortcutDisplay = (TextEditorCommands.CloseTabCommand.InputGestures[0] as KeyGesture).DisplayString;
+            MenuItem closeMenuItem = new MenuItem() {
                 Header = "Close",
-                InputGestureText = (TextEditorCommands.CloseTabCommand.InputGestures[0] as KeyGesture).GetDisplayStringForCulture(null)
+                InputGestureText = shortcutDisplay
             };
             contextMenu.Items.Add(closeMenuItem);
 
-            var stackPanel = new StackPanel() {
+            StackPanel stackPanel = new StackPanel() {
                 ContextMenu = contextMenu
             };
             m_Header = new TextBlock() {
@@ -50,7 +51,7 @@ namespace SecureTextEditor.GUI.Editor {
             };
             stackPanel.Children.Add(m_Header);
 
-            var closeButton = new Button();
+            Button closeButton = new Button();
             stackPanel.Children.Add(closeButton);
 
             TabItem = new TabItem() {
@@ -62,14 +63,15 @@ namespace SecureTextEditor.GUI.Editor {
             // Subscribe to events
             closeButton.Click += OnClose;
             closeMenuItem.Click += OnClose;
+            Editor.TextChanged += OnTextChanged;
+        }
 
-            Editor.TextChanged += (s, e) => {
-                if (!FileMetaData.IsDirty) {
-                    FileMetaData.IsDirty = true;
-                    // Show that the file is dirty
-                    m_Header.Text += "*";
-                }
-            };
+        private void OnTextChanged(object sender, TextChangedEventArgs e) {
+            if (!FileMetaData.IsDirty) {
+                // Set the file dirty and show it in header
+                FileMetaData.IsDirty = true;
+                m_Header.Text += "*";
+            }
         }
 
         private void OnClose(object sender, RoutedEventArgs e) {

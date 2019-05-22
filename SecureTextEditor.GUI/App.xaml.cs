@@ -6,10 +6,9 @@ namespace SecureTextEditor.GUI {
     /// Startup logic for the actual Application.
     /// </summary>
     public partial class App : Application {
-        private void OnStart(object sender, StartupEventArgs e) {
+        protected override void OnStartup(StartupEventArgs e) {
             // Load in config
             AppConfig.Load();
-            Exit += OnExit;
 
             // If we get passed in an argument treat it as a path for a file to initially load
             string path = null;
@@ -18,13 +17,21 @@ namespace SecureTextEditor.GUI {
             }
 
             // Display main window
-            MainWindow = new MainWindow(path);
-            MainWindow.Show();
+            MainWindow window = new MainWindow();
+            MainWindow = window;
+            window.Show();
+
+            // If we got a path try opening it now
+            if (path != null) {
+                window.OpenFile(path);
+            }
         }
 
-        private void OnExit(object sender, ExitEventArgs e) {
+        protected override void OnExit(ExitEventArgs e) {
             // Make sure config gets saved when the application exits
             AppConfig.Save();
+
+            base.OnExit(e);
         }
     }
 }
