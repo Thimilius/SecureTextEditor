@@ -42,44 +42,8 @@ namespace SecureTextEditor.GUI {
         }
 
         public void OpenFile(string path) {
-            bool IsFileAlreadyLoaded(string filePath) {
-                // We do not need to open the file if we already have it open
-                // Instead we can just focus the corresponding tab
-                if (filePath != null) {
-                    var tabs = TextEditorControl.Tabs.Where(t => t.FileMetaData.FilePath == filePath);
-                    if (tabs.Any()) {
-                        TextEditorControl.FocusTab(tabs.First());
-                        return true;
-                    }
-                }
-
-                return false;
-            }
-
-            // We do not bother loading a file that is alredy open
-            if (IsFileAlreadyLoaded(path)) return;
-
-            // Check if we need to show the open file dialog first
-            FileHandler.File file;
-            string fileName = Path.GetFileName(path);
-            if (path == null) { 
-                // Show dialog for opening a file
-                var dialog = new OpenFileDialog {
-                    Filter = FileHandler.STXT_FILE_FILTER
-                };
-                bool? result = dialog.ShowDialog();
-
-                path = dialog.FileName;
-                fileName = dialog.SafeFileName;
-
-                // If no file for opening was selected we can bail out
-                if (result == false || IsFileAlreadyLoaded(path)) {
-                    return;
-                }
-            }
-
             // Open actual file
-            file = FileHandler.OpenFile(path, fileName);
+            var file = FileHandler.OpenFile(TextEditorControl, path);
 
             if (file != null) {
                 // Open new tab for the file

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.Win32;
@@ -6,6 +8,7 @@ using SecureTextEditor.Core;
 using SecureTextEditor.Core.Cipher;
 using SecureTextEditor.Core.Digest;
 using SecureTextEditor.Core.Options;
+using SecureTextEditor.GUI.Editor;
 
 namespace SecureTextEditor.GUI {
     public static class FileHandler {
@@ -14,8 +17,8 @@ namespace SecureTextEditor.GUI {
             public FileMetaData MetaData { get; set; }
         }
 
-        public const string STXT_FILE_FILTER = "Secure Text File (" + SecureTextFile.FILE_EXTENSION + ")|*" + SecureTextFile.FILE_EXTENSION;
-        public const string KEY_FILE_FILTER = "Key File (" + KeyFile.FILE_EXTENSION + ")|*" + KeyFile.FILE_EXTENSION;
+        private const string STXT_FILE_FILTER = "Secure Text File (" + SecureTextFile.FILE_EXTENSION + ")|*" + SecureTextFile.FILE_EXTENSION;
+        private const string KEY_FILE_FILTER = "Key File (" + KeyFile.FILE_EXTENSION + ")|*" + KeyFile.FILE_EXTENSION;
 
         public static async Task<FileMetaData> SaveFileAsync(EncryptionOptions options, TextEncoding encoding, string text) {
             // Show dialog for saving a file
@@ -61,8 +64,27 @@ namespace SecureTextEditor.GUI {
             };
         }
 
-        public static File OpenFile(string path, string fileName) {
+        public static File OpenFile(ITextEditorControl control, string path) {
             // TODO: Do error checking
+
+            string fileName = Path.GetFileName(path);
+
+            // Check if we need to show the open file dialog first
+            if (path == null) {
+                // Show dialog for opening a file
+                var dialog = new OpenFileDialog {
+                    Filter = FileHandler.STXT_FILE_FILTER
+                };
+                bool? result = dialog.ShowDialog();
+
+                path = dialog.FileName;
+                fileName = dialog.SafeFileName;
+
+                // If no file for opening was selected we can bail out
+                if (result == false || CheckFileAlreadyLoaded(control, path)) {
+                    return null;
+                }
+            }
 
             // Load file and decrypt with corresponding encoding
             SecureTextFile textFile = SecureTextFile.Load(path);
@@ -131,6 +153,20 @@ namespace SecureTextEditor.GUI {
                     IsDirty = false
                 }
             };
+        }
+
+        private static bool CheckFileAlreadyLoaded(ITextEditorControl control, string path) {
+            // We do not need to open the file if we already have it open
+            // Instead we can just focus the corresponding tab
+            if (path != null) {
+                var tabs = control.Tabs.Where(t => t.FileMetaData.FilePath == path);
+                if (tabs.Any()) {
+                    control.FocusTab(tabs.First());
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static CipherEngine GetCryptoEngine(EncryptionOptions options, TextEncoding encoding) {
