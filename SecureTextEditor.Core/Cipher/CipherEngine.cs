@@ -24,13 +24,13 @@ namespace SecureTextEditor.Core.Cipher {
         /// <summary>
         /// The keys accepted in RC4 encryption.
         /// </summary>
-        public static readonly int[] RC4_ACCEPTED_KEYS = new int[] { 40, 56, 64, 80, 128, 160, 192, 256, 512, 1024, 2048 };
+        public static readonly int[] RC4_ACCEPTED_KEYS = new int[] { 128, 160, 192, 256, 512, 1024, 2048 };
 
         private static readonly IBlockCipher BLOCK_CIPHER_ENGINE = new AesEngine();
         private static readonly IStreamCipher STREAM_CIPHER_ENGINE = new RC4Engine();
 
         private readonly CipherType m_Type;
-        private readonly CipherMode m_CipherBlockMode;
+        private readonly CipherMode m_CipherMode;
         private readonly IBufferedCipher m_Cipher;
         private readonly Encoding m_Encoding;
 
@@ -43,7 +43,7 @@ namespace SecureTextEditor.Core.Cipher {
         /// <param name="encoding">The encoding to use</param>
         public CipherEngine(CipherType type, CipherMode mode, CipherPadding padding, TextEncoding encoding) {
             m_Type = type;
-            m_CipherBlockMode = mode;
+            m_CipherMode = mode;
             m_Cipher = GetCipher(type, mode, GetCipherPadding(padding));
             m_Encoding = GetEncoding(encoding);
         }
@@ -88,7 +88,10 @@ namespace SecureTextEditor.Core.Cipher {
         /// <param name="keySize">The size of the key</param>
         /// <returns>The generated key</returns>
         public byte[] GenerateKey(int keySize) {
-            if (!AES_ACCEPTED_KEYS.Contains(keySize)) {
+            if (m_Type == CipherType.Block && !AES_ACCEPTED_KEYS.Contains(keySize)) {
+                throw new ArgumentException("Invalid key size", nameof(keySize));
+            }
+            if (m_Type == CipherType.Stream && !RC4_ACCEPTED_KEYS.Contains(keySize)) {
                 throw new ArgumentException("Invalid key size", nameof(keySize));
             }
 
@@ -147,7 +150,7 @@ namespace SecureTextEditor.Core.Cipher {
 
         private ICipherParameters GetCipherParameters(byte[] key, byte[] iv) {
             ICipherParameters result = new KeyParameter(key);
-            if (iv == null || m_Type == CipherType.Stream || m_CipherBlockMode == CipherMode.ECB) {
+            if (iv == null || m_Type == CipherType.Stream || m_CipherMode == CipherMode.ECB) {
                 return result;
             } else {
                 return new ParametersWithIV(result, iv);
