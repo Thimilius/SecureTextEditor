@@ -34,25 +34,36 @@ namespace SecureTextEditor.GUI {
 
             string path = dialog.FileName;
 
-            await Task.Run(() => {
-                // Encrypt text and save file
-                CipherEngine cipherEngine = GetCryptoEngine(options, encoding);
-                byte[] key = cipherEngine.GenerateKey(options.KeySize);
-                byte[] iv = cipherEngine.GenerateIV();
-                byte[] cipher = cipherEngine.Encrypt(text, key, iv);
+            try { 
+                await Task.Run(() => {
+                    // Encrypt text and save file
+                    CipherEngine cipherEngine = GetCryptoEngine(options, encoding);
+                    byte[] key = cipherEngine.GenerateKey(options.KeySize);
+                    byte[] iv = cipherEngine.GenerateIV();
+                    byte[] cipher = cipherEngine.Encrypt(text, key, iv);
 
-                // We compute the digest from the encrypted cipher
-                DigestEngine digestEngine = new DigestEngine(options.DigestType);
-                byte[] digest = digestEngine.Digest(cipher);
+                    // We compute the digest from the encrypted cipher
+                    DigestEngine digestEngine = new DigestEngine(options.DigestType);
+                    byte[] digest = digestEngine.Digest(cipher);
 
-                SecureTextFile textFile = new SecureTextFile(options, encoding, Convert.ToBase64String(digest), Convert.ToBase64String(cipher));
-                SecureTextFile.Save(textFile, path);
+                    SecureTextFile textFile = new SecureTextFile(options, encoding, Convert.ToBase64String(digest), Convert.ToBase64String(cipher));
+                    SecureTextFile.Save(textFile, path);
 
-                // Save key file next to text file
-                KeyFile keyFile = new KeyFile(Convert.ToBase64String(key), Convert.ToBase64String(iv));
-                KeyFile.Save(keyFile, path + KeyFile.FILE_EXTENSION);
-            });
-            await Task.Delay(250);
+                    // Save key file next to text file
+                    KeyFile keyFile = new KeyFile(Convert.ToBase64String(key), Convert.ToBase64String(iv));
+                    KeyFile.Save(keyFile, path + KeyFile.FILE_EXTENSION);
+                });
+                await Task.Delay(250);
+            } catch {
+                DialogWindow.Show(
+                    Application.Current.MainWindow,
+                    $"Failed to save the file:\n{path}!",
+                    "Saving failed",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
+                return null;
+            }
 
             return new FileMetaData() {
                 Encoding = encoding,
@@ -65,94 +76,103 @@ namespace SecureTextEditor.GUI {
         }
 
         public static File OpenFile(ITextEditorControl control, string path) {
-            // TODO: Do error checking
-
-            string fileName = Path.GetFileName(path);
-
-            // Check if we need to show the open file dialog first
-            if (path == null) {
-                // Show dialog for opening a file
-                var dialog = new OpenFileDialog {
-                    Filter = FileHandler.STXT_FILE_FILTER
-                };
-                bool? result = dialog.ShowDialog();
-
-                path = dialog.FileName;
-                fileName = dialog.SafeFileName;
-
-                // If no file for opening was selected we can bail out
-                if (result == false || CheckFileAlreadyLoaded(control, path)) {
-                    return null;
-                }
-            }
-
-            // Load file and decrypt with corresponding encoding
-            SecureTextFile textFile = SecureTextFile.Load(path);
-
-            // Try loading in the key file at the same location
-            string keyPath = path + KeyFile.FILE_EXTENSION;
-            KeyFile keyFile;
-            if (System.IO.File.Exists(keyPath)) {
-                keyFile = KeyFile.Load(keyPath);
-            } else {
-                DialogWindow.Show(
-                    Application.Current.MainWindow,
-                    "The file you want to open requires a key file to decrypt!",
-                    "Key File Required",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information
-                );
+            try {
+                string fileName = Path.GetFileName(path);
                 
-                // Show dialog for opening a file
-                var dialog = new OpenFileDialog {
-                    Filter = KEY_FILE_FILTER
-                };
-                bool? result = dialog.ShowDialog();
-                // If no file for opening was selected we can bail out
-                if (result == false) {
+                // Check if we need to show the open file dialog first
+                if (path == null) {
+                    // Show dialog for opening a file
+                    var dialog = new OpenFileDialog {
+                        Filter = FileHandler.STXT_FILE_FILTER
+                    };
+                    bool? result = dialog.ShowDialog();
+
+                    path = dialog.FileName;
+                    fileName = dialog.SafeFileName;
+
+                    // If no file for opening was selected we can bail out
+                    if (result == false || CheckFileAlreadyLoaded(control, path)) {
+                        return null;
+                    }
+                }
+
+                // Load file and decrypt with corresponding encoding
+                SecureTextFile textFile = SecureTextFile.Load(path);
+
+                // Try loading in the key file at the same location
+                string keyPath = path + KeyFile.FILE_EXTENSION;
+                KeyFile keyFile;
+                if (System.IO.File.Exists(keyPath)) {
+                    keyFile = KeyFile.Load(keyPath);
+                } else {
+                    DialogWindow.Show(
+                        Application.Current.MainWindow,
+                        "The file you want to open requires a key file to decrypt!",
+                        "Key File Required",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information
+                    );
+
+                    // Show dialog for opening a file
+                    var dialog = new OpenFileDialog {
+                        Filter = KEY_FILE_FILTER
+                    };
+                    bool? result = dialog.ShowDialog();
+                    // If no file for opening was selected we can bail out
+                    if (result == false) {
+                        return null;
+                    }
+
+                    keyFile = KeyFile.Load(dialog.FileName);
+                }
+
+                TextEncoding encoding = textFile.Encoding;
+                EncryptionOptions options = textFile.EncryptionOptions;
+                byte[] cipher = Convert.FromBase64String(textFile.Base64Cipher);
+
+                // Compare saved and new computed digest
+                DigestEngine digestEngine = new DigestEngine(options.DigestType);
+                byte[] newDigest = digestEngine.Digest(cipher);
+                byte[] oldDigest = Convert.FromBase64String(textFile.Base64Digest);
+                if (!digestEngine.AreEqual(newDigest, oldDigest)) {
+                    DialogWindow.Show(
+                        Application.Current.MainWindow,
+                        "It appears the file got tampered with!\nIt can not be restored correctly!",
+                        "File Tampered",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error
+                    );
+
                     return null;
                 }
 
-                keyFile = KeyFile.Load(dialog.FileName);
-            }
+                // Decrypt cipher
+                CipherEngine cipherEngine = GetCryptoEngine(options, encoding);
+                byte[] key = Convert.FromBase64String(keyFile.Base64Key);
+                byte[] iv = Convert.FromBase64String(keyFile.Base64IV);
+                string text = cipherEngine.Decrypt(cipher, key, iv);
 
-            TextEncoding encoding = textFile.Encoding;
-            EncryptionOptions options = textFile.EncryptionOptions;
-            byte[] cipher = Convert.FromBase64String(textFile.Base64Cipher);
-
-            // Compare saved and new computed digest
-            DigestEngine digestEngine = new DigestEngine(options.DigestType);
-            byte[] newDigest = digestEngine.Digest(cipher);
-            byte[] oldDigest = Convert.FromBase64String(textFile.Base64Digest);
-            if (!digestEngine.AreEqual(newDigest, oldDigest)) {
+                return new File() {
+                    Text = text,
+                    MetaData = new FileMetaData() {
+                        Encoding = encoding,
+                        EncryptionOptions = options,
+                        FileName = fileName,
+                        FilePath = path,
+                        IsNew = false,
+                        IsDirty = false
+                    }
+                };
+            } catch {
                 DialogWindow.Show(
                     Application.Current.MainWindow,
-                    "It appears the file got tampered with!\nIt can not be restored correctly!",
-                    "File Tampered",
+                    $"Failed to open the file:\n{path}!",
+                    "Opening failed",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error
                 );
-
                 return null;
             }
-
-            // Decrypt cipher
-            CipherEngine cipherEngine = GetCryptoEngine(options, encoding);
-            byte[] key = Convert.FromBase64String(keyFile.Base64Key);
-            byte[] iv = Convert.FromBase64String(keyFile.Base64IV);
-            string text = cipherEngine.Decrypt(cipher, key, iv);
-
-            return new File() {
-                Text = text,
-                MetaData = new FileMetaData() {
-                    Encoding = encoding,
-                    EncryptionOptions = options,
-                    FileName = fileName,
-                    FilePath = path,
-                    IsNew = false,
-                    IsDirty = false
-                }
-            };
         }
 
         private static bool CheckFileAlreadyLoaded(ITextEditorControl control, string path) {
