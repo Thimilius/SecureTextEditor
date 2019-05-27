@@ -59,6 +59,8 @@ namespace SecureTextEditor.GUI.Editor {
                 return;
             }
 
+            // TODO: Do not bother opening a new if the have just one new empty tab open
+
             // FIXME: We should use an object pool here to avoid using unnecessary memory
             var tab = new TextEditorTab(this, fileMetaData, content);
             var item = tab.TabItem;

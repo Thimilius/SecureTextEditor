@@ -16,15 +16,6 @@ namespace SecureTextEditor.Core {
         public const string FILE_EXTENSION = ".stxt";
 
         /// <summary>
-        /// Settings for serializing and deserializing the text file.
-        /// </summary>
-        private static readonly JsonSerializerSettings SERIALIZER_SETTINGS = new JsonSerializerSettings() {
-            Formatting = Formatting.Indented,
-            Converters = new List<JsonConverter>() { new StringEnumConverter() },
-            TypeNameHandling = TypeNameHandling.Auto
-        };
-
-        /// <summary>
         /// Version number for the secure text file for compatability reasons.
         /// </summary>
         [JsonProperty(Required = Required.Always)] public string Version { get; } = "0.1";
@@ -57,26 +48,6 @@ namespace SecureTextEditor.Core {
             EncryptionOptions = encryptionOptions;
             Base64Digest = base64Digest;
             Base64Cipher = base64Cipher;
-        }
-
-        /// <summary>
-        /// Saves a given secure text file at the given path.
-        /// </summary>
-        /// <param name="file">The secure text file to save</param>
-        /// <param name="path">The path to save the file at</param>
-        public static void Save(SecureTextFile file, string path) {
-            string json = JsonConvert.SerializeObject(file, SERIALIZER_SETTINGS);
-            File.WriteAllText(path, json);
-        }
-
-        /// <summary>
-        /// Loads a secure text file at a given path.
-        /// </summary>
-        /// <param name="path">The path of the file to load</param>
-        /// <returns>The loaded secure text file</returns>
-        public static SecureTextFile Load(string path) {
-            string json = File.ReadAllText(path);
-            return JsonConvert.DeserializeObject<SecureTextFile>(json, SERIALIZER_SETTINGS);
         }
     }
 }

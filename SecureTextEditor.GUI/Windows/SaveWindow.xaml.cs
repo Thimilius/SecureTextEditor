@@ -25,7 +25,7 @@ namespace SecureTextEditor.GUI {
 
             m_TextEditorControl = control;
             m_TabToSave = tab;
-            m_CTSPaddingAvailable = m_TabToSave.Editor.Text.Length > CipherEngine.BLOCK_SIZE;
+            m_CTSPaddingAvailable = m_TabToSave.Editor.Text.Length >= CipherEngine.BLOCK_SIZE;
             
             // Set up UI
             EncryptionTypeComboBox.ItemsSource = GetEnumValues<EncryptionType>();

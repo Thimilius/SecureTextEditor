@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.Win32;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using SecureTextEditor.Core;
 using SecureTextEditor.Core.Cipher;
 using SecureTextEditor.Core.Digest;
@@ -17,12 +20,22 @@ namespace SecureTextEditor.GUI {
             public FileMetaData MetaData { get; set; }
         }
 
+        /// <summary>
+        /// Settings for serializing and deserializing the text file.
+        /// </summary>
+        private static readonly JsonSerializerSettings SERIALIZER_SETTINGS = new JsonSerializerSettings() {
+            Formatting = Formatting.Indented,
+            Converters = new List<JsonConverter>() { new StringEnumConverter() },
+            TypeNameHandling = TypeNameHandling.Auto
+        };
+
         private const string STXT_FILE_FILTER = "Secure Text File (" + SecureTextFile.FILE_EXTENSION + ")|*" + SecureTextFile.FILE_EXTENSION;
         private const string KEY_FILE_FILTER = "Key File (" + KeyFile.FILE_EXTENSION + ")|*" + KeyFile.FILE_EXTENSION;
 
         public static async Task<FileMetaData> SaveFileAsync(EncryptionOptions options, TextEncoding encoding, string text) {
             // Show dialog for saving a file
             SaveFileDialog dialog = new SaveFileDialog() {
+                Title = "Save Secure Text File",
                 AddExtension = true,
                 Filter = STXT_FILE_FILTER
             };
@@ -47,11 +60,11 @@ namespace SecureTextEditor.GUI {
                     byte[] digest = digestEngine.Digest(cipher);
 
                     SecureTextFile textFile = new SecureTextFile(options, encoding, Convert.ToBase64String(digest), Convert.ToBase64String(cipher));
-                    SecureTextFile.Save(textFile, path);
+                    SaveFile(path, textFile);
 
                     // Save key file next to text file
                     KeyFile keyFile = new KeyFile(Convert.ToBase64String(key), Convert.ToBase64String(iv));
-                    KeyFile.Save(keyFile, path + KeyFile.FILE_EXTENSION);
+                    SaveFile(path + KeyFile.FILE_EXTENSION, keyFile);
                 });
                 await Task.Delay(250);
             } catch {
@@ -83,7 +96,8 @@ namespace SecureTextEditor.GUI {
                 if (path == null) {
                     // Show dialog for opening a file
                     var dialog = new OpenFileDialog {
-                        Filter = FileHandler.STXT_FILE_FILTER
+                        Title = "Open Secure Text File",
+                        Filter = STXT_FILE_FILTER
                     };
                     bool? result = dialog.ShowDialog();
 
@@ -97,13 +111,12 @@ namespace SecureTextEditor.GUI {
                 }
 
                 // Load file and decrypt with corresponding encoding
-                SecureTextFile textFile = SecureTextFile.Load(path);
+                SecureTextFile textFile = LoadFile<SecureTextFile>(path);
 
                 // Try loading in the key file at the same location
                 string keyPath = path + KeyFile.FILE_EXTENSION;
                 KeyFile keyFile;
                 if (System.IO.File.Exists(keyPath)) {
-                    keyFile = KeyFile.Load(keyPath);
                 } else {
                     DialogWindow.Show(
                         Application.Current.MainWindow,
@@ -115,6 +128,7 @@ namespace SecureTextEditor.GUI {
 
                     // Show dialog for opening a file
                     var dialog = new OpenFileDialog {
+                        Title = "Open Key File",
                         Filter = KEY_FILE_FILTER
                     };
                     bool? result = dialog.ShowDialog();
@@ -123,8 +137,9 @@ namespace SecureTextEditor.GUI {
                         return null;
                     }
 
-                    keyFile = KeyFile.Load(dialog.FileName);
+                    keyPath = dialog.FileName;
                 }
+                keyFile = LoadFile<KeyFile>(keyPath);
 
                 TextEncoding encoding = textFile.Encoding;
                 EncryptionOptions options = textFile.EncryptionOptions;
@@ -173,6 +188,16 @@ namespace SecureTextEditor.GUI {
                 );
                 return null;
             }
+        }
+
+        private static void SaveFile<T>(string path, T file) {
+            string json = JsonConvert.SerializeObject(file, SERIALIZER_SETTINGS);
+            System.IO.File.WriteAllText(path, json);
+        }
+
+        private static T LoadFile<T>(string path) {
+            string json = System.IO.File.ReadAllText(path);
+            return JsonConvert.DeserializeObject<T>(json, SERIALIZER_SETTINGS);
         }
 
         private static bool CheckFileAlreadyLoaded(ITextEditorControl control, string path) {
