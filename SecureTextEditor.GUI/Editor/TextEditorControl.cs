@@ -59,7 +59,26 @@ namespace SecureTextEditor.GUI.Editor {
                 return;
             }
 
-            // TODO: Do not bother opening a new if the have just one new empty tab open
+            // We can reuse an already open new and empty tab
+            // but only if we have actual content to display
+            if (IsLastTabNewAndEmpty() && content != "") {
+                // We "simulate" closing the new tab
+                ITextEditorTab lastTab = Tabs.First();
+
+                NotifyThatTabGotClosed(lastTab);
+
+                lastTab.FileMetaData = fileMetaData;
+                lastTab.Editor.Text = content;
+
+                // We have to manually reset header and dirtyness
+                // because of already subscribed callbacks
+                lastTab.SetHeader(fileMetaData.FileName);
+                lastTab.FileMetaData.IsDirty = false;
+
+                FocusTab(lastTab);
+
+                return;
+            }
 
             // FIXME: We should use an object pool here to avoid using unnecessary memory
             var tab = new TextEditorTab(this, fileMetaData, content);
@@ -88,7 +107,7 @@ namespace SecureTextEditor.GUI.Editor {
 
         public void CloseTab(ITextEditorTab tab) {
             // We don't bother closing the tab if its the last one
-            if (m_TabControl.Items.Count == 1 && tab.Editor.Text == "" && tab.FileMetaData.IsNew) {
+            if (IsLastTabNewAndEmpty()) {
                 return;
             }
 
@@ -161,6 +180,15 @@ namespace SecureTextEditor.GUI.Editor {
                 return counter;
             } else {
                 return m_NewTabCounter++;
+            }
+        }
+
+        private bool IsLastTabNewAndEmpty() {
+            if (m_TabControl.Items.Count == 1) {
+                ITextEditorTab tab = Tabs.First();
+                return tab.FileMetaData.IsNew && tab.Editor.Text == "";
+            } else {
+                return false;
             }
         }
 
