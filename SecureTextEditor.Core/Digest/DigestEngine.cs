@@ -7,6 +7,8 @@ using Org.BouncyCastle.Utilities.Encoders;
 using System;
 
 namespace SecureTextEditor.Core.Digest {
+    // NOTE: Macs should usually not be used
+    // because of the seperate key that is needed
     public class DigestEngine {
         private static readonly byte[] MAC_KEY = Hex.Decode("000102030405060708090a0b0c0d0e0f");
 
@@ -23,23 +25,6 @@ namespace SecureTextEditor.Core.Digest {
                 case DigestType.HMACSHA256: return DigestHMACSHA256(input);
                 default: throw new InvalidOperationException();
             }
-        }
-
-        public bool AreEqual(byte[] a, byte[] b) {
-            // If the length does not match the arrays are not equal
-            if (a.Length != b.Length) {
-                return false;
-            }
-
-            for (int i = 0; i < a.Length; i++) {
-                // If one element differs the arrays are not equal
-                if (a[i] != b[i]) {
-                    return false;
-                }
-            }
-
-            // If we get here we know both arrays are equal
-            return true;
         }
 
         private byte[] DigestSHA256(byte[] input) {
@@ -66,6 +51,10 @@ namespace SecureTextEditor.Core.Digest {
             byte[] output = new byte[mac.GetMacSize()];
             mac.DoFinal(output, 0);
             return output;
+        }
+
+        public static bool AreEqual(byte[] a, byte[] b) {
+            return Org.BouncyCastle.Utilities.Arrays.ConstantTimeAreEqual(a, b);
         }
     }
 }

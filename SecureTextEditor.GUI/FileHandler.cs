@@ -14,6 +14,14 @@ using SecureTextEditor.Core.Options;
 using SecureTextEditor.GUI.Editor;
 
 namespace SecureTextEditor.GUI {
+    // TODO:
+    // - Hash the normal message
+    // - Append the hash to the message 
+    // - Decrypt message+hash
+
+    // TODO: Make a second key file for macs
+
+    // TODO: Detect key file size for usability
     public static class FileHandler {
         public class File {
             public string Text { get; set; }
@@ -149,7 +157,7 @@ namespace SecureTextEditor.GUI {
                 DigestEngine digestEngine = new DigestEngine(options.DigestType);
                 byte[] newDigest = digestEngine.Digest(cipher);
                 byte[] oldDigest = Convert.FromBase64String(textFile.Base64Digest);
-                if (!digestEngine.AreEqual(newDigest, oldDigest)) {
+                if (!DigestEngine.AreEqual(newDigest, oldDigest)) {
                     DialogWindow.Show(
                         Application.Current.MainWindow,
                         "It appears the file got tampered with!\nIt can not be restored correctly!",
