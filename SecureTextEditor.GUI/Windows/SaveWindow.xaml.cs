@@ -26,13 +26,12 @@ namespace SecureTextEditor.GUI {
             m_TextEditorControl = control;
             m_TabToSave = tab;
             m_CTSPaddingAvailable = m_TabToSave.Editor.Text.Length >= CipherEngine.BLOCK_SIZE;
-            
+
             // Set up UI
+            DigestTypeComboBox.ItemsSource = GetEnumValues<DigestType>();
             EncryptionTypeComboBox.ItemsSource = GetEnumValues<EncryptionType>();
             AESKeySizeComboBox.ItemsSource = CipherEngine.AES_ACCEPTED_KEYS;
-            AESDigestTypeComboBox.ItemsSource = GetEnumValues<DigestType>();
             AESPaddingComboBox.ItemsSource = GetEnumValues<CipherPadding>();
-            RC4DigestTypeComboBox.ItemsSource = GetEnumValues<DigestType>();
             RC4KeySizeComboBox.ItemsSource = CipherEngine.RC4_ACCEPTED_KEYS;
 
             // Set default options
@@ -40,8 +39,7 @@ namespace SecureTextEditor.GUI {
             EncryptionTypeComboBox.SelectedItem = options.Type;
             AESKeySizeComboBox.SelectedItem = options.KeySize;
             RC4KeySizeComboBox.SelectedItem = options.KeySize;
-            AESDigestTypeComboBox.SelectedItem = options.DigestType;
-            RC4DigestTypeComboBox.SelectedItem = options.DigestType;
+            DigestTypeComboBox.SelectedItem = options.DigestType;
 
             EncryptionOptionsAES optionsAES = GetDefaultEncryptionOptions<EncryptionOptionsAES>(options, EncryptionType.AES);
             AESModeComboBox.SelectedItem = optionsAES.Mode;
@@ -127,21 +125,25 @@ namespace SecureTextEditor.GUI {
 
         private EncryptionOptions BuildEncryptionOptions() {
             EncryptionType encryptionType = (EncryptionType)EncryptionTypeComboBox.SelectedItem;
+            EncryptionOptions options;
             switch (encryptionType) {
                 case EncryptionType.AES:
-                    return new EncryptionOptionsAES() {
-                        DigestType = (DigestType)AESDigestTypeComboBox.SelectedItem,
+                    options = new EncryptionOptionsAES() {
                         KeySize = (int)AESKeySizeComboBox.SelectedItem,
                         Mode = (CipherMode)AESModeComboBox.SelectedItem,
                         Padding = (CipherPadding)AESPaddingComboBox.SelectedItem
                     };
+                    break;
                 case EncryptionType.RC4:
-                    return new EncryptionOptionsRC4() {
-                        DigestType = (DigestType)RC4DigestTypeComboBox.SelectedItem,
+                    options = new EncryptionOptionsRC4() {
                         KeySize = (int)RC4KeySizeComboBox.SelectedItem,
                     };
+                    break;
                 default: throw new InvalidOperationException();
             }
+
+            options.DigestType = (DigestType)DigestTypeComboBox.SelectedItem;
+            return options;
         }
 
         private IEnumerable<T> GetEnumValues<T>(params T[] without) {
