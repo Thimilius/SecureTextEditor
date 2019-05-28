@@ -22,12 +22,9 @@ namespace SecureTextEditor.GUI {
     // TODO: Make a second key file for macs
 
     // TODO: Detect key file size for usability
-    public static class FileHandler {
-        public class File {
-            public string Text { get; set; }
-            public FileMetaData MetaData { get; set; }
-        }
 
+    // TODO: Move IV in secure text file
+    public static class FileHandler {
         /// <summary>
         /// Settings for serializing and deserializing the text file.
         /// </summary>
@@ -96,7 +93,7 @@ namespace SecureTextEditor.GUI {
             };
         }
 
-        public static File OpenFile(ITextEditorControl control, string path) {
+        public static (string text, FileMetaData metaData) OpenFile(ITextEditorControl control, string path) {
             try {
                 string fileName = Path.GetFileName(path);
                 
@@ -114,7 +111,7 @@ namespace SecureTextEditor.GUI {
 
                     // If no file for opening was selected we can bail out
                     if (result == false || CheckFileAlreadyLoaded(control, path)) {
-                        return null;
+                        return (null, null);
                     }
                 }
 
@@ -124,7 +121,7 @@ namespace SecureTextEditor.GUI {
                 // Try loading in the key file at the same location
                 string keyPath = path + KeyFile.FILE_EXTENSION;
                 KeyFile keyFile;
-                if (System.IO.File.Exists(keyPath)) {
+                if (File.Exists(keyPath)) {
                 } else {
                     DialogWindow.Show(
                         Application.Current.MainWindow,
@@ -142,7 +139,7 @@ namespace SecureTextEditor.GUI {
                     bool? result = dialog.ShowDialog();
                     // If no file for opening was selected we can bail out
                     if (result == false) {
-                        return null;
+                        return (null, null);
                     }
 
                     keyPath = dialog.FileName;
@@ -166,7 +163,7 @@ namespace SecureTextEditor.GUI {
                         MessageBoxImage.Error
                     );
 
-                    return null;
+                    return (null, null);
                 }
 
                 // Decrypt cipher
@@ -175,9 +172,9 @@ namespace SecureTextEditor.GUI {
                 byte[] iv = Convert.FromBase64String(keyFile.Base64IV);
                 string text = cipherEngine.Decrypt(cipher, key, iv);
 
-                return new File() {
-                    Text = text,
-                    MetaData = new FileMetaData() {
+                return (
+                    text,
+                    new FileMetaData() {
                         Encoding = encoding,
                         EncryptionOptions = options,
                         FileName = fileName,
@@ -185,7 +182,7 @@ namespace SecureTextEditor.GUI {
                         IsNew = false,
                         IsDirty = false
                     }
-                };
+                );
             } catch {
                 DialogWindow.Show(
                     Application.Current.MainWindow,
@@ -194,17 +191,17 @@ namespace SecureTextEditor.GUI {
                     MessageBoxButton.OK,
                     MessageBoxImage.Error
                 );
-                return null;
+                return (null, null);
             }
         }
 
         private static void SaveFile<T>(string path, T file) {
             string json = JsonConvert.SerializeObject(file, SERIALIZER_SETTINGS);
-            System.IO.File.WriteAllText(path, json);
+            File.WriteAllText(path, json);
         }
 
         private static T LoadFile<T>(string path) {
-            string json = System.IO.File.ReadAllText(path);
+            string json = File.ReadAllText(path);
             return JsonConvert.DeserializeObject<T>(json, SERIALIZER_SETTINGS);
         }
 

@@ -7,7 +7,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using AdonisUI;
-using Microsoft.Win32;
 using SecureTextEditor.Core;
 using SecureTextEditor.GUI.Config;
 using SecureTextEditor.GUI.Editor;
@@ -43,11 +42,11 @@ namespace SecureTextEditor.GUI {
 
         public void OpenFile(string path) {
             // Open actual file
-            var file = FileHandler.OpenFile(TextEditorControl, path);
+            (string text, FileMetaData metaData) = FileHandler.OpenFile(TextEditorControl, path);
 
-            if (file != null) {
+            if (text != null && metaData != null) {
                 // Open new tab for the file
-                TextEditorControl.NewTab(file.Text, file.MetaData);
+                TextEditorControl.NewTab(text, metaData);
 
                 // Update UI
                 UpdateEncodingStatus();
