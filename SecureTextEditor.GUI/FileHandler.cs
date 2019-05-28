@@ -14,16 +14,23 @@ using SecureTextEditor.Core.Options;
 using SecureTextEditor.GUI.Editor;
 
 namespace SecureTextEditor.GUI {
-    // TODO:
+    // TODO: Improve hashing:
     // - Hash the normal message
     // - Append the hash to the message 
     // - Decrypt message+hash
 
-    // TODO: Make a second key file for macs
-
-    // TODO: Detect key file size for usability
+    // TODO: Move text encoding out of cipher engine
+    // TODO: Make another project SecureTextEditor.File for file handling that includes:
+    // - SecureTextFile
+    // - TextEncoding
+    // - EncryptionOptions
+    // - Remove dependencies to GUI (FileDialogs, Detecting that a file is already open, etc)
 
     // TODO: Move IV in secure text file
+    // TODO: Remove key file
+    // TODO: Save key alone inside a binary file
+    // TODO: Make a second file for the key used by macs
+    // TODO: Use key size for usability when trying to load a key file with the wron size
     public static class FileHandler {
         /// <summary>
         /// Settings for serializing and deserializing the text file.
@@ -121,8 +128,7 @@ namespace SecureTextEditor.GUI {
                 // Try loading in the key file at the same location
                 string keyPath = path + KeyFile.FILE_EXTENSION;
                 KeyFile keyFile;
-                if (File.Exists(keyPath)) {
-                } else {
+                if (!File.Exists(keyPath)) {
                     DialogWindow.Show(
                         Application.Current.MainWindow,
                         "The file you want to open requires a key file to decrypt!",
