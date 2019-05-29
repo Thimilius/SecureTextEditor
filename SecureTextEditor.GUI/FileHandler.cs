@@ -63,18 +63,25 @@ namespace SecureTextEditor.GUI {
 
             try { 
                 await Task.Run(() => {
+                    byte[] encodedText = GetEncoding(encoding).GetBytes(text);
+
+                    // We compute the digest from message
+                    DigestEngine digestEngine = new DigestEngine(options.DigestType);
+                    byte[] macKey = digestEngine.GenerateKey();
+                    byte[] digest = digestEngine.Digest(encodedText, macKey);
+
+                    // Append the digest to the text
+                    byte[] full = new byte[encodedText.Length + digest.Length];
+                    Buffer.BlockCopy(encodedText, 0, full, 0, encodedText.Length);
+                    Buffer.BlockCopy(digest, 0, full, encodedText.Length, digest.Length);
+
                     // Encrypt text and save file
                     CipherEngine cipherEngine = GetCryptoEngine(options);
                     byte[] cipherKey = cipherEngine.GenerateKey(options.KeySize);
                     byte[] iv = cipherEngine.GenerateIV();
-                    byte[] cipher = cipherEngine.Encrypt(GetEncoding(encoding).GetBytes(text), cipherKey, iv);
+                    byte[] cipher = cipherEngine.Encrypt(full, cipherKey, iv);
 
-                    // We compute the digest from the encrypted cipher
-                    DigestEngine digestEngine = new DigestEngine(options.DigestType);
-                    byte[] macKey = digestEngine.GenerateKey();
-                    byte[] digest = digestEngine.Digest(cipher, macKey);
-
-                    SecureTextFile textFile = new SecureTextFile(options, encoding, iv != null ? Convert.ToBase64String(iv) : null, Convert.ToBase64String(digest), Convert.ToBase64String(cipher));
+                    SecureTextFile textFile = new SecureTextFile(options, encoding, iv != null ? Convert.ToBase64String(iv) : null, Convert.ToBase64String(cipher));
                     SaveFile(path, textFile);
 
                     // Save cipher key into file next to the text file
@@ -191,14 +198,24 @@ namespace SecureTextEditor.GUI {
                     }
                     macKey = System.IO.File.ReadAllBytes(macKeyPath);
                 }
-                
-                byte[] cipher = Convert.FromBase64String(textFile.Base64Cipher);
+
+                // Decrypt cipher
+                CipherEngine cipherEngine = GetCryptoEngine(options);
+                byte[] iv = textFile.Base64IV != null ? Convert.FromBase64String(textFile.Base64IV) : null;
+                byte[] full = cipherEngine.Decrypt(Convert.FromBase64String(textFile.Base64Cipher), cipherKey, iv);
+
+                DigestEngine digestEngine = new DigestEngine(options.DigestType);
+
+                // We need to extract the hash from the cipher
+                // TODO: Check performance
+                int digestLength = digestEngine.GetDigestLength();
+                int messageLength = full.Length - digestLength;
+                byte[] message = full.Take(messageLength).ToArray();
+                byte[] digest = full.Skip(messageLength).ToArray();
 
                 // Compare saved and new computed digest
-                DigestEngine digestEngine = new DigestEngine(options.DigestType);
-                byte[] newDigest = digestEngine.Digest(cipher, macKey);
-                byte[] oldDigest = Convert.FromBase64String(textFile.Base64Digest);
-                if (!DigestEngine.AreEqual(newDigest, oldDigest)) {
+                byte[] newDigest = digestEngine.Digest(message, macKey);
+                if (!DigestEngine.AreEqual(newDigest, digest)) {
                     DialogWindow.Show(
                         Application.Current.MainWindow,
                         "It appears the file can not be restored correctly!\nThis can be an indication that the file got tampered with!\n",
@@ -210,10 +227,7 @@ namespace SecureTextEditor.GUI {
                     return (null, null);
                 }
 
-                // Decrypt cipher
-                CipherEngine cipherEngine = GetCryptoEngine(options);
-                byte[] iv = Convert.FromBase64String(textFile.Base64IV);
-                string text = GetEncoding(encoding).GetString(cipherEngine.Decrypt(cipher, cipherKey, iv));
+                string text = GetEncoding(textFile.Encoding).GetString(message);
 
                 return (
                     text,
