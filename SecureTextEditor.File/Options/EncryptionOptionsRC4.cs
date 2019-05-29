@@ -1,7 +1,8 @@
 ﻿using Newtonsoft.Json;
+using SecureTextEditor.Crypto;
 using SecureTextEditor.Crypto.Cipher;
 
-namespace SecureTextEditor.Crypto.Options {
+namespace SecureTextEditor.File.Options {
     public class EncryptionOptionsRC4 : EncryptionOptions {
         /// <summary>
         /// The general type of algorithm which in this case is AES.

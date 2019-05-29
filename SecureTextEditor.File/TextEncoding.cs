@@ -1,4 +1,4 @@
-﻿namespace SecureTextEditor.Crypto {
+﻿namespace SecureTextEditor.File {
     /// <summary>
     /// Describes the encoding used for the text file.
     /// </summary>

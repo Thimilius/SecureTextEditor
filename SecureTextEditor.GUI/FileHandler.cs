@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.Win32;
@@ -10,7 +11,8 @@ using Newtonsoft.Json.Converters;
 using SecureTextEditor.Crypto;
 using SecureTextEditor.Crypto.Cipher;
 using SecureTextEditor.Crypto.Digest;
-using SecureTextEditor.Crypto.Options;
+using SecureTextEditor.File;
+using SecureTextEditor.File.Options;
 using SecureTextEditor.GUI.Editor;
 
 namespace SecureTextEditor.GUI {
@@ -19,13 +21,7 @@ namespace SecureTextEditor.GUI {
     // - Append the hash to the message 
     // - Decrypt message+hash
 
-    // TODO: Move text encoding out of cipher engine
-    // TODO: Make another project SecureTextEditor.File for file handling that includes:
-    // - SecureTextFile
-    // - TextEncoding
-    // - EncryptionOptions
-    // - Remove dependencies to GUI (FileDialogs, Detecting that a file is already open, etc)
-
+    // TODO: Make part of file handler part of file project
     // TODO: Move IV in secure text file
     // TODO: Remove key file
     // TODO: Save key alone inside a binary file
@@ -62,10 +58,10 @@ namespace SecureTextEditor.GUI {
             try { 
                 await Task.Run(() => {
                     // Encrypt text and save file
-                    CipherEngine cipherEngine = GetCryptoEngine(options, encoding);
+                    CipherEngine cipherEngine = GetCryptoEngine(options);
                     byte[] key = cipherEngine.GenerateKey(options.KeySize);
                     byte[] iv = cipherEngine.GenerateIV();
-                    byte[] cipher = cipherEngine.Encrypt(text, key, iv);
+                    byte[] cipher = cipherEngine.Encrypt(GetEncoding(encoding).GetBytes(text), key, iv);
 
                     // We compute the digest from the encrypted cipher
                     DigestEngine digestEngine = new DigestEngine(options.DigestType);
@@ -128,7 +124,7 @@ namespace SecureTextEditor.GUI {
                 // Try loading in the key file at the same location
                 string keyPath = path + KeyFile.FILE_EXTENSION;
                 KeyFile keyFile;
-                if (!File.Exists(keyPath)) {
+                if (!System.IO.File.Exists(keyPath)) {
                     DialogWindow.Show(
                         Application.Current.MainWindow,
                         "The file you want to open requires a key file to decrypt!",
@@ -173,10 +169,10 @@ namespace SecureTextEditor.GUI {
                 }
 
                 // Decrypt cipher
-                CipherEngine cipherEngine = GetCryptoEngine(options, encoding);
+                CipherEngine cipherEngine = GetCryptoEngine(options);
                 byte[] key = Convert.FromBase64String(keyFile.Base64Key);
                 byte[] iv = Convert.FromBase64String(keyFile.Base64IV);
-                string text = cipherEngine.Decrypt(cipher, key, iv);
+                string text = GetEncoding(encoding).GetString(cipherEngine.Decrypt(cipher, key, iv));
 
                 return (
                     text,
@@ -203,11 +199,11 @@ namespace SecureTextEditor.GUI {
 
         private static void SaveFile<T>(string path, T file) {
             string json = JsonConvert.SerializeObject(file, SERIALIZER_SETTINGS);
-            File.WriteAllText(path, json);
+            System.IO.File.WriteAllText(path, json);
         }
 
         private static T LoadFile<T>(string path) {
-            string json = File.ReadAllText(path);
+            string json = System.IO.File.ReadAllText(path);
             return JsonConvert.DeserializeObject<T>(json, SERIALIZER_SETTINGS);
         }
 
@@ -225,13 +221,21 @@ namespace SecureTextEditor.GUI {
             return false;
         }
 
-        private static CipherEngine GetCryptoEngine(EncryptionOptions options, TextEncoding encoding) {
+        private static CipherEngine GetCryptoEngine(EncryptionOptions options) {
             if (options is EncryptionOptionsAES optionsAES) {
-                return new CipherEngine(optionsAES.CipherType, optionsAES.Mode, optionsAES.Padding, encoding);
+                return new CipherEngine(optionsAES.CipherType, optionsAES.Mode, optionsAES.Padding);
             } else if (options is EncryptionOptionsRC4 optionsRC4) {
-                return new CipherEngine(optionsRC4.CipherType, CipherMode.None, CipherPadding.None, encoding);
+                return new CipherEngine(optionsRC4.CipherType, CipherMode.None, CipherPadding.None);
             } else {
                 return null;
+            }
+        }
+
+        private static Encoding GetEncoding(TextEncoding encoding) {
+            switch (encoding) {
+                case TextEncoding.ASCII: return Encoding.ASCII;
+                case TextEncoding.UTF8: return Encoding.UTF8;
+                default: throw new ArgumentOutOfRangeException(nameof(encoding));
             }
         }
     }

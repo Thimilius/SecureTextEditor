@@ -3,9 +3,9 @@ using System.IO;
 using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using SecureTextEditor.Crypto.Options;
+using SecureTextEditor.File.Options;
 
-namespace SecureTextEditor.Crypto {
+namespace SecureTextEditor.File {
     /// <summary>
     /// Data class for abstracting the secure text file.
     /// </summary>

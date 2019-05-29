@@ -5,7 +5,8 @@ using Newtonsoft.Json.Converters;
 using SecureTextEditor.Crypto;
 using SecureTextEditor.Crypto.Cipher;
 using SecureTextEditor.Crypto.Digest;
-using SecureTextEditor.Crypto.Options;
+using SecureTextEditor.File;
+using SecureTextEditor.File.Options;
 
 namespace SecureTextEditor.GUI.Config {
     /// <summary>
@@ -46,7 +47,7 @@ namespace SecureTextEditor.GUI.Config {
         public static void Save() {
             try {
                 string json = JsonConvert.SerializeObject(Config, SERIALIZER_SETTINGS);
-                File.WriteAllText(FILE_PATH, json);
+                System.IO.File.WriteAllText(FILE_PATH, json);
             } catch {
                 // Silently fail because error is not important for user
             }
@@ -57,14 +58,14 @@ namespace SecureTextEditor.GUI.Config {
         /// </summary>
         public static void Load() {
             // If a settings file does not exits fallback to default config
-            if (!File.Exists(FILE_PATH)) {
+            if (!System.IO.File.Exists(FILE_PATH)) {
                 SetDefaultSettings();
                 return;
             }
 
             // Try loading the config file and if that fails fallback to default
             try {
-                string json = File.ReadAllText(FILE_PATH);
+                string json = System.IO.File.ReadAllText(FILE_PATH);
                 Config = JsonConvert.DeserializeObject<Configuration>(json, SERIALIZER_SETTINGS);
             } catch {
                 SetDefaultSettings();

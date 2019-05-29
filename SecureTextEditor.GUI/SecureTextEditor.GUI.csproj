@@ -133,9 +133,13 @@
     <None Include="Resources\App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SecureTextEditor.Core\SecureTextEditor.Crypto.csproj">
+    <ProjectReference Include="..\SecureTextEditor.Crypto\SecureTextEditor.Crypto.csproj">
       <Project>{e38f0d21-6c61-48d2-8162-88bc98bc51d3}</Project>
       <Name>SecureTextEditor.Crypto</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SecureTextEditor.File\SecureTextEditor.File.csproj">
+      <Project>{d9ce05c1-7804-4749-949d-a36eb3b9b19b}</Project>
+      <Name>SecureTextEditor.File</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

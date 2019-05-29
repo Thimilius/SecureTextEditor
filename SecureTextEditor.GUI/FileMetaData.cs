@@ -1,5 +1,5 @@
-﻿using SecureTextEditor.Crypto;
-using SecureTextEditor.Crypto.Options;
+﻿using SecureTextEditor.File;
+using SecureTextEditor.File.Options;
 
 namespace SecureTextEditor.GUI {
     /// <summary>

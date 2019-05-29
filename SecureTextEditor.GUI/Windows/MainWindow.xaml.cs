@@ -1,13 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using AdonisUI;
-using SecureTextEditor.Crypto;
+using SecureTextEditor.File;
 using SecureTextEditor.GUI.Config;
 using SecureTextEditor.GUI.Editor;
 

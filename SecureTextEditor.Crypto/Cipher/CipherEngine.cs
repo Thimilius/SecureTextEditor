@@ -32,7 +32,6 @@ namespace SecureTextEditor.Crypto.Cipher {
         private readonly CipherType m_Type;
         private readonly CipherMode m_CipherMode;
         private readonly IBufferedCipher m_Cipher;
-        private readonly Encoding m_Encoding;
 
         /// <summary>
         /// Creates a new crypto engine with given parameters.
@@ -41,11 +40,10 @@ namespace SecureTextEditor.Crypto.Cipher {
         /// <param name="mode">The cipher block mode to use</param>
         /// <param name="padding">The cipher block padding to use</param>
         /// <param name="encoding">The encoding to use</param>
-        public CipherEngine(CipherType type, CipherMode mode, CipherPadding padding, TextEncoding encoding) {
+        public CipherEngine(CipherType type, CipherMode mode, CipherPadding padding) {
             m_Type = type;
             m_CipherMode = mode;
             m_Cipher = GetCipher(type, mode, GetCipherPadding(padding));
-            m_Encoding = GetEncoding(encoding);
         }
 
         /// <summary>
@@ -55,11 +53,11 @@ namespace SecureTextEditor.Crypto.Cipher {
         /// <param name="key">The key to use</param>
         /// <param name="iv">The initilization vetor</param>
         /// <returns>The encrypted cipher</returns>
-        public byte[] Encrypt(string message, byte[] key, byte[] iv) {
+        public byte[] Encrypt(byte[] message, byte[] key, byte[] iv) {
             ICipherParameters parameters = GetCipherParameters(key, iv);
             m_Cipher.Init(true, parameters);
 
-            byte[] result = m_Cipher.DoFinal(m_Encoding.GetBytes(message));
+            byte[] result = m_Cipher.DoFinal(message);
 
             return result;
         }
@@ -71,7 +69,7 @@ namespace SecureTextEditor.Crypto.Cipher {
         /// <param name="key">The key to use</param>
         /// <param name="iv">The initilization vetor</param>
         /// <returns>The plain message</returns>
-        public string Decrypt(byte[] cipher, byte[] key, byte[] iv) {
+        public byte[] Decrypt(byte[] cipher, byte[] key, byte[] iv) {
             ICipherParameters parameters = GetCipherParameters(key, iv);
             m_Cipher.Init(false, parameters);
 
@@ -79,7 +77,7 @@ namespace SecureTextEditor.Crypto.Cipher {
             int length = m_Cipher.ProcessBytes(cipher, 0, cipher.Length, result, 0);
             length += m_Cipher.DoFinal(result, length);
 
-            return m_Encoding.GetString(result.Take(length).ToArray());
+            return result.Take(length).ToArray();
         }
 
         /// <summary>
@@ -137,14 +135,6 @@ namespace SecureTextEditor.Crypto.Cipher {
                 case CipherPadding.X923: return new X923Padding();
                 case CipherPadding.ZeroBytes: return new ZeroBytePadding();
                 default: throw new ArgumentOutOfRangeException(nameof(padding));
-            }
-        }
-
-        private Encoding GetEncoding(TextEncoding encoding) {
-            switch (encoding) {
-                case TextEncoding.ASCII: return Encoding.ASCII;
-                case TextEncoding.UTF8: return Encoding.UTF8;
-                default: throw new ArgumentOutOfRangeException(nameof(encoding));
             }
         }
 

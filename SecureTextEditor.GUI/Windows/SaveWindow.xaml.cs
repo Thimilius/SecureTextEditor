@@ -6,7 +6,8 @@ using System.Windows;
 using SecureTextEditor.Crypto;
 using SecureTextEditor.Crypto.Cipher;
 using SecureTextEditor.Crypto.Digest;
-using SecureTextEditor.Crypto.Options;
+using SecureTextEditor.File;
+using SecureTextEditor.File.Options;
 using SecureTextEditor.GUI.Config;
 using SecureTextEditor.GUI.Editor;
 
