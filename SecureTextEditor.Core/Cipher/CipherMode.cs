@@ -1,4 +1,4 @@
-﻿namespace SecureTextEditor.Core.Cipher {
+﻿namespace SecureTextEditor.Crypto.Cipher {
     /// <summary>
     /// Describes the cipher block mode used when encrypting.
     /// </summary>

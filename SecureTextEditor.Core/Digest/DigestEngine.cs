@@ -6,7 +6,7 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Utilities.Encoders;
 using System;
 
-namespace SecureTextEditor.Core.Digest {
+namespace SecureTextEditor.Crypto.Digest {
     // NOTE: Macs should usually not be used
     // because of the seperate key that is needed
     public class DigestEngine {

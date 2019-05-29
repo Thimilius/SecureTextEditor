@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace SecureTextEditor.Core {
+namespace SecureTextEditor.Crypto {
     /// <summary>
     /// Data class for abstracting a key file.
     /// </summary>

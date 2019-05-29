@@ -60,9 +60,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SecureTextEditor.Core\SecureTextEditor.Core.csproj">
+    <ProjectReference Include="..\SecureTextEditor.Core\SecureTextEditor.Crypto.csproj">
       <Project>{e38f0d21-6c61-48d2-8162-88bc98bc51d3}</Project>
-      <Name>SecureTextEditor.Core</Name>
+      <Name>SecureTextEditor.Crypto</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />

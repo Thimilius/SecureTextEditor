@@ -4,8 +4,8 @@ using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Utilities.Encoders;
-using SecureTextEditor.Core;
-using SecureTextEditor.Core.Cipher;
+using SecureTextEditor.Crypto;
+using SecureTextEditor.Crypto.Cipher;
 
 namespace SecureTextEditor.Tests {
     [TestClass]

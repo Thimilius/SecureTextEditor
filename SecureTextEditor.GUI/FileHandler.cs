@@ -7,10 +7,10 @@ using System.Windows;
 using Microsoft.Win32;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using SecureTextEditor.Core;
-using SecureTextEditor.Core.Cipher;
-using SecureTextEditor.Core.Digest;
-using SecureTextEditor.Core.Options;
+using SecureTextEditor.Crypto;
+using SecureTextEditor.Crypto.Cipher;
+using SecureTextEditor.Crypto.Digest;
+using SecureTextEditor.Crypto.Options;
 using SecureTextEditor.GUI.Editor;
 
 namespace SecureTextEditor.GUI {

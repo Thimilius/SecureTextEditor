@@ -1,8 +1,8 @@
 ﻿using Newtonsoft.Json;
-using SecureTextEditor.Core.Cipher;
-using SecureTextEditor.Core.Digest;
+using SecureTextEditor.Crypto.Cipher;
+using SecureTextEditor.Crypto.Digest;
 
-namespace SecureTextEditor.Core.Options {
+namespace SecureTextEditor.Crypto.Options {
     /// <summary>
     /// Describes what specific algorithm was used to encrypt a file.
     /// </summary>

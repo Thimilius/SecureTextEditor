@@ -1,6 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Org.BouncyCastle.Utilities.Encoders;
-using SecureTextEditor.Core.Digest;
+using SecureTextEditor.Crypto.Digest;
 
 namespace SecureTextEditor.Tests {
     [TestClass]

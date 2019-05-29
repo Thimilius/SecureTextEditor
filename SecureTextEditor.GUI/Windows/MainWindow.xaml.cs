@@ -7,7 +7,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using AdonisUI;
-using SecureTextEditor.Core;
+using SecureTextEditor.Crypto;
 using SecureTextEditor.GUI.Config;
 using SecureTextEditor.GUI.Editor;
 

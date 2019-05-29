@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Windows;
-using SecureTextEditor.Core;
-using SecureTextEditor.Core.Cipher;
-using SecureTextEditor.Core.Digest;
-using SecureTextEditor.Core.Options;
+using SecureTextEditor.Crypto;
+using SecureTextEditor.Crypto.Cipher;
+using SecureTextEditor.Crypto.Digest;
+using SecureTextEditor.Crypto.Options;
 using SecureTextEditor.GUI.Config;
 using SecureTextEditor.GUI.Editor;
 

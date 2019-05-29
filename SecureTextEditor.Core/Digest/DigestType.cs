@@ -1,4 +1,4 @@
-﻿namespace SecureTextEditor.Core.Digest {
+﻿namespace SecureTextEditor.Crypto.Digest {
     /// <summary>
     /// Describes the digest type.
     /// </summary>

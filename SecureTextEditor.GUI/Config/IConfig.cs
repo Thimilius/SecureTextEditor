@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
-using SecureTextEditor.Core;
-using SecureTextEditor.Core.Options;
+using SecureTextEditor.Crypto;
+using SecureTextEditor.Crypto.Options;
 
 namespace SecureTextEditor.GUI.Config {
     /// <summary>
