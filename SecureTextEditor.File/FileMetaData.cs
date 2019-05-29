@@ -1,7 +1,8 @@
-﻿using SecureTextEditor.File;
-using SecureTextEditor.File.Options;
+﻿using SecureTextEditor.File.Options;
 
-namespace SecureTextEditor.GUI {
+namespace SecureTextEditor.File {
+    // TODO: Move IsNew and ÍsDirty outside in tab meta data
+
     /// <summary>
     /// Stores meta data for a file represented in a tab.
     /// </summary>
@@ -27,7 +28,7 @@ namespace SecureTextEditor.GUI {
         /// </summary>
         public bool IsNew { get; set; }
         /// <summary>
-        /// Indicates whether or not the file is dirty (changed since last save).
+        /// Indicates whether or not the file is dirty (has unsaved changes).
         /// </summary>
         public bool IsDirty { get; set; }
     }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using SecureTextEditor.File;
 
 namespace SecureTextEditor.GUI.Editor {
     public interface ITextEditorControl {

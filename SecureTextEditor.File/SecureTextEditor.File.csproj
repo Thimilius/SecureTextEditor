@@ -44,6 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FileMetaData.cs" />
     <Compile Include="Options\EncryptionOptions.cs" />
     <Compile Include="Options\EncryptionOptionsAES.cs" />
     <Compile Include="Options\EncryptionOptionsRC4.cs" />
