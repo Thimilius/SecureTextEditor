@@ -99,13 +99,17 @@ namespace SecureTextEditor.Crypto.Cipher {
         }
 
         /// <summary>
-        /// Generates an initilization vector.
+        /// Generates an initilization vector if the engine requires one otherwise returns null.
         /// </summary>
-        /// <returns>The generated initilization vector</returns>
+        /// <returns>The generated initilization vector or null</returns>
         public byte[] GenerateIV() {
-            byte[] iv = new byte[m_Cipher.GetBlockSize()];
-            new SecureRandom().NextBytes(iv);
-            return iv;
+            if (m_CipherMode == CipherMode.ECB) {
+                return null;
+            } else {
+                byte[] iv = new byte[m_Cipher.GetBlockSize()];
+                new SecureRandom().NextBytes(iv);
+                return iv;
+            }
         }
 
         private IBufferedCipher GetCipher(CipherType type, CipherMode mode, IBlockCipherPadding padding) {

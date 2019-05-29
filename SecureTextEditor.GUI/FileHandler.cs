@@ -22,9 +22,6 @@ namespace SecureTextEditor.GUI {
     // - Decrypt message+hash
 
     // TODO: Make part of file handler part of file project
-    // TODO: Move IV in secure text file
-    // TODO: Remove key file
-    // TODO: Save key alone inside a binary file
     // TODO: Make a second file for the key used by macs
     // TODO: Use key size for usability when trying to load a key file with the wron size
     public static class FileHandler {
@@ -34,11 +31,16 @@ namespace SecureTextEditor.GUI {
         private static readonly JsonSerializerSettings SERIALIZER_SETTINGS = new JsonSerializerSettings() {
             Formatting = Formatting.Indented,
             Converters = new List<JsonConverter>() { new StringEnumConverter() },
-            TypeNameHandling = TypeNameHandling.Auto
+            TypeNameHandling = TypeNameHandling.Auto,
+            NullValueHandling = NullValueHandling.Ignore
         };
 
+        /// <summary>
+        /// The extension used for the file.
+        /// </summary>
+        private const string KEY_FILE_EXTENSION = ".key";
         private const string STXT_FILE_FILTER = "Secure Text File (" + SecureTextFile.FILE_EXTENSION + ")|*" + SecureTextFile.FILE_EXTENSION;
-        private const string KEY_FILE_FILTER = "Key File (" + KeyFile.FILE_EXTENSION + ")|*" + KeyFile.FILE_EXTENSION;
+        private const string KEY_FILE_FILTER = "Key File (" + KEY_FILE_EXTENSION + ")|*" + KEY_FILE_EXTENSION;
 
         public static async Task<FileMetaData> SaveFileAsync(EncryptionOptions options, TextEncoding encoding, string text) {
             // Show dialog for saving a file
@@ -67,12 +69,11 @@ namespace SecureTextEditor.GUI {
                     DigestEngine digestEngine = new DigestEngine(options.DigestType);
                     byte[] digest = digestEngine.Digest(cipher);
 
-                    SecureTextFile textFile = new SecureTextFile(options, encoding, Convert.ToBase64String(digest), Convert.ToBase64String(cipher));
+                    SecureTextFile textFile = new SecureTextFile(options, encoding, iv != null ? Convert.ToBase64String(iv) : null, Convert.ToBase64String(digest), Convert.ToBase64String(cipher));
                     SaveFile(path, textFile);
 
                     // Save key file next to text file
-                    KeyFile keyFile = new KeyFile(Convert.ToBase64String(key), Convert.ToBase64String(iv));
-                    SaveFile(path + KeyFile.FILE_EXTENSION, keyFile);
+                    System.IO.File.WriteAllBytes(path + KEY_FILE_EXTENSION, key);
                 });
                 await Task.Delay(250);
             } catch {
@@ -122,8 +123,8 @@ namespace SecureTextEditor.GUI {
                 SecureTextFile textFile = LoadFile<SecureTextFile>(path);
 
                 // Try loading in the key file at the same location
-                string keyPath = path + KeyFile.FILE_EXTENSION;
-                KeyFile keyFile;
+                byte[] key = null;
+                string keyPath = path + KEY_FILE_EXTENSION;
                 if (!System.IO.File.Exists(keyPath)) {
                     DialogWindow.Show(
                         Application.Current.MainWindow,
@@ -146,7 +147,7 @@ namespace SecureTextEditor.GUI {
 
                     keyPath = dialog.FileName;
                 }
-                keyFile = LoadFile<KeyFile>(keyPath);
+                key = System.IO.File.ReadAllBytes(keyPath);
 
                 TextEncoding encoding = textFile.Encoding;
                 EncryptionOptions options = textFile.EncryptionOptions;
@@ -170,8 +171,7 @@ namespace SecureTextEditor.GUI {
 
                 // Decrypt cipher
                 CipherEngine cipherEngine = GetCryptoEngine(options);
-                byte[] key = Convert.FromBase64String(keyFile.Base64Key);
-                byte[] iv = Convert.FromBase64String(keyFile.Base64IV);
+                byte[] iv = Convert.FromBase64String(textFile.Base64IV);
                 string text = GetEncoding(encoding).GetString(cipherEngine.Decrypt(cipher, key, iv));
 
                 return (
