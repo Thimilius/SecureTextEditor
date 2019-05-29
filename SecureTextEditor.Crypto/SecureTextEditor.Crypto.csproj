@@ -7,8 +7,8 @@
     <ProjectGuid>{E38F0D21-6C61-48D2-8162-88BC98BC51D3}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SecureTextEditor.Core</RootNamespace>
-    <AssemblyName>SecureTextEditor.Core</AssemblyName>
+    <RootNamespace>SecureTextEditor.Crypto</RootNamespace>
+    <AssemblyName>SecureTextEditor.Crypto</AssemblyName>
     <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -50,6 +50,7 @@
     <Compile Include="Cipher\CipherEngine.cs" />
     <Compile Include="Digest\DigestEngine.cs" />
     <Compile Include="Digest\DigestType.cs" />
+    <Compile Include="Generator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="EncryptionType.cs" />
   </ItemGroup>

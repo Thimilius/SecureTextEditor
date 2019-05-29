@@ -24,6 +24,7 @@ namespace SecureTextEditor.GUI {
     // TODO: Make part of file handler part of file project
     // TODO: Make a second file for the key used by macs
     // TODO: Use key size for usability when trying to load a key file with the wron size
+    // TODO: Key files should maybe not have the ".stxt" extension included
     public static class FileHandler {
         /// <summary>
         /// Settings for serializing and deserializing the text file.
@@ -36,11 +37,14 @@ namespace SecureTextEditor.GUI {
         };
 
         /// <summary>
-        /// The extension used for the file.
+        /// The extension used for the cipher key file.
         /// </summary>
-        private const string KEY_FILE_EXTENSION = ".key";
+        private const string CIPHER_KEY_FILE_EXTENSION = ".key";
+        private const string MAC_KEY_FILE_EXTENSION = ".mackey";
+
         private const string STXT_FILE_FILTER = "Secure Text File (" + SecureTextFile.FILE_EXTENSION + ")|*" + SecureTextFile.FILE_EXTENSION;
-        private const string KEY_FILE_FILTER = "Key File (" + KEY_FILE_EXTENSION + ")|*" + KEY_FILE_EXTENSION;
+        private const string CIPHER_KEY_FILE_FILTER = "Cipher Key File (" + CIPHER_KEY_FILE_EXTENSION + ")|*" + CIPHER_KEY_FILE_EXTENSION;
+        private const string MAC_KEY_FILE_FILTER = "Mac Key File (" + MAC_KEY_FILE_EXTENSION + ")|*" + MAC_KEY_FILE_EXTENSION;
 
         public static async Task<FileMetaData> SaveFileAsync(EncryptionOptions options, TextEncoding encoding, string text) {
             // Show dialog for saving a file
@@ -61,19 +65,27 @@ namespace SecureTextEditor.GUI {
                 await Task.Run(() => {
                     // Encrypt text and save file
                     CipherEngine cipherEngine = GetCryptoEngine(options);
-                    byte[] key = cipherEngine.GenerateKey(options.KeySize);
+                    byte[] cipherKey = cipherEngine.GenerateKey(options.KeySize);
                     byte[] iv = cipherEngine.GenerateIV();
-                    byte[] cipher = cipherEngine.Encrypt(GetEncoding(encoding).GetBytes(text), key, iv);
+                    byte[] cipher = cipherEngine.Encrypt(GetEncoding(encoding).GetBytes(text), cipherKey, iv);
 
                     // We compute the digest from the encrypted cipher
                     DigestEngine digestEngine = new DigestEngine(options.DigestType);
-                    byte[] digest = digestEngine.Digest(cipher);
+                    byte[] macKey = digestEngine.GenerateKey();
+                    byte[] digest = digestEngine.Digest(cipher, macKey);
 
                     SecureTextFile textFile = new SecureTextFile(options, encoding, iv != null ? Convert.ToBase64String(iv) : null, Convert.ToBase64String(digest), Convert.ToBase64String(cipher));
                     SaveFile(path, textFile);
 
-                    // Save key file next to text file
-                    System.IO.File.WriteAllBytes(path + KEY_FILE_EXTENSION, key);
+                    // Save cipher key into file next to the text file
+                    string cipherKeyPath = path + CIPHER_KEY_FILE_EXTENSION;
+                    System.IO.File.WriteAllBytes(cipherKeyPath, cipherKey);
+
+                    // If we have a mac key to save, save it to a seperate file as well
+                    if (macKey != null) {
+                        string macKeyPath = path + MAC_KEY_FILE_EXTENSION;
+                        System.IO.File.WriteAllBytes(macKeyPath, macKey);
+                    }
                 });
                 await Task.Delay(250);
             } catch {
@@ -121,23 +133,25 @@ namespace SecureTextEditor.GUI {
 
                 // Load file and decrypt with corresponding encoding
                 SecureTextFile textFile = LoadFile<SecureTextFile>(path);
+                TextEncoding encoding = textFile.Encoding;
+                EncryptionOptions options = textFile.EncryptionOptions;
 
                 // Try loading in the key file at the same location
-                byte[] key = null;
-                string keyPath = path + KEY_FILE_EXTENSION;
-                if (!System.IO.File.Exists(keyPath)) {
+                byte[] cipherKey = null;
+                string cipherKeyPath = path + CIPHER_KEY_FILE_EXTENSION;
+                if (!System.IO.File.Exists(cipherKeyPath)) {
                     DialogWindow.Show(
                         Application.Current.MainWindow,
-                        "The file you want to open requires a key file to decrypt!",
-                        "Key File Required",
+                        "The file you want to open requires a cipher key file to decrypt!",
+                        "Cipher Key File Required",
                         MessageBoxButton.OK,
                         MessageBoxImage.Information
                     );
 
                     // Show dialog for opening a file
                     var dialog = new OpenFileDialog {
-                        Title = "Open Key File",
-                        Filter = KEY_FILE_FILTER
+                        Title = "Open Cipher Key File",
+                        Filter = CIPHER_KEY_FILE_FILTER
                     };
                     bool? result = dialog.ShowDialog();
                     // If no file for opening was selected we can bail out
@@ -145,23 +159,50 @@ namespace SecureTextEditor.GUI {
                         return (null, null);
                     }
 
-                    keyPath = dialog.FileName;
+                    cipherKeyPath = dialog.FileName;
                 }
-                key = System.IO.File.ReadAllBytes(keyPath);
+                cipherKey = System.IO.File.ReadAllBytes(cipherKeyPath);
 
-                TextEncoding encoding = textFile.Encoding;
-                EncryptionOptions options = textFile.EncryptionOptions;
+                // Try loading in the mac key if we need it 
+                byte[] macKey = null;
+                if (options.DigestType != DigestType.SHA256) {
+                    string macKeyPath = path + MAC_KEY_FILE_EXTENSION;
+                    if (!System.IO.File.Exists(macKeyPath)) {
+                        DialogWindow.Show(
+                            Application.Current.MainWindow,
+                            "The file you want to open requires a mac key file to decrypt!",
+                            "Mac Key File Required",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Information
+                        );
+
+                        // Show dialog for opening a file
+                        var dialog = new OpenFileDialog {
+                            Title = "Open Mac Key File",
+                            Filter = MAC_KEY_FILE_FILTER
+                        };
+                        bool? result = dialog.ShowDialog();
+                        // If no file for opening was selected we can bail out
+                        if (result == false) {
+                            return (null, null);
+                        }
+
+                        macKeyPath = dialog.FileName;
+                    }
+                    macKey = System.IO.File.ReadAllBytes(macKeyPath);
+                }
+                
                 byte[] cipher = Convert.FromBase64String(textFile.Base64Cipher);
 
                 // Compare saved and new computed digest
                 DigestEngine digestEngine = new DigestEngine(options.DigestType);
-                byte[] newDigest = digestEngine.Digest(cipher);
+                byte[] newDigest = digestEngine.Digest(cipher, macKey);
                 byte[] oldDigest = Convert.FromBase64String(textFile.Base64Digest);
                 if (!DigestEngine.AreEqual(newDigest, oldDigest)) {
                     DialogWindow.Show(
                         Application.Current.MainWindow,
-                        "It appears the file got tampered with!\nIt can not be restored correctly!",
-                        "File Tampered",
+                        "It appears the file can not be restored correctly!\nThis can be an indication that the file got tampered with!\n",
+                        "File Broken",
                         MessageBoxButton.OK,
                         MessageBoxImage.Error
                     );
@@ -172,7 +213,7 @@ namespace SecureTextEditor.GUI {
                 // Decrypt cipher
                 CipherEngine cipherEngine = GetCryptoEngine(options);
                 byte[] iv = Convert.FromBase64String(textFile.Base64IV);
-                string text = GetEncoding(encoding).GetString(cipherEngine.Decrypt(cipher, key, iv));
+                string text = GetEncoding(encoding).GetString(cipherEngine.Decrypt(cipher, cipherKey, iv));
 
                 return (
                     text,

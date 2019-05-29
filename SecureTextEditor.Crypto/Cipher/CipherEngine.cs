@@ -93,9 +93,7 @@ namespace SecureTextEditor.Crypto.Cipher {
                 throw new ArgumentException("Invalid key size", nameof(keySize));
             }
 
-            CipherKeyGenerator generator = new CipherKeyGenerator();
-            generator.Init(new KeyGenerationParameters(new SecureRandom(), keySize));
-            return generator.GenerateKey();
+            return Generator.GenerateKey(keySize);
         }
 
         /// <summary>
