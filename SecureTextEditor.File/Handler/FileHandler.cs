@@ -126,10 +126,10 @@ namespace SecureTextEditor.File.Handler {
                 // Decrypt cipher
                 CipherEngine cipherEngine = GetCryptoEngine(options);
                 byte[] iv = textFile.Base64IV != null ? Convert.FromBase64String(textFile.Base64IV) : null;
-                CipherEngine.DecryptResult decryptResult = cipherEngine.Decrypt(Convert.FromBase64String(textFile.Base64Cipher), cipherKey, iv);
-                if (decryptResult.Status == CipherEngine.DecryptStatus.MacFailed) {
+                CipherDecryptResult decryptResult = cipherEngine.Decrypt(Convert.FromBase64String(textFile.Base64Cipher), cipherKey, iv);
+                if (decryptResult.Status == CipherDecryptStatus.MacFailed) {
                     return new OpenFileResult(OpenFileStatus.MacFailed, decryptResult.Exception, null, null);
-                } else if (decryptResult.Status == CipherEngine.DecryptStatus.Failed) {
+                } else if (decryptResult.Status == CipherDecryptStatus.Failed) {
                     return new OpenFileResult(OpenFileStatus.Failed, decryptResult.Exception, null, null);
                 }
 

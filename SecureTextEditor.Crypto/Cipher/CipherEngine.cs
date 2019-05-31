@@ -13,54 +13,6 @@ namespace SecureTextEditor.Crypto.Cipher {
     /// </summary>
     public class CipherEngine {
         /// <summary>
-        /// Describes the status of the decryption.
-        /// </summary>
-        public enum DecryptStatus {
-            /// <summary>
-            /// Describes that the decryption was successfull.
-            /// </summary>
-            Success,
-            /// <summary>
-            /// Describes that the decryption failed because the underlying mac reported an error.
-            /// </summary>
-            MacFailed,
-            /// <summary>
-            /// Describes that the decryption failed because of an internal error.
-            /// </summary>
-            Failed
-        }
-
-        /// <summary>
-        /// Data holder for the result of the decryption operation.
-        /// </summary>
-        public class DecryptResult {
-            /// <summary>
-            /// The status of the decryption operation.
-            /// </summary>
-            public DecryptStatus Status { get; }
-            /// <summary>
-            /// The underlying exception that was raised (if any).
-            /// </summary>
-            public Exception Exception { get; }
-            /// <summary>
-            /// The actual decrypted result of the decryption operation if it was successfull.
-            /// </summary>
-            public byte[] Result { get; }
-
-            /// <summary>
-            /// Creates a new decryption result object with given parameters.
-            /// </summary>
-            /// <param name="status">The status of the decryption opeation</param>
-            /// <param name="exception">The underlying exception that was raised (if any)</param>
-            /// <param name="result">The actual result of the decryption operation if it was successfull</param>
-            public DecryptResult(DecryptStatus status, Exception exception, byte[] result) {
-                Status = status;
-                Exception = exception;
-                Result = result;
-            }
-        }
-
-        /// <summary>
         /// The size of a block in AES encryption.
         /// </summary>
         public const int BLOCK_SIZE = 16;
@@ -140,7 +92,7 @@ namespace SecureTextEditor.Crypto.Cipher {
         /// <param name="key">The key to use</param>
         /// <param name="iv">The initilization vetor (Can be null if not needed)</param>
         /// <returns>The result of the decrypt operation</returns>
-        public DecryptResult Decrypt(byte[] cipher, byte[] key, byte[] iv) {
+        public CipherDecryptResult Decrypt(byte[] cipher, byte[] key, byte[] iv) {
             ICipherParameters parameters = GenerateCipherParameters(key, iv);
             m_Cipher.Init(false, parameters);
 
@@ -149,11 +101,11 @@ namespace SecureTextEditor.Crypto.Cipher {
 
             try {
                 length += m_Cipher.DoFinal(result, length);
-                return new DecryptResult(DecryptStatus.Success, null, result.Take(length).ToArray());
+                return new CipherDecryptResult(CipherDecryptStatus.Success, null, result.Take(length).ToArray());
             } catch(InvalidCipherTextException e) {
-                return new DecryptResult(DecryptStatus.MacFailed, e, null);
+                return new CipherDecryptResult(CipherDecryptStatus.MacFailed, e, null);
             } catch (Exception e) {
-                return new DecryptResult(DecryptStatus.Failed, e, null);
+                return new CipherDecryptResult(CipherDecryptStatus.Failed, e, null);
             }
         }
 

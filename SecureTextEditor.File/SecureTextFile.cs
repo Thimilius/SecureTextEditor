@@ -34,7 +34,7 @@ namespace SecureTextEditor.File {
         /// <param name="encoding">The encoding used for the text</param>
         /// <param name="base64IV">The initilization vector encoded in Base64</param>
         /// <param name="base64Cipher">The actual cipher encoded in Base64</param>
-        internal SecureTextFile(EncryptionOptions encryptionOptions, TextEncoding encoding, string base64IV, string base64Cipher) {
+        public SecureTextFile(EncryptionOptions encryptionOptions, TextEncoding encoding, string base64IV, string base64Cipher) {
             Encoding = encoding;
             EncryptionOptions = encryptionOptions;
             Base64IV = base64IV;

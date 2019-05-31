@@ -44,6 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Cipher\CipherDecryptResult.cs" />
     <Compile Include="Cipher\CipherMode.cs" />
     <Compile Include="Cipher\CipherPadding.cs" />
     <Compile Include="Cipher\CipherType.cs" />
