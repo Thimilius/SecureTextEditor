@@ -44,17 +44,19 @@ namespace SecureTextEditor.GUI.Editor {
         public void NewTab(string content) {
             string name = $"New {GetTabCounter()}";
 
-            NewTab(content, new FileMetaData() {
-                Encoding = AppConfig.Config.NewFileTextEncoding,
-                EncryptionOptions = AppConfig.Config.DefaultEncryptionOptions[AppConfig.Config.DefaultEncryptionType],
-                FileName = name,
-                FilePath = name,
+            NewTab(content, new TextEditorTabMetaData() {
+                FileMetaData = new FileMetaData() {
+                    Encoding = AppConfig.Config.NewFileTextEncoding,
+                    EncryptionOptions = AppConfig.Config.DefaultEncryptionOptions[AppConfig.Config.DefaultEncryptionType],
+                    FileName = name,
+                    FilePath = name
+                }, 
                 IsNew = true,
                 IsDirty = false
             });
         } 
 
-        public void NewTab(string content, FileMetaData fileMetaData) {
+        public void NewTab(string content, TextEditorTabMetaData metaData) {
             // Currently we have a maximum number of concurrently open tabs
             if (m_TabControl.Items.Count == MAX_TABS) {
                 return;
@@ -68,13 +70,13 @@ namespace SecureTextEditor.GUI.Editor {
 
                 NotifyThatTabGotClosed(lastTab);
 
-                lastTab.FileMetaData = fileMetaData;
+                lastTab.MetaData = metaData;
                 lastTab.Editor.Text = content;
 
                 // We have to manually reset header and dirtyness
                 // because of already subscribed callbacks
-                lastTab.SetHeader(fileMetaData.FileName);
-                lastTab.FileMetaData.IsDirty = false;
+                lastTab.SetHeader(metaData.FileMetaData.FileName);
+                lastTab.MetaData.IsDirty = false;
 
                 FocusTab(lastTab);
 
@@ -82,7 +84,7 @@ namespace SecureTextEditor.GUI.Editor {
             }
 
             // FIXME: We should use an object pool here to avoid using unnecessary memory
-            var tab = new TextEditorTab(this, fileMetaData, content);
+            var tab = new TextEditorTab(this, metaData, content);
             var item = tab.TabItem;
             var editor = tab.Editor;
 
@@ -113,7 +115,7 @@ namespace SecureTextEditor.GUI.Editor {
             }
 
             // Prompt the user for saving if the file is dirty
-            if (tab.FileMetaData.IsDirty) {
+            if (tab.MetaData.IsDirty) {
                 m_Window.PromptSaveDialog(tab);
             }
 
@@ -151,9 +153,9 @@ namespace SecureTextEditor.GUI.Editor {
 
         public void NotifyThatTabGotClosed(ITextEditorTab tab) {
             // Only process "new" tabs that were not saved before
-            if (tab.FileMetaData.IsNew) {
+            if (tab.MetaData.IsNew) {
                 // This is a little hardcoded but thats fine
-                m_NewTabCounterList.Add(int.Parse(tab.FileMetaData.FileName.Substring(4)));
+                m_NewTabCounterList.Add(int.Parse(tab.MetaData.FileMetaData.FileName.Substring(4)));
             }
         }
 
@@ -187,7 +189,7 @@ namespace SecureTextEditor.GUI.Editor {
         private bool IsLastTabNewAndEmpty() {
             if (m_TabControl.Items.Count == 1) {
                 ITextEditorTab tab = Tabs.First();
-                return tab.FileMetaData.IsNew && tab.Editor.Text == "";
+                return tab.MetaData.IsNew && tab.Editor.Text == "";
             } else {
                 return false;
             }

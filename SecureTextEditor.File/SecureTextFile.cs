@@ -7,11 +7,6 @@ namespace SecureTextEditor.File {
     /// </summary>
     public class SecureTextFile {
         /// <summary>
-        /// The extension used for the file.
-        /// </summary>
-        public const string FILE_EXTENSION = ".stxt";
-
-        /// <summary>
         /// Version number for the secure text file for compatability reasons.
         /// </summary>
         [JsonProperty(Required = Required.Always)] public string Version { get; } = "0.1";

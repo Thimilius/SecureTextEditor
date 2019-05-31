@@ -16,10 +16,10 @@ namespace SecureTextEditor.GUI {
     /// Interaction logic for SaveWindow.xaml
     /// </summary>
     public partial class SaveWindow : Window {
-        private ITextEditorControl m_TextEditorControl;
-        private ITextEditorTab m_TabToSave;
+        private readonly ITextEditorControl m_TextEditorControl;
+        private readonly ITextEditorTab m_TabToSave;
+        private readonly bool m_CTSPaddingAvailable;
         private bool m_SaveInProgress;
-        private bool m_CTSPaddingAvailable;
 
         public SaveWindow(ITextEditorControl control, ITextEditorTab tab) {
             InitializeComponent();
@@ -36,7 +36,7 @@ namespace SecureTextEditor.GUI {
             RC4KeySizeComboBox.ItemsSource = CipherEngine.RC4_ACCEPTED_KEYS;
 
             // Set default options
-            EncryptionOptions options = tab.FileMetaData.EncryptionOptions;
+            EncryptionOptions options = tab.MetaData.FileMetaData.EncryptionOptions;
             EncryptionTypeComboBox.SelectedItem = options.Type;
             AESKeySizeComboBox.SelectedItem = options.KeySize;
             RC4KeySizeComboBox.SelectedItem = options.KeySize;
@@ -78,19 +78,23 @@ namespace SecureTextEditor.GUI {
             
             // Do the actual save 
             m_SaveInProgress = true;
-            TextEncoding encoding = m_TabToSave.FileMetaData.Encoding;
+            TextEncoding encoding = m_TabToSave.MetaData.FileMetaData.Encoding;
             string text = m_TabToSave.Editor.Text;
-            FileMetaData metaData = await FileHandler.SaveFileAsync(BuildEncryptionOptions(), encoding, text);
+            FileMetaData fileMetaData = await FileHandler.SaveFileAsync(BuildEncryptionOptions(), encoding, text);
             m_SaveInProgress = false;
 
             // Proceed only if the file got actually saved
-            if (metaData != null) {
+            if (fileMetaData != null) {
                 // This is a little hackey that we do it here but it works
                 m_TextEditorControl.NotifyThatTabGotClosed(m_TabToSave);
 
                 // Set new meta data for alreay existing tab and update its header
-                m_TabToSave.FileMetaData = metaData;
-                m_TabToSave.SetHeader(metaData.FileName);
+                m_TabToSave.MetaData = new TextEditorTabMetaData() {
+                    FileMetaData = fileMetaData,
+                    IsNew = false,
+                    IsDirty = false
+                };
+                m_TabToSave.SetHeader(fileMetaData.FileName);
 
                 // We can close the dialog when finished
                 Close();

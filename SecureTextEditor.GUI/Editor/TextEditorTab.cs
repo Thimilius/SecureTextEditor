@@ -11,19 +11,19 @@ namespace SecureTextEditor.GUI.Editor {
         public TabItem TabItem { get; private set; }
         public TextBox Editor { get; private set; }
 
-        public FileMetaData FileMetaData { get; set; }
+        public TextEditorTabMetaData MetaData { get; set; }
 
-        public TextEditorTab(TextEditorControl control, FileMetaData fileMetaData, string content) {
-            FileMetaData = fileMetaData;
+        public TextEditorTab(TextEditorControl control, TextEditorTabMetaData metaData, string content) {
+            MetaData = metaData;
             m_Control = control;
 
             Editor = new TextBox {
                 Text = content
             };
-            FileMetaData.IsDirty = false;
+            MetaData.IsDirty = false;
 
             // Create UI
-            CreateUI(fileMetaData.FileName);
+            CreateUI(metaData.FileMetaData.FileName);
         }
 
         public void FocusControls() {
@@ -68,9 +68,9 @@ namespace SecureTextEditor.GUI.Editor {
         }
 
         private void OnTextChanged(object sender, TextChangedEventArgs e) {
-            if (!FileMetaData.IsDirty) {
+            if (!MetaData.IsDirty) {
                 // Set the file dirty and show it in header
-                FileMetaData.IsDirty = true;
+                MetaData.IsDirty = true;
                 m_Header.Text += "*";
             }
         }

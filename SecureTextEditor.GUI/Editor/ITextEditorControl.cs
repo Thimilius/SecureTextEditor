@@ -10,7 +10,7 @@ namespace SecureTextEditor.GUI.Editor {
         IEnumerable<ITextEditorTab> Tabs { get; }
 
         void NewTab(string content);
-        void NewTab(string content, FileMetaData fileMetaData);
+        void NewTab(string content, TextEditorTabMetaData metaData);
         void CloseTab(ITextEditorTab tab);
         void FocusTab(ITextEditorTab tab);
 

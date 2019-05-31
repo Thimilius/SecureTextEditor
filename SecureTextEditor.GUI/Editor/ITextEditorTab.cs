@@ -6,7 +6,7 @@ namespace SecureTextEditor.GUI.Editor {
         TabItem TabItem { get; }
         TextBox Editor { get; }
 
-        FileMetaData FileMetaData { get; set; }
+        TextEditorTabMetaData MetaData { get; set; }
 
         void FocusControls();
         void SetHeader(string header);

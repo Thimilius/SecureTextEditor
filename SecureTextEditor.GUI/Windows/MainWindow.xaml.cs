@@ -40,11 +40,15 @@ namespace SecureTextEditor.GUI {
 
         public void OpenFile(string path) {
             // Open actual file
-            (string text, FileMetaData metaData) = FileHandler.OpenFile(TextEditorControl, path);
+            (string text, FileMetaData fileMetaData) = FileHandler.OpenFile(TextEditorControl, path);
 
-            if (text != null && metaData != null) {
+            if (text != null && fileMetaData != null) {
                 // Open new tab for the file
-                TextEditorControl.NewTab(text, metaData);
+                TextEditorControl.NewTab(text, new TextEditorTabMetaData() {
+                    FileMetaData = fileMetaData,
+                    IsNew = false,
+                    IsDirty = false
+                });
 
                 // Update UI
                 UpdateEncodingStatus();
@@ -60,7 +64,7 @@ namespace SecureTextEditor.GUI {
         public void PromptSaveDialog(ITextEditorTab tab) {
             // Show question dialog
             bool save = DialogWindow.Show(this,
-                $"Do you want to save \"{tab.FileMetaData.FileName}\" before closing?",
+                $"Do you want to save \"{tab.MetaData.FileMetaData.FileName}\" before closing?",
                 "Save",
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Question);
@@ -72,7 +76,7 @@ namespace SecureTextEditor.GUI {
 
         private void PromptSaveDialogs() {
             // Loop through every dirty tab
-            foreach (var tab in TextEditorControl.Tabs.Where(t => t.FileMetaData.IsDirty)) {
+            foreach (var tab in TextEditorControl.Tabs.Where(t => t.MetaData.IsDirty)) {
                 // Focus the tab and prompt save dialog for it
                 TextEditorControl.FocusTab(tab);
                 PromptSaveDialog(tab);
@@ -138,12 +142,12 @@ namespace SecureTextEditor.GUI {
 
         private void OnEncodingChanged(object sender, RoutedEventArgs e) {
             // Update encoding checkboxes
-            EncodingCheckBoxASCII.IsChecked = TextEditorControl.CurrentTab.FileMetaData.Encoding == TextEncoding.ASCII;
-            EncodingCheckBoxUTF8.IsChecked = TextEditorControl.CurrentTab.FileMetaData.Encoding == TextEncoding.UTF8;
+            EncodingCheckBoxASCII.IsChecked = TextEditorControl.CurrentTab.MetaData.FileMetaData.Encoding == TextEncoding.ASCII;
+            EncodingCheckBoxUTF8.IsChecked = TextEditorControl.CurrentTab.MetaData.FileMetaData.Encoding == TextEncoding.UTF8;
         }
 
         private void ChangeEncoding(TextEncoding encoding) {
-            TextEditorControl.CurrentTab.FileMetaData.Encoding = encoding;
+            TextEditorControl.CurrentTab.MetaData.FileMetaData.Encoding = encoding;
 
             UpdateEncodingStatus();
         }
@@ -171,7 +175,7 @@ namespace SecureTextEditor.GUI {
             }
 
             // Update encoding checkboxes
-            var encoding = TextEditorControl.CurrentTab.FileMetaData.Encoding;
+            var encoding = TextEditorControl.CurrentTab.MetaData.FileMetaData.Encoding;
             EncodingCheckBoxASCII.IsChecked = encoding == TextEncoding.ASCII;
             EncodingCheckBoxUTF8.IsChecked = encoding == TextEncoding.UTF8;
 
@@ -191,7 +195,7 @@ namespace SecureTextEditor.GUI {
         }
 
         private void UpdateWindowTitle() {
-            Title = $"Secure Text Editor - {TextEditorControl.CurrentTab.FileMetaData.FilePath}";
+            Title = $"Secure Text Editor - {TextEditorControl.CurrentTab.MetaData.FileMetaData.FilePath}";
         }
     }
 }

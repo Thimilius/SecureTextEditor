@@ -30,12 +30,19 @@ namespace SecureTextEditor.GUI {
         };
 
         /// <summary>
+        /// The extension used for the file.
+        /// </summary>
+        public const string STXT_FILE_EXTENSION = ".stxt";
+        /// <summary>
         /// The extension used for the cipher key file.
         /// </summary>
         private const string CIPHER_KEY_FILE_EXTENSION = ".key";
+        /// <summary>
+        /// The extension used for the mac key file.
+        /// </summary>
         private const string MAC_KEY_FILE_EXTENSION = ".mackey";
 
-        private const string STXT_FILE_FILTER = "Secure Text File (" + SecureTextFile.FILE_EXTENSION + ")|*" + SecureTextFile.FILE_EXTENSION;
+        private const string STXT_FILE_FILTER = "Secure Text File (" + STXT_FILE_EXTENSION + ")|*" + STXT_FILE_EXTENSION;
         private const string CIPHER_KEY_FILE_FILTER = "Cipher Key File (" + CIPHER_KEY_FILE_EXTENSION + ")|*" + CIPHER_KEY_FILE_EXTENSION;
         private const string MAC_KEY_FILE_FILTER = "Mac Key File (" + MAC_KEY_FILE_EXTENSION + ")|*" + MAC_KEY_FILE_EXTENSION;
 
@@ -104,8 +111,6 @@ namespace SecureTextEditor.GUI {
                 EncryptionOptions = options,
                 FileName = dialog.SafeFileName,
                 FilePath = path,
-                IsNew = false,
-                IsDirty = false
             };
         }
 
@@ -251,8 +256,6 @@ namespace SecureTextEditor.GUI {
                         EncryptionOptions = options,
                         FileName = fileName,
                         FilePath = path,
-                        IsNew = false,
-                        IsDirty = false
                     }
                 );
             } catch (Exception e) {
@@ -281,7 +284,7 @@ namespace SecureTextEditor.GUI {
             // We do not need to open the file if we already have it open
             // Instead we can just focus the corresponding tab
             if (path != null) {
-                var tabs = control.Tabs.Where(t => t.FileMetaData.FilePath == path);
+                var tabs = control.Tabs.Where(t => t.MetaData.FileMetaData.FilePath == path);
                 if (tabs.Any()) {
                     control.FocusTab(tabs.First());
                     return true;
