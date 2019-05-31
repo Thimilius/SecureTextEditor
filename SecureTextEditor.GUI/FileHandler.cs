@@ -99,7 +99,7 @@ namespace SecureTextEditor.GUI {
                 DialogWindow.Show(
                     Application.Current.MainWindow,
                     $"Failed to save the file:\n{path}!",
-                    "Saving failed",
+                    "Saving Failed",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error
                 );
@@ -240,11 +240,11 @@ namespace SecureTextEditor.GUI {
                         IsDirty = false
                     }
                 );
-            } catch {
+            } catch (Exception e) {
                 DialogWindow.Show(
                     Application.Current.MainWindow,
-                    $"Failed to open the file:\n{path}!",
-                    "Opening failed",
+                    $"Failed to open the file:\n{path}\n{e.GetType()}\n{e.Message}",
+                    "Opening Failed",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error
                 );

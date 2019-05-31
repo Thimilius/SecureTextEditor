@@ -25,6 +25,14 @@ namespace SecureTextEditor.Crypto.Cipher {
         /// The keys accepted in RC4 encryption.
         /// </summary>
         public static readonly int[] RC4_ACCEPTED_KEYS = new int[] { 128, 160, 192, 256, 512, 1024, 2048 };
+        /// <summary>
+        /// The size of the tag used in GCM and CCM mode.
+        /// </summary>
+        private const int GCM_TAG_SIZE = 128;
+        /// <summary>
+        /// The size of the special nonce used in CCM mode that must be between 7 and 13 octets.
+        /// </summary>
+        private const int CCM_NONCE_SIZE = 13;
 
         private static readonly IBlockCipher BLOCK_CIPHER_ENGINE = new AesEngine();
         private static readonly IStreamCipher STREAM_CIPHER_ENGINE = new RC4Engine();
@@ -70,6 +78,7 @@ namespace SecureTextEditor.Crypto.Cipher {
         /// <param name="iv">The initilization vetor</param>
         /// <returns>The plain message</returns>
         public byte[] Decrypt(byte[] cipher, byte[] key, byte[] iv) {
+            // TODO: We should handle the InvalidCipherTextException here and pass back an appropriate result
             ICipherParameters parameters = GetCipherParameters(key, iv);
             m_Cipher.Init(false, parameters);
 
@@ -104,7 +113,7 @@ namespace SecureTextEditor.Crypto.Cipher {
             if (m_CipherMode == CipherMode.ECB) {
                 return null;
             } else {
-                byte[] iv = new byte[m_Cipher.GetBlockSize()];
+                byte[] iv = new byte[m_CipherMode == CipherMode.CCM ? CCM_NONCE_SIZE : m_Cipher.GetBlockSize()];
                 new SecureRandom().NextBytes(iv);
                 return iv;
             }
@@ -119,6 +128,8 @@ namespace SecureTextEditor.Crypto.Cipher {
                     case CipherMode.CTR: return new BufferedBlockCipher(new SicBlockCipher(BLOCK_CIPHER_ENGINE));
                     case CipherMode.CFB: return new BufferedBlockCipher(new CfbBlockCipher(BLOCK_CIPHER_ENGINE, BLOCK_SIZE));
                     case CipherMode.OFB: return new BufferedBlockCipher(new OfbBlockCipher(BLOCK_CIPHER_ENGINE, BLOCK_SIZE));
+                    case CipherMode.GCM: return new BufferedAeadBlockCipher(new GcmBlockCipher(BLOCK_CIPHER_ENGINE));
+                    case CipherMode.CCM: return new BufferedAeadBlockCipher(new CcmBlockCipher(BLOCK_CIPHER_ENGINE));
                     default: throw new ArgumentOutOfRangeException(nameof(mode));
                 }
             } else {
@@ -141,11 +152,13 @@ namespace SecureTextEditor.Crypto.Cipher {
         }
 
         private ICipherParameters GetCipherParameters(byte[] key, byte[] iv) {
-            ICipherParameters result = new KeyParameter(key);
+            KeyParameter keyParameter = new KeyParameter(key);
             if (iv == null || m_Type == CipherType.Stream || m_CipherMode == CipherMode.ECB) {
-                return result;
+                return keyParameter;
+            } else if (m_CipherMode == CipherMode.GCM || m_CipherMode == CipherMode.CCM) {
+                return new AeadParameters(keyParameter, GCM_TAG_SIZE, iv);
             } else {
-                return new ParametersWithIV(result, iv);
+                return new ParametersWithIV(keyParameter, iv);
             }
         }
     }

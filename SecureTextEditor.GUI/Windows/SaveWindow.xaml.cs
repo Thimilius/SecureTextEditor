@@ -29,10 +29,10 @@ namespace SecureTextEditor.GUI {
             m_CTSPaddingAvailable = m_TabToSave.Editor.Text.Length >= CipherEngine.BLOCK_SIZE;
 
             // Set up UI
-            DigestTypeComboBox.ItemsSource = GetEnumValues<DigestType>();
-            EncryptionTypeComboBox.ItemsSource = GetEnumValues<EncryptionType>();
+            DigestTypeComboBox.ItemsSource = GetEnumValuesWithout<DigestType>();
+            EncryptionTypeComboBox.ItemsSource = GetEnumValuesWithout<EncryptionType>();
             AESKeySizeComboBox.ItemsSource = CipherEngine.AES_ACCEPTED_KEYS;
-            AESPaddingComboBox.ItemsSource = GetEnumValues<CipherPadding>();
+            AESPaddingComboBox.ItemsSource = GetEnumValuesWithout<CipherPadding>();
             RC4KeySizeComboBox.ItemsSource = CipherEngine.RC4_ACCEPTED_KEYS;
 
             // Set default options
@@ -110,14 +110,15 @@ namespace SecureTextEditor.GUI {
         private void OnAESPaddingSelectionChanged(CipherPadding padding) {
             if (padding == CipherPadding.None) {
                 // Only modes that have no padding should be available
+                // and we need to check if CTS is available
                 if (m_CTSPaddingAvailable) {
-                    AESModeComboBox.ItemsSource = GetEnumValues(CipherMode.ECB, CipherMode.CBC, CipherMode.None);
+                    AESModeComboBox.ItemsSource = GetEnumValuesWithout(CipherMode.ECB, CipherMode.CBC, CipherMode.None);
                 } else {
-                    AESModeComboBox.ItemsSource = GetEnumValues(CipherMode.CTS, CipherMode.ECB, CipherMode.CBC, CipherMode.None);
+                    AESModeComboBox.ItemsSource = GetEnumValuesWithout(CipherMode.CTS, CipherMode.ECB, CipherMode.CBC, CipherMode.None);
                 }
             } else {
                 // Only modes that have a padding should be available
-                AESModeComboBox.ItemsSource = GetEnumValues(CipherMode.CTS, CipherMode.CTR, CipherMode.CFB, CipherMode.OFB, CipherMode.None);
+                AESModeComboBox.ItemsSource = GetEnumValuesWithout(CipherMode.CTS, CipherMode.CTR, CipherMode.CFB, CipherMode.OFB, CipherMode.GCM, CipherMode.CCM, CipherMode.None);
             }
 
             // When changing just select the first element
@@ -147,7 +148,7 @@ namespace SecureTextEditor.GUI {
             return options;
         }
 
-        private IEnumerable<T> GetEnumValues<T>(params T[] without) {
+        private IEnumerable<T> GetEnumValuesWithout<T>(params T[] without) {
             return Enum.GetValues(typeof(T)).Cast<T>().Except(without);
         }
 

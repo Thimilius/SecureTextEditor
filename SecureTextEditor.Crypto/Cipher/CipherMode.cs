@@ -30,6 +30,14 @@
         /// <summary>
         /// Describes the Output FeedBack streaming block mode.
         /// </summary>
-        OFB
+        OFB,
+        /// <summary>
+        /// Describes the Galois Counter mode.
+        /// </summary>
+        GCM,
+        /// <summary>
+        /// Describes the CBC/MAC mode.
+        /// </summary>
+        CCM
     }
 }

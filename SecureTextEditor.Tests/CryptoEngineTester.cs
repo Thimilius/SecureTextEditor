@@ -19,6 +19,7 @@ namespace SecureTextEditor.Tests {
          
         // TODO: Test weak and semi-weak keys
         // TODO: Test generation of key and iv
+        // TODO: Test GCM and CCM (Check that the MAC failes after tampering)
 
         [TestMethod]
         public void ECB_Test() {
