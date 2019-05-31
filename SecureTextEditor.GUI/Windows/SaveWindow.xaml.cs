@@ -114,7 +114,7 @@ namespace SecureTextEditor.GUI {
             SaveFileDialog dialog = new SaveFileDialog() {
                 Title = "Save Secure Text File",
                 AddExtension = true,
-                Filter = FileHandler.STXT_FILE_FILTER
+                Filter = FileFilters.STXT_FILE_FILTER
             };
             bool? saveFileResult = dialog.ShowDialog();
             // If no path for saving was selected we can bail out
@@ -123,8 +123,8 @@ namespace SecureTextEditor.GUI {
             }
             string path = dialog.FileName;
 
-            FileHandler.SaveFileResult result = await FileHandler.SaveFileAsync(path, options, encoding, text);
-            if (result.Status == FileHandler.SaveFileStatus.Success) {
+            SaveFileResult result = await FileHandler.SaveFileAsync(path, options, encoding, text);
+            if (result.Status == SaveFileStatus.Success) {
                 return result.FileMetaData;
             } else {
                 DialogWindow.Show(

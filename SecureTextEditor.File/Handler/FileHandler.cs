@@ -14,44 +14,19 @@ namespace SecureTextEditor.File.Handler {
     // TODO: Use key size for usability when trying to load a key file with the wrong size
     // TODO: Key files should maybe not have the ".stxt" extension included
     public static class FileHandler {
-        public enum OpenFileStatus {
-            Success,
-            Canceled,
-            MacFailed,
-            Failed
-        }
-
-        public class OpenFileResult {
-            public OpenFileStatus Status { get; }
-            public Exception Exception { get; }
-            public FileMetaData FileMetaData { get; }
-            public string Text { get; }
-
-            public OpenFileResult(OpenFileStatus status, Exception exception, FileMetaData fileMetaData, string text) {
-                Status = status;
-                Exception = exception;
-                FileMetaData = fileMetaData;
-                Text = text;
-            }
-        }
-
-        public enum SaveFileStatus {
-            Success,
-            Failed
-        }
-
-        public class SaveFileResult {
-            public SaveFileStatus Status { get; }
-            public Exception Exception { get; }
-            public FileMetaData FileMetaData { get; }
-
-            public SaveFileResult(SaveFileStatus status, Exception exception, FileMetaData fileMetaData) {
-                Status = status;
-                Exception = exception;
-                FileMetaData = fileMetaData;
-            }
-        }
-
+        /// <summary>
+        /// The extension used for the file.
+        /// </summary>
+        public const string STXT_FILE_EXTENSION = ".stxt";
+        /// <summary>
+        /// The extension used for the cipher key file.
+        /// </summary>
+        public const string CIPHER_KEY_FILE_EXTENSION = ".key";
+        /// <summary>
+        /// The extension used for the mac key file.
+        /// </summary>
+        public const string MAC_KEY_FILE_EXTENSION = ".mackey";
+        
         /// <summary>
         /// Settings for serializing and deserializing the text file.
         /// </summary>
@@ -61,24 +36,6 @@ namespace SecureTextEditor.File.Handler {
             TypeNameHandling = TypeNameHandling.Auto,
             NullValueHandling = NullValueHandling.Ignore
         };
-
-        // FIXME: Where should these constants actually be? Maybe put them into their own FileFilter class
-        public const string STXT_FILE_FILTER = "Secure Text File (" + STXT_FILE_EXTENSION + ")|*" + STXT_FILE_EXTENSION;
-        public const string CIPHER_KEY_FILE_FILTER = "Cipher Key File (" + CIPHER_KEY_FILE_EXTENSION + ")|*" + CIPHER_KEY_FILE_EXTENSION;
-        public const string MAC_KEY_FILE_FILTER = "Mac Key File (" + MAC_KEY_FILE_EXTENSION + ")|*" + MAC_KEY_FILE_EXTENSION;
-
-        /// <summary>
-        /// The extension used for the file.
-        /// </summary>
-        public const string STXT_FILE_EXTENSION = ".stxt";
-        /// <summary>
-        /// The extension used for the cipher key file.
-        /// </summary>
-        private const string CIPHER_KEY_FILE_EXTENSION = ".key";
-        /// <summary>
-        /// The extension used for the mac key file.
-        /// </summary>
-        private const string MAC_KEY_FILE_EXTENSION = ".mackey";
 
         public static async Task<SaveFileResult> SaveFileAsync(string path, EncryptionOptions options, TextEncoding encoding, string text) {
             try {
@@ -104,7 +61,7 @@ namespace SecureTextEditor.File.Handler {
                     byte[] cipher = cipherEngine.Encrypt(full, cipherKey, iv);
 
                     SecureTextFile textFile = new SecureTextFile(options, encoding, iv != null ? Convert.ToBase64String(iv) : null, Convert.ToBase64String(cipher));
-                    SaveFile(path, textFile);
+                    SaveSecureTextFile(path, textFile);
 
                     // Save cipher key into file next to the text file
                     string cipherKeyPath = path + CIPHER_KEY_FILE_EXTENSION;
@@ -136,7 +93,7 @@ namespace SecureTextEditor.File.Handler {
                 string fileName = Path.GetFileName(path);
 
                 // Load file and decrypt with corresponding encoding
-                SecureTextFile textFile = LoadFile<SecureTextFile>(path);
+                SecureTextFile textFile = LoadSecureTextFile<SecureTextFile>(path);
                 TextEncoding encoding = textFile.Encoding;
                 EncryptionOptions options = textFile.EncryptionOptions;
 
@@ -206,14 +163,14 @@ namespace SecureTextEditor.File.Handler {
             }
         }
 
-        private static void SaveFile<T>(string path, T file) {
+        private static void SaveSecureTextFile(string path, SecureTextFile file) {
             string json = JsonConvert.SerializeObject(file, SERIALIZER_SETTINGS);
             System.IO.File.WriteAllText(path, json);
         }
 
-        private static T LoadFile<T>(string path) {
+        private static SecureTextFile LoadSecureTextFile<T>(string path) {
             string json = System.IO.File.ReadAllText(path);
-            return JsonConvert.DeserializeObject<T>(json, SERIALIZER_SETTINGS);
+            return JsonConvert.DeserializeObject<SecureTextFile>(json, SERIALIZER_SETTINGS);
         }
 
         private static CipherEngine GetCryptoEngine(EncryptionOptions options) {

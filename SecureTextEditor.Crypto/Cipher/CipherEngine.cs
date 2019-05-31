@@ -35,7 +35,7 @@ namespace SecureTextEditor.Crypto.Cipher {
         /// </summary>
         public class DecryptResult {
             /// <summary>
-            /// The status of the decryption.
+            /// The status of the decryption operation.
             /// </summary>
             public DecryptStatus Status { get; }
             /// <summary>
@@ -43,16 +43,16 @@ namespace SecureTextEditor.Crypto.Cipher {
             /// </summary>
             public Exception Exception { get; }
             /// <summary>
-            /// The actual result of the decryption operation (if any).
+            /// The actual decrypted result of the decryption operation if it was successfull.
             /// </summary>
             public byte[] Result { get; }
 
             /// <summary>
-            /// Constructs a new decryption result object with given parameters.
+            /// Creates a new decryption result object with given parameters.
             /// </summary>
-            /// <param name="status">The status of the decryption</param>
+            /// <param name="status">The status of the decryption opeation</param>
             /// <param name="exception">The underlying exception that was raised (if any)</param>
-            /// <param name="result">The actual result of the decryption operation (if any)</param>
+            /// <param name="result">The actual result of the decryption operation if it was successfull</param>
             public DecryptResult(DecryptStatus status, Exception exception, byte[] result) {
                 Status = status;
                 Exception = exception;

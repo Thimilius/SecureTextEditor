@@ -69,7 +69,7 @@ namespace SecureTextEditor.GUI {
                 // Show dialog for opening a file
                 var dialog = new OpenFileDialog {
                     Title = "Open Secure Text File",
-                    Filter = FileHandler.STXT_FILE_FILTER
+                    Filter = FileFilters.STXT_FILE_FILTER
                 };
                 bool? openFileResult = dialog.ShowDialog();
 
@@ -90,22 +90,22 @@ namespace SecureTextEditor.GUI {
             }
 
             // Open actual file
-            FileHandler.OpenFileResult result = FileHandler.OpenFile(path,
+            OpenFileResult result = FileHandler.OpenFile(path,
                 () => ShowFileDialogForKeyFile(
                     "The file you want to open requires a cipher key file to decrypt!",
                     "Cipher Key File Required",
                     "Open Cipher Key File",
-                    FileHandler.CIPHER_KEY_FILE_FILTER
+                    FileFilters.CIPHER_KEY_FILE_FILTER
                 ),
                 () => ShowFileDialogForKeyFile(
                     "The file you want to open requires a mac key file to decrypt!",
                     "Mac Key File Required",
                     "Open Mac Key File",
-                    FileHandler.MAC_KEY_FILE_FILTER
+                    FileFilters.MAC_KEY_FILE_FILTER
                 )
             );
 
-            if (result.Status == FileHandler.OpenFileStatus.Success) {
+            if (result.Status == OpenFileStatus.Success) {
                 // Open new tab for the file
                 TextEditorControl.NewTab(result.Text, new TextEditorTabMetaData() {
                     FileMetaData = result.FileMetaData,
@@ -115,7 +115,7 @@ namespace SecureTextEditor.GUI {
 
                 // Update UI
                 UpdateEncodingStatus();
-            } else if (result.Status == FileHandler.OpenFileStatus.MacFailed) {
+            } else if (result.Status == OpenFileStatus.MacFailed) {
                 DialogWindow.Show(
                     Application.Current.MainWindow,
                     "It appears the file can not be restored correctly!\nThis can be an indication that the file got tampered with!",
@@ -123,7 +123,7 @@ namespace SecureTextEditor.GUI {
                     MessageBoxButton.OK,
                     MessageBoxImage.Error
                 );
-            } else if (result.Status == FileHandler.OpenFileStatus.Failed) {
+            } else if (result.Status == OpenFileStatus.Failed) {
                 DialogWindow.Show(
                     Application.Current.MainWindow,
                     $"Failed to open the file:\n{path}\n{result.Exception.GetType()}\n{result.Exception.Message}",
