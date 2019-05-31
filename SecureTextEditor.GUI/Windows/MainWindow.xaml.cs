@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using AdonisUI;
+using Microsoft.Win32;
 using SecureTextEditor.File;
 using SecureTextEditor.GUI.Config;
 using SecureTextEditor.GUI.Editor;
@@ -39,8 +40,33 @@ namespace SecureTextEditor.GUI {
         }
 
         public void OpenFile(string path) {
+            // Check if we need to show the open file dialog first
+            if (path == null) {
+                // Show dialog for opening a file
+                var dialog = new OpenFileDialog {
+                    Title = "Open Secure Text File",
+                    Filter = FileHandler.STXT_FILE_FILTER
+                };
+                bool? result = dialog.ShowDialog();
+
+                path = dialog.FileName;
+
+                // Check if the file is already open
+                bool fileAlreadyOpen = false;
+                var tabs = TextEditorControl.Tabs.Where(t => t.MetaData.FileMetaData.FilePath == path);
+                if (tabs.Any()) {
+                    TextEditorControl.FocusTab(tabs.First());
+                    fileAlreadyOpen = true;
+                }
+
+                // If no file for opening was selected or the file is already open we can bail out
+                if (result == false || fileAlreadyOpen) {
+                    return;
+                }
+            }
+
             // Open actual file
-            (string text, FileMetaData fileMetaData) = FileHandler.OpenFile(TextEditorControl, path);
+            (string text, FileMetaData fileMetaData) = FileHandler.OpenFile(path);
 
             if (text != null && fileMetaData != null) {
                 // Open new tab for the file

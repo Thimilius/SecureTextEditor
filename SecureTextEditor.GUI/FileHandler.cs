@@ -12,7 +12,6 @@ using SecureTextEditor.Crypto.Cipher;
 using SecureTextEditor.Crypto.Digest;
 using SecureTextEditor.File;
 using SecureTextEditor.File.Options;
-using SecureTextEditor.GUI.Editor;
 
 namespace SecureTextEditor.GUI {
     // TODO: Make part of file handler part of file project
@@ -29,6 +28,11 @@ namespace SecureTextEditor.GUI {
             NullValueHandling = NullValueHandling.Ignore
         };
 
+        // FIXME: Where should these constants actually be? Maybe put them into their own FileFilter class
+        public const string STXT_FILE_FILTER = "Secure Text File (" + STXT_FILE_EXTENSION + ")|*" + STXT_FILE_EXTENSION;
+        public const string CIPHER_KEY_FILE_FILTER = "Cipher Key File (" + CIPHER_KEY_FILE_EXTENSION + ")|*" + CIPHER_KEY_FILE_EXTENSION;
+        public const string MAC_KEY_FILE_FILTER = "Mac Key File (" + MAC_KEY_FILE_EXTENSION + ")|*" + MAC_KEY_FILE_EXTENSION;
+
         /// <summary>
         /// The extension used for the file.
         /// </summary>
@@ -41,10 +45,6 @@ namespace SecureTextEditor.GUI {
         /// The extension used for the mac key file.
         /// </summary>
         private const string MAC_KEY_FILE_EXTENSION = ".mackey";
-
-        private const string STXT_FILE_FILTER = "Secure Text File (" + STXT_FILE_EXTENSION + ")|*" + STXT_FILE_EXTENSION;
-        private const string CIPHER_KEY_FILE_FILTER = "Cipher Key File (" + CIPHER_KEY_FILE_EXTENSION + ")|*" + CIPHER_KEY_FILE_EXTENSION;
-        private const string MAC_KEY_FILE_FILTER = "Mac Key File (" + MAC_KEY_FILE_EXTENSION + ")|*" + MAC_KEY_FILE_EXTENSION;
 
         public static async Task<FileMetaData> SaveFileAsync(EncryptionOptions options, TextEncoding encoding, string text) {
             // Show dialog for saving a file
@@ -114,27 +114,9 @@ namespace SecureTextEditor.GUI {
             };
         }
 
-        public static (string text, FileMetaData metaData) OpenFile(ITextEditorControl control, string path) {
+        public static (string text, FileMetaData metaData) OpenFile(string path) {
             try {
                 string fileName = Path.GetFileName(path);
-                
-                // Check if we need to show the open file dialog first
-                if (path == null) {
-                    // Show dialog for opening a file
-                    var dialog = new OpenFileDialog {
-                        Title = "Open Secure Text File",
-                        Filter = STXT_FILE_FILTER
-                    };
-                    bool? result = dialog.ShowDialog();
-
-                    path = dialog.FileName;
-                    fileName = dialog.SafeFileName;
-
-                    // If no file for opening was selected we can bail out
-                    if (result == false || CheckFileAlreadyLoaded(control, path)) {
-                        return (null, null);
-                    }
-                }
 
                 // Load file and decrypt with corresponding encoding
                 SecureTextFile textFile = LoadFile<SecureTextFile>(path);
@@ -278,20 +260,6 @@ namespace SecureTextEditor.GUI {
         private static T LoadFile<T>(string path) {
             string json = System.IO.File.ReadAllText(path);
             return JsonConvert.DeserializeObject<T>(json, SERIALIZER_SETTINGS);
-        }
-
-        private static bool CheckFileAlreadyLoaded(ITextEditorControl control, string path) {
-            // We do not need to open the file if we already have it open
-            // Instead we can just focus the corresponding tab
-            if (path != null) {
-                var tabs = control.Tabs.Where(t => t.MetaData.FileMetaData.FilePath == path);
-                if (tabs.Any()) {
-                    control.FocusTab(tabs.First());
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         private static CipherEngine GetCryptoEngine(EncryptionOptions options) {
