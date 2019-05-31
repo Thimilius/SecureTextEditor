@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Text;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Paddings;
@@ -13,6 +12,54 @@ namespace SecureTextEditor.Crypto.Cipher {
     /// Cryptographic engine abstracting a block (AES) and stream (RC4) cipher.
     /// </summary>
     public class CipherEngine {
+        /// <summary>
+        /// Describes the status of the decryption.
+        /// </summary>
+        public enum DecryptStatus {
+            /// <summary>
+            /// Describes that the decryption was successfull.
+            /// </summary>
+            Success,
+            /// <summary>
+            /// Describes that the decryption failed because the underlying mac reported an error.
+            /// </summary>
+            MacFailed,
+            /// <summary>
+            /// Describes that the decryption failed because of an internal error.
+            /// </summary>
+            Failed
+        }
+
+        /// <summary>
+        /// Data holder for the result of the decryption operation.
+        /// </summary>
+        public class DecryptResult {
+            /// <summary>
+            /// The status of the decryption.
+            /// </summary>
+            public DecryptStatus Status { get; }
+            /// <summary>
+            /// The underlying exception that was raised (if any).
+            /// </summary>
+            public Exception Exception { get; }
+            /// <summary>
+            /// The actual result of the decryption operation (if any).
+            /// </summary>
+            public byte[] Result { get; }
+
+            /// <summary>
+            /// Constructs a new decryption result object with given parameters.
+            /// </summary>
+            /// <param name="status">The status of the decryption</param>
+            /// <param name="exception">The underlying exception that was raised (if any)</param>
+            /// <param name="result">The actual result of the decryption operation (if any)</param>
+            public DecryptResult(DecryptStatus status, Exception exception, byte[] result) {
+                Status = status;
+                Exception = exception;
+                Result = result;
+            }
+        }
+
         /// <summary>
         /// The size of a block in AES encryption.
         /// </summary>
@@ -34,11 +81,26 @@ namespace SecureTextEditor.Crypto.Cipher {
         /// </summary>
         private const int CCM_NONCE_SIZE = 13;
 
+        /// <summary>
+        /// The underlying block cipher used in block type.
+        /// </summary>
         private static readonly IBlockCipher BLOCK_CIPHER_ENGINE = new AesEngine();
+        /// <summary>
+        /// The underlying stream cipher used in stream type.
+        /// </summary>
         private static readonly IStreamCipher STREAM_CIPHER_ENGINE = new RC4Engine();
 
+        /// <summary>
+        /// The type of cipher that is used.
+        /// </summary>
         private readonly CipherType m_Type;
+        /// <summary>
+        /// The block cipher mode that is used.
+        /// </summary>
         private readonly CipherMode m_CipherMode;
+        /// <summary>
+        /// The actual concrete cipher that will be used for encrypting and decrypting.
+        /// </summary>
         private readonly IBufferedCipher m_Cipher;
 
         /// <summary>
@@ -55,14 +117,14 @@ namespace SecureTextEditor.Crypto.Cipher {
         }
 
         /// <summary>
-        /// Encrypts a plain message with the initilaized mode and returns the result encoded in Base64.
+        /// Encrypts a plain message with the initilaized mode and returns the result.
         /// </summary>
         /// <param name="message">The message to encrypt</param>
         /// <param name="key">The key to use</param>
-        /// <param name="iv">The initilization vetor</param>
+        /// <param name="iv">The initilization vetor (Can be null if not needed)</param>
         /// <returns>The encrypted cipher</returns>
         public byte[] Encrypt(byte[] message, byte[] key, byte[] iv) {
-            ICipherParameters parameters = GetCipherParameters(key, iv);
+            ICipherParameters parameters = GenerateCipherParameters(key, iv);
             m_Cipher.Init(true, parameters);
 
             byte[] result = m_Cipher.DoFinal(message);
@@ -71,22 +133,28 @@ namespace SecureTextEditor.Crypto.Cipher {
         }
 
         /// <summary>
-        /// Decrypts a given cipher encoded in Base64 an returns the plain message.
+        /// Decrypts a given cipher and returns a result object
+        /// which contains information about the status and output of the operation.
         /// </summary>
         /// <param name="cipher">The encrypted cipher</param>
         /// <param name="key">The key to use</param>
-        /// <param name="iv">The initilization vetor</param>
-        /// <returns>The plain message</returns>
-        public byte[] Decrypt(byte[] cipher, byte[] key, byte[] iv) {
-            // TODO: We should handle the InvalidCipherTextException here and pass back an appropriate result
-            ICipherParameters parameters = GetCipherParameters(key, iv);
+        /// <param name="iv">The initilization vetor (Can be null if not needed)</param>
+        /// <returns>The result of the decrypt operation</returns>
+        public DecryptResult Decrypt(byte[] cipher, byte[] key, byte[] iv) {
+            ICipherParameters parameters = GenerateCipherParameters(key, iv);
             m_Cipher.Init(false, parameters);
 
             byte[] result = new byte[m_Cipher.GetOutputSize(cipher.Length)];
             int length = m_Cipher.ProcessBytes(cipher, 0, cipher.Length, result, 0);
-            length += m_Cipher.DoFinal(result, length);
 
-            return result.Take(length).ToArray();
+            try {
+                length += m_Cipher.DoFinal(result, length);
+                return new DecryptResult(DecryptStatus.Success, null, result.Take(length).ToArray());
+            } catch(InvalidCipherTextException e) {
+                return new DecryptResult(DecryptStatus.MacFailed, e, null);
+            } catch (Exception e) {
+                return new DecryptResult(DecryptStatus.Failed, e, null);
+            }
         }
 
         /// <summary>
@@ -119,6 +187,13 @@ namespace SecureTextEditor.Crypto.Cipher {
             }
         }
 
+        /// <summary>
+        /// Converts cipher type, mode and padding into an actual cipher to use.
+        /// </summary>
+        /// <param name="type">The type of cipher to use</param>
+        /// <param name="mode">The cipher block mode to use</param>
+        /// <param name="padding">The cipher block padding to use</param>
+        /// <returns>The cipher</returns>
         private IBufferedCipher GetCipher(CipherType type, CipherMode mode, IBlockCipherPadding padding) {
             if (type == CipherType.Block) {
                 switch (mode) {
@@ -137,6 +212,11 @@ namespace SecureTextEditor.Crypto.Cipher {
             }
         }
 
+        /// <summary>
+        /// Converts cipher padding into an actual padding to use.
+        /// </summary>
+        /// <param name="padding">The padding</param>
+        /// <returns>The cipher padding</returns>
         private IBlockCipherPadding GetCipherPadding(CipherPadding padding) {
             switch (padding) {
                 case CipherPadding.None: return null;
@@ -151,7 +231,13 @@ namespace SecureTextEditor.Crypto.Cipher {
             }
         }
 
-        private ICipherParameters GetCipherParameters(byte[] key, byte[] iv) {
+        /// <summary>
+        /// Generates cipher parameters for the engine to operate with.
+        /// </summary>
+        /// <param name="key">The cryptographic key</param>
+        /// <param name="iv">The initilization vector (or nonce)</param>
+        /// <returns>The generated cipher parameters</returns>
+        private ICipherParameters GenerateCipherParameters(byte[] key, byte[] iv) {
             KeyParameter keyParameter = new KeyParameter(key);
             if (iv == null || m_Type == CipherType.Stream || m_CipherMode == CipherMode.ECB) {
                 return keyParameter;

@@ -33,8 +33,8 @@ namespace SecureTextEditor.Tests {
                 }
 
                 byte[] cipher = engine.Encrypt(message, KEY, IV);
-                byte[] decrypt = engine.Decrypt(cipher, KEY, IV);
-                Assert.IsTrue(message.SequenceEqual(decrypt));
+                CipherEngine.DecryptResult result = engine.Decrypt(cipher, KEY, IV);
+                Assert.IsTrue(message.SequenceEqual(result.Result));
             }
         }
 
@@ -50,8 +50,8 @@ namespace SecureTextEditor.Tests {
                 }
 
                 byte[] cipher = engine.Encrypt(message, KEY, IV);
-                byte[] decrypt = engine.Decrypt(cipher, KEY, IV);
-                Assert.IsTrue(message.SequenceEqual(decrypt));
+                CipherEngine.DecryptResult result = engine.Decrypt(cipher, KEY, IV);
+                Assert.IsTrue(message.SequenceEqual(result.Result));
             }
         }
 
@@ -59,8 +59,8 @@ namespace SecureTextEditor.Tests {
         public void CTS_Test() {
             CipherEngine engine = new CipherEngine(CipherType.Block, CipherMode.CTS, CipherPadding.None);
             byte[] cipher = engine.Encrypt(BLOCK_UNALIGNED_MESSAGE, KEY, IV);
-            byte[] decrypt = engine.Decrypt(cipher, KEY, IV);
-            Assert.IsTrue(BLOCK_UNALIGNED_MESSAGE.SequenceEqual(decrypt));
+            CipherEngine.DecryptResult result = engine.Decrypt(cipher, KEY, IV);
+            Assert.IsTrue(BLOCK_UNALIGNED_MESSAGE.SequenceEqual(result.Result));
 
             // Check that CTS needs at least one block of input
             Assert.ThrowsException<DataLengthException>(() => {
@@ -72,24 +72,24 @@ namespace SecureTextEditor.Tests {
         public void CTR_Test() {
             CipherEngine engine = new CipherEngine(CipherType.Block, CipherMode.CTR, CipherPadding.None);
             byte[] cipher = engine.Encrypt(BLOCK_UNALIGNED_MESSAGE, KEY, IV);
-            byte[] decrypt = engine.Decrypt(cipher, KEY, IV);
-            Assert.IsTrue(BLOCK_UNALIGNED_MESSAGE.SequenceEqual(decrypt));
+            CipherEngine.DecryptResult result = engine.Decrypt(cipher, KEY, IV);
+            Assert.IsTrue(BLOCK_UNALIGNED_MESSAGE.SequenceEqual(result.Result));
         }
 
         [TestMethod]
         public void CFB_Test() {
             CipherEngine engine = new CipherEngine(CipherType.Block, CipherMode.CFB, CipherPadding.None);
             byte[] cipher = engine.Encrypt(BLOCK_UNALIGNED_MESSAGE, KEY, IV);
-            byte[] decrypt = engine.Decrypt(cipher, KEY, IV);
-            Assert.IsTrue(BLOCK_UNALIGNED_MESSAGE.SequenceEqual(decrypt));
+            CipherEngine.DecryptResult result = engine.Decrypt(cipher, KEY, IV);
+            Assert.IsTrue(BLOCK_UNALIGNED_MESSAGE.SequenceEqual(result.Result));
         }
 
         [TestMethod]
         public void OFB_Test() {
             CipherEngine engine = new CipherEngine(CipherType.Block, CipherMode.OFB, CipherPadding.None);
             byte[] cipher = engine.Encrypt(BLOCK_UNALIGNED_MESSAGE, KEY, IV);
-            byte[] decrypt = engine.Decrypt(cipher, KEY, IV);
-            Assert.IsTrue(BLOCK_UNALIGNED_MESSAGE.SequenceEqual(decrypt));
+            CipherEngine.DecryptResult result = engine.Decrypt(cipher, KEY, IV);
+            Assert.IsTrue(BLOCK_UNALIGNED_MESSAGE.SequenceEqual(result.Result));
         }
 
         [TestMethod]

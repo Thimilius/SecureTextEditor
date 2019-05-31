@@ -8,7 +8,6 @@ using System.Windows;
 using Microsoft.Win32;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using SecureTextEditor.Crypto;
 using SecureTextEditor.Crypto.Cipher;
 using SecureTextEditor.Crypto.Digest;
 using SecureTextEditor.File;
@@ -16,13 +15,7 @@ using SecureTextEditor.File.Options;
 using SecureTextEditor.GUI.Editor;
 
 namespace SecureTextEditor.GUI {
-    // TODO: Improve hashing:
-    // - Hash the normal message
-    // - Append the hash to the message 
-    // - Decrypt message+hash
-
     // TODO: Make part of file handler part of file project
-    // TODO: Make a second file for the key used by macs
     // TODO: Use key size for usability when trying to load a key file with the wron size
     // TODO: Key files should maybe not have the ".stxt" extension included
     public static class FileHandler {
@@ -199,10 +192,33 @@ namespace SecureTextEditor.GUI {
                     macKey = System.IO.File.ReadAllBytes(macKeyPath);
                 }
 
+                
+
                 // Decrypt cipher
                 CipherEngine cipherEngine = GetCryptoEngine(options);
                 byte[] iv = textFile.Base64IV != null ? Convert.FromBase64String(textFile.Base64IV) : null;
-                byte[] full = cipherEngine.Decrypt(Convert.FromBase64String(textFile.Base64Cipher), cipherKey, iv);
+                CipherEngine.DecryptResult decryptResult = cipherEngine.Decrypt(Convert.FromBase64String(textFile.Base64Cipher), cipherKey, iv);
+                if (decryptResult.Status == CipherEngine.DecryptStatus.MacFailed) {
+                    DialogWindow.Show(
+                        Application.Current.MainWindow,
+                        "It appears the file can not be restored correctly!\nThis can be an indication that the file got tampered with!",
+                        "File Broken",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error
+                    );
+                    return (null, null);
+                } else if (decryptResult.Status == CipherEngine.DecryptStatus.MacFailed) {
+                    DialogWindow.Show(
+                        Application.Current.MainWindow,
+                        $"Failed to open the file:\n{path}\n{decryptResult.Exception.GetType()}\n{decryptResult.Exception.Message}",
+                        "Opening Failed",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error
+                    );
+                    return (null, null);
+                }
+
+                byte[] full = decryptResult.Result;
 
                 DigestEngine digestEngine = new DigestEngine(options.DigestType);
 
@@ -218,12 +234,11 @@ namespace SecureTextEditor.GUI {
                 if (!DigestEngine.AreEqual(newDigest, digest)) {
                     DialogWindow.Show(
                         Application.Current.MainWindow,
-                        "It appears the file can not be restored correctly!\nThis can be an indication that the file got tampered with!\n",
+                        "It appears the file can not be restored correctly!\nThis can be an indication that the file got tampered with!",
                         "File Broken",
                         MessageBoxButton.OK,
                         MessageBoxImage.Error
                     );
-
                     return (null, null);
                 }
 
