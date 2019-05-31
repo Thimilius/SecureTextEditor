@@ -8,12 +8,10 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using SecureTextEditor.Crypto.Cipher;
 using SecureTextEditor.Crypto.Digest;
-using SecureTextEditor.File;
 using SecureTextEditor.File.Options;
 
-namespace SecureTextEditor.GUI {
-    // TODO: Make part of file handler part of file project
-    // TODO: Use key size for usability when trying to load a key file with the wron size
+namespace SecureTextEditor.File.Handler {
+    // TODO: Use key size for usability when trying to load a key file with the wrong size
     // TODO: Key files should maybe not have the ".stxt" extension included
     public static class FileHandler {
         public enum OpenFileStatus {
@@ -183,7 +181,6 @@ namespace SecureTextEditor.GUI {
                 DigestEngine digestEngine = new DigestEngine(options.DigestType);
 
                 // We need to extract the hash from the cipher
-                // TODO: Check performance
                 int digestLength = digestEngine.GetDigestLength();
                 int messageLength = full.Length - digestLength;
                 byte[] message = full.Take(messageLength).ToArray();

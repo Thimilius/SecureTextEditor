@@ -9,6 +9,7 @@ using SecureTextEditor.Crypto;
 using SecureTextEditor.Crypto.Cipher;
 using SecureTextEditor.Crypto.Digest;
 using SecureTextEditor.File;
+using SecureTextEditor.File.Handler;
 using SecureTextEditor.File.Options;
 using SecureTextEditor.GUI.Config;
 using SecureTextEditor.GUI.Editor;

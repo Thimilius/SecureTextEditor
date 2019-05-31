@@ -73,7 +73,6 @@
     <Compile Include="Editor\TextEditorControl.cs" />
     <Compile Include="Editor\TextEditorTab.cs" />
     <Compile Include="Editor\TextEditorTabMetaData.cs" />
-    <Compile Include="FileHandler.cs" />
     <Compile Include="Config\AppConfig.cs" />
     <Compile Include="Config\Theme.cs" />
     <Compile Include="Editor\TextEditorCommands.cs" />

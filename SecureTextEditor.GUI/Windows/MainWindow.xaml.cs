@@ -7,6 +7,7 @@ using System.Windows.Input;
 using AdonisUI;
 using Microsoft.Win32;
 using SecureTextEditor.File;
+using SecureTextEditor.File.Handler;
 using SecureTextEditor.GUI.Config;
 using SecureTextEditor.GUI.Editor;
 
