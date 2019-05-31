@@ -41,7 +41,7 @@ namespace SecureTextEditor.GUI {
         }
 
         public void OpenFile(string path) {
-            string ShowFileDialogForKeyFile(string messageTitle, string message, string dialogTitle, string dialogFilter) {
+            string ShowFileDialogForKeyFile(string message, string messageTitle, string dialogTitle, string dialogFilter) {
                 DialogWindow.Show(
                         Application.Current.MainWindow,
                         message,

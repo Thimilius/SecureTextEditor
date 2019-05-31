@@ -12,7 +12,6 @@ using SecureTextEditor.File.Options;
 
 namespace SecureTextEditor.File.Handler {
     // TODO: Use key size for usability when trying to load a key file with the wrong size
-    // TODO: Key files should maybe not have the ".stxt" extension included
     public static class FileHandler {
         /// <summary>
         /// The extension used for the file.
@@ -64,13 +63,11 @@ namespace SecureTextEditor.File.Handler {
                     SaveSecureTextFile(path, textFile);
 
                     // Save cipher key into file next to the text file
-                    string cipherKeyPath = path + CIPHER_KEY_FILE_EXTENSION;
-                    System.IO.File.WriteAllBytes(cipherKeyPath, cipherKey);
+                    System.IO.File.WriteAllBytes(GetPathForCipherKeyFile(path), cipherKey);
 
                     // If we have a mac key to save, save it to a seperate file as well
                     if (macKey != null) {
-                        string macKeyPath = path + MAC_KEY_FILE_EXTENSION;
-                        System.IO.File.WriteAllBytes(macKeyPath, macKey);
+                        System.IO.File.WriteAllBytes(GetPathForMacKeyFile(path), macKey);
                     }
                 });
                 await Task.Delay(250);
@@ -99,7 +96,7 @@ namespace SecureTextEditor.File.Handler {
 
                 // Try loading in the key file at the same location
                 byte[] cipherKey = null;
-                string cipherKeyPath = path + CIPHER_KEY_FILE_EXTENSION;
+                string cipherKeyPath = GetPathForCipherKeyFile(path);
                 if (!System.IO.File.Exists(cipherKeyPath)) {
                     cipherKeyPath = cipherKeyFileResolver?.Invoke();
                     // If no path was supplied, we bail out
@@ -112,7 +109,7 @@ namespace SecureTextEditor.File.Handler {
                 // Try loading in the mac key if we need it 
                 byte[] macKey = null;
                 if (options.DigestType != DigestType.SHA256) {
-                    string macKeyPath = path + MAC_KEY_FILE_EXTENSION;
+                    string macKeyPath = GetPathForMacKeyFile(path);
                     if (!System.IO.File.Exists(macKeyPath)) {
                         macKeyPath = macKeyFileResolver?.Invoke();
                         // If no path was supplied, we bail out
@@ -189,6 +186,14 @@ namespace SecureTextEditor.File.Handler {
                 case TextEncoding.UTF8: return Encoding.UTF8;
                 default: throw new ArgumentOutOfRangeException(nameof(encoding));
             }
+        }
+
+        private static string GetPathForCipherKeyFile(string basePath) {
+            return Path.GetFileNameWithoutExtension(basePath) + CIPHER_KEY_FILE_EXTENSION;
+        }
+
+        private static string GetPathForMacKeyFile(string basePath) {
+            return Path.GetFileNameWithoutExtension(basePath) + MAC_KEY_FILE_EXTENSION;
         }
     }
 }
