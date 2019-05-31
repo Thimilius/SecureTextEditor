@@ -4,8 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows;
-using Microsoft.Win32;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using SecureTextEditor.Crypto.Cipher;
@@ -18,6 +16,44 @@ namespace SecureTextEditor.GUI {
     // TODO: Use key size for usability when trying to load a key file with the wron size
     // TODO: Key files should maybe not have the ".stxt" extension included
     public static class FileHandler {
+        public enum OpenFileStatus {
+            Success,
+            Canceled,
+            MacFailed,
+            Failed
+        }
+
+        public class OpenFileResult {
+            public OpenFileStatus Status { get; }
+            public Exception Exception { get; }
+            public FileMetaData FileMetaData { get; }
+            public string Text { get; }
+
+            public OpenFileResult(OpenFileStatus status, Exception exception, FileMetaData fileMetaData, string text) {
+                Status = status;
+                Exception = exception;
+                FileMetaData = fileMetaData;
+                Text = text;
+            }
+        }
+
+        public enum SaveFileStatus {
+            Success,
+            Failed
+        }
+
+        public class SaveFileResult {
+            public SaveFileStatus Status { get; }
+            public Exception Exception { get; }
+            public FileMetaData FileMetaData { get; }
+
+            public SaveFileResult(SaveFileStatus status, Exception exception, FileMetaData fileMetaData) {
+                Status = status;
+                Exception = exception;
+                FileMetaData = fileMetaData;
+            }
+        }
+
         /// <summary>
         /// Settings for serializing and deserializing the text file.
         /// </summary>
@@ -46,22 +82,10 @@ namespace SecureTextEditor.GUI {
         /// </summary>
         private const string MAC_KEY_FILE_EXTENSION = ".mackey";
 
-        public static async Task<FileMetaData> SaveFileAsync(EncryptionOptions options, TextEncoding encoding, string text) {
-            // Show dialog for saving a file
-            SaveFileDialog dialog = new SaveFileDialog() {
-                Title = "Save Secure Text File",
-                AddExtension = true,
-                Filter = STXT_FILE_FILTER
-            };
-            bool? result = dialog.ShowDialog();
-            // If no path for saving was selected we can bail out
-            if (result == false) {
-                return null;
-            }
+        public static async Task<SaveFileResult> SaveFileAsync(string path, EncryptionOptions options, TextEncoding encoding, string text) {
+            try {
+                string fileName = Path.GetFileName(path);
 
-            string path = dialog.FileName;
-
-            try { 
                 await Task.Run(() => {
                     byte[] encodedText = GetEncoding(encoding).GetBytes(text);
 
@@ -95,26 +119,21 @@ namespace SecureTextEditor.GUI {
                     }
                 });
                 await Task.Delay(250);
-            } catch {
-                DialogWindow.Show(
-                    Application.Current.MainWindow,
-                    $"Failed to save the file:\n{path}!",
-                    "Saving Failed",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error
-                );
-                return null;
-            }
 
-            return new FileMetaData() {
-                Encoding = encoding,
-                EncryptionOptions = options,
-                FileName = dialog.SafeFileName,
-                FilePath = path,
-            };
+                FileMetaData fileMetaData = new FileMetaData() {
+                    Encoding = encoding,
+                    EncryptionOptions = options,
+                    FileName = fileName,
+                    FilePath = path,
+                };
+
+                return new SaveFileResult(SaveFileStatus.Success, null, fileMetaData);
+            } catch(Exception e) {
+                return new SaveFileResult(SaveFileStatus.Failed, e, null);
+            }
         }
 
-        public static (string text, FileMetaData metaData) OpenFile(string path) {
+        public static OpenFileResult OpenFile(string path, Func<string> cipherKeyFileResolver, Func<string> macKeyFileResolver) {
             try {
                 string fileName = Path.GetFileName(path);
 
@@ -127,26 +146,11 @@ namespace SecureTextEditor.GUI {
                 byte[] cipherKey = null;
                 string cipherKeyPath = path + CIPHER_KEY_FILE_EXTENSION;
                 if (!System.IO.File.Exists(cipherKeyPath)) {
-                    DialogWindow.Show(
-                        Application.Current.MainWindow,
-                        "The file you want to open requires a cipher key file to decrypt!",
-                        "Cipher Key File Required",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Information
-                    );
-
-                    // Show dialog for opening a file
-                    var dialog = new OpenFileDialog {
-                        Title = "Open Cipher Key File",
-                        Filter = CIPHER_KEY_FILE_FILTER
-                    };
-                    bool? result = dialog.ShowDialog();
-                    // If no file for opening was selected we can bail out
-                    if (result == false) {
-                        return (null, null);
+                    cipherKeyPath = cipherKeyFileResolver?.Invoke();
+                    // If no path was supplied, we bail out
+                    if (cipherKeyPath == null) {
+                        return new OpenFileResult(OpenFileStatus.Canceled, null, null, null);
                     }
-
-                    cipherKeyPath = dialog.FileName;
                 }
                 cipherKey = System.IO.File.ReadAllBytes(cipherKeyPath);
 
@@ -155,54 +159,23 @@ namespace SecureTextEditor.GUI {
                 if (options.DigestType != DigestType.SHA256) {
                     string macKeyPath = path + MAC_KEY_FILE_EXTENSION;
                     if (!System.IO.File.Exists(macKeyPath)) {
-                        DialogWindow.Show(
-                            Application.Current.MainWindow,
-                            "The file you want to open requires a mac key file to decrypt!",
-                            "Mac Key File Required",
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Information
-                        );
-
-                        // Show dialog for opening a file
-                        var dialog = new OpenFileDialog {
-                            Title = "Open Mac Key File",
-                            Filter = MAC_KEY_FILE_FILTER
-                        };
-                        bool? result = dialog.ShowDialog();
-                        // If no file for opening was selected we can bail out
-                        if (result == false) {
-                            return (null, null);
+                        macKeyPath = macKeyFileResolver?.Invoke();
+                        // If no path was supplied, we bail out
+                        if (macKeyPath == null) {
+                            return new OpenFileResult(OpenFileStatus.Canceled, null, null, null);
                         }
-
-                        macKeyPath = dialog.FileName;
                     }
                     macKey = System.IO.File.ReadAllBytes(macKeyPath);
                 }
-
-                
 
                 // Decrypt cipher
                 CipherEngine cipherEngine = GetCryptoEngine(options);
                 byte[] iv = textFile.Base64IV != null ? Convert.FromBase64String(textFile.Base64IV) : null;
                 CipherEngine.DecryptResult decryptResult = cipherEngine.Decrypt(Convert.FromBase64String(textFile.Base64Cipher), cipherKey, iv);
                 if (decryptResult.Status == CipherEngine.DecryptStatus.MacFailed) {
-                    DialogWindow.Show(
-                        Application.Current.MainWindow,
-                        "It appears the file can not be restored correctly!\nThis can be an indication that the file got tampered with!",
-                        "File Broken",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Error
-                    );
-                    return (null, null);
-                } else if (decryptResult.Status == CipherEngine.DecryptStatus.MacFailed) {
-                    DialogWindow.Show(
-                        Application.Current.MainWindow,
-                        $"Failed to open the file:\n{path}\n{decryptResult.Exception.GetType()}\n{decryptResult.Exception.Message}",
-                        "Opening Failed",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Error
-                    );
-                    return (null, null);
+                    return new OpenFileResult(OpenFileStatus.MacFailed, decryptResult.Exception, null, null);
+                } else if (decryptResult.Status == CipherEngine.DecryptStatus.Failed) {
+                    return new OpenFileResult(OpenFileStatus.Failed, decryptResult.Exception, null, null);
                 }
 
                 byte[] full = decryptResult.Result;
@@ -219,36 +192,20 @@ namespace SecureTextEditor.GUI {
                 // Compare saved and new computed digest
                 byte[] newDigest = digestEngine.Digest(message, macKey);
                 if (!DigestEngine.AreEqual(newDigest, digest)) {
-                    DialogWindow.Show(
-                        Application.Current.MainWindow,
-                        "It appears the file can not be restored correctly!\nThis can be an indication that the file got tampered with!",
-                        "File Broken",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Error
-                    );
-                    return (null, null);
+                    return new OpenFileResult(OpenFileStatus.MacFailed, decryptResult.Exception, null, null);
                 }
 
                 string text = GetEncoding(textFile.Encoding).GetString(message);
 
-                return (
-                    text,
-                    new FileMetaData() {
-                        Encoding = encoding,
-                        EncryptionOptions = options,
-                        FileName = fileName,
-                        FilePath = path,
-                    }
-                );
+                FileMetaData fileMetaData = new FileMetaData() {
+                    Encoding = encoding,
+                    EncryptionOptions = options,
+                    FileName = fileName,
+                    FilePath = path,
+                };
+                return new OpenFileResult(OpenFileStatus.Success, null, fileMetaData, text);
             } catch (Exception e) {
-                DialogWindow.Show(
-                    Application.Current.MainWindow,
-                    $"Failed to open the file:\n{path}\n{e.GetType()}\n{e.Message}",
-                    "Opening Failed",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error
-                );
-                return (null, null);
+                return new OpenFileResult(OpenFileStatus.Failed, e, null, null);
             }
         }
 

@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
+using Microsoft.Win32;
 using SecureTextEditor.Crypto;
 using SecureTextEditor.Crypto.Cipher;
 using SecureTextEditor.Crypto.Digest;
@@ -80,7 +82,7 @@ namespace SecureTextEditor.GUI {
             m_SaveInProgress = true;
             TextEncoding encoding = m_TabToSave.MetaData.FileMetaData.Encoding;
             string text = m_TabToSave.Editor.Text;
-            FileMetaData fileMetaData = await FileHandler.SaveFileAsync(BuildEncryptionOptions(), encoding, text);
+            FileMetaData fileMetaData = await PerformSave(BuildEncryptionOptions(), encoding, text); 
             m_SaveInProgress = false;
 
             // Proceed only if the file got actually saved
@@ -104,6 +106,35 @@ namespace SecureTextEditor.GUI {
             SavingIndicator.Visibility = Visibility.Hidden;
             CancelButton.IsEnabled = true;
             SaveButton.IsEnabled = true;
+        }
+
+        private async Task<FileMetaData> PerformSave(EncryptionOptions options, TextEncoding encoding, string text) {
+            // Show dialog for saving a file
+            SaveFileDialog dialog = new SaveFileDialog() {
+                Title = "Save Secure Text File",
+                AddExtension = true,
+                Filter = FileHandler.STXT_FILE_FILTER
+            };
+            bool? saveFileResult = dialog.ShowDialog();
+            // If no path for saving was selected we can bail out
+            if (saveFileResult == false) {
+                return null;
+            }
+            string path = dialog.FileName;
+
+            FileHandler.SaveFileResult result = await FileHandler.SaveFileAsync(path, options, encoding, text);
+            if (result.Status == FileHandler.SaveFileStatus.Success) {
+                return result.FileMetaData;
+            } else {
+                DialogWindow.Show(
+                    Application.Current.MainWindow,
+                    $"Failed to save the file:\n{path}!\n{result.Exception.GetType()}\n{result.Exception.Message}",
+                    "Saving Failed",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
+                return null;
+            }
         }
 
         private void OnSecurityTypeSelectionChanged(EncryptionType type) {
