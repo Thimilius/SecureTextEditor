@@ -76,7 +76,7 @@ namespace SecureTextEditor.GUI.Editor {
                 lastTab.SetHeader(metaData.FileMetaData.FileName);
                 lastTab.MetaData.IsDirty = false;
 
-                FocusTab(lastTab);
+                SelectTab(lastTab);
 
                 return;
             }
@@ -103,7 +103,7 @@ namespace SecureTextEditor.GUI.Editor {
 
             // Add the tab to current tabs and focus it
             m_TabControl.Items.Add(item);
-            FocusTab(tab);
+            SelectTab(tab);
         }
 
         public void CloseTab(ITextEditorTab tab) {
@@ -129,9 +129,9 @@ namespace SecureTextEditor.GUI.Editor {
             }
         }
 
-        public void FocusTab(ITextEditorTab tab) {
+        public void SelectTab(ITextEditorTab tab) {
             CurrentTab = tab;
-            tab.FocusControls();
+            tab.Focus();
         }
 
         public void ZoomIn() {
@@ -149,7 +149,11 @@ namespace SecureTextEditor.GUI.Editor {
             SetZoom();
         }
 
-        public void NotifyThatTabGotClosed(ITextEditorTab tab) {
+        public void NotifyThatTabGotSaved(ITextEditorTab tab) {
+            NotifyThatTabGotClosed(tab);
+        }
+
+        private void NotifyThatTabGotClosed(ITextEditorTab tab) {
             // Only process "new" tabs that were not saved before
             if (tab.MetaData.IsNew) {
                 // This is a little hardcoded but thats fine

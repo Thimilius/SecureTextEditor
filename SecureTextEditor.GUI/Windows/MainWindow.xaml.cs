@@ -79,7 +79,7 @@ namespace SecureTextEditor.GUI {
                 bool fileAlreadyOpen = false;
                 var tabs = TextEditorControl.Tabs.Where(t => t.MetaData.FileMetaData.FilePath == path);
                 if (tabs.Any()) {
-                    TextEditorControl.FocusTab(tabs.First());
+                    TextEditorControl.SelectTab(tabs.First());
                     fileAlreadyOpen = true;
                 }
 
@@ -182,7 +182,7 @@ namespace SecureTextEditor.GUI {
             // Loop through every dirty tab
             foreach (var tab in TextEditorControl.Tabs.Where(t => t.MetaData.IsDirty)) {
                 // Focus the tab and prompt save dialog for it
-                TextEditorControl.FocusTab(tab);
+                TextEditorControl.SelectTab(tab);
                 PromptSaveDialog(tab);
             }
         }

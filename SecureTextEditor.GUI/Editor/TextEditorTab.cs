@@ -26,7 +26,7 @@ namespace SecureTextEditor.GUI.Editor {
             CreateUI(metaData.FileMetaData.FileName);
         }
 
-        public void FocusControls() {
+        public void Focus() {
             TabItem.Focus();
             Editor.Focus();
         }

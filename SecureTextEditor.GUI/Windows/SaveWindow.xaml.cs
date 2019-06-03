@@ -89,7 +89,7 @@ namespace SecureTextEditor.GUI {
             // Proceed only if the file got actually saved
             if (fileMetaData != null) {
                 // This is a little hackey that we do it here but it works
-                m_TextEditorControl.NotifyThatTabGotClosed(m_TabToSave);
+                m_TextEditorControl.NotifyThatTabGotSaved(m_TabToSave);
 
                 // Set new meta data for alreay existing tab and update its header
                 m_TabToSave.MetaData = new TextEditorTabMetaData() {
