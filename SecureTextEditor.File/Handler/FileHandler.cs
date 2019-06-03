@@ -11,7 +11,18 @@ using SecureTextEditor.Crypto.Digest;
 using SecureTextEditor.File.Options;
 
 namespace SecureTextEditor.File.Handler {
-    // TODO: Use key size for usability when trying to load a key file with the wrong size
+    /// <summary>
+    /// Handler to resolve the path to a cipher key file.
+    /// </summary>
+    /// <param name="keySize">The key size that is to be expected</param>
+    /// <returns>The path to the cipher key file to load</returns>
+    public delegate string CipherKeyFileResolver(int keySize);
+    /// <summary>
+    /// Handler to resolver the path to a mac key file.
+    /// </summary>
+    /// <returns>The path to the mac key file to load</returns>
+    public delegate string MacKeyFileResolver();
+
     public static class FileHandler {
         /// <summary>
         /// The extension used for the file.
@@ -85,7 +96,7 @@ namespace SecureTextEditor.File.Handler {
             }
         }
 
-        public static OpenFileResult OpenFile(string path, Func<string> cipherKeyFileResolver, Func<string> macKeyFileResolver) {
+        public static OpenFileResult OpenFile(string path, CipherKeyFileResolver cipherKeyFileResolver, MacKeyFileResolver macKeyFileResolver) {
             try {
                 string fileName = Path.GetFileName(path);
 
@@ -98,7 +109,7 @@ namespace SecureTextEditor.File.Handler {
                 byte[] cipherKey = null;
                 string cipherKeyPath = GetPathForCipherKeyFile(path);
                 if (!System.IO.File.Exists(cipherKeyPath)) {
-                    cipherKeyPath = cipherKeyFileResolver?.Invoke();
+                    cipherKeyPath = cipherKeyFileResolver?.Invoke(options.KeySize);
                     // If no path was supplied, we bail out
                     if (cipherKeyPath == null) {
                         return new OpenFileResult(OpenFileStatus.Canceled, null, null, null);

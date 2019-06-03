@@ -91,12 +91,37 @@ namespace SecureTextEditor.GUI {
 
             // Open actual file
             OpenFileResult result = FileHandler.OpenFile(path,
-                () => ShowFileDialogForKeyFile(
-                    "The file you want to open requires a cipher key file to decrypt!",
-                    "Cipher Key File Required",
-                    "Open Cipher Key File",
-                    FileFilters.CIPHER_KEY_FILE_FILTER
-                ),
+                keySize => {
+                    bool IsKeyFileValid(string pathToKeyFile, int expectedKeySize) {
+                        System.IO.FileInfo info = new System.IO.FileInfo(pathToKeyFile);
+                        return info.Length == expectedKeySize;
+                    }
+                     
+                    int keySizeInBytes = keySize / 8;
+                    string keyFilePath = ShowFileDialogForKeyFile(
+                        "The file you want to open requires a cipher key file to decrypt!",
+                        "Cipher Key File Required",
+                        "Open Cipher Key File",
+                        FileFilters.CIPHER_KEY_FILE_FILTER);
+                    if (keyFilePath == null) {
+                        return null;
+                    }
+                    bool keyFileValid = IsKeyFileValid(keyFilePath, keySizeInBytes);
+
+                    while (!keyFileValid) {
+                        keyFilePath = ShowFileDialogForKeyFile(
+                            $"The key file you selected does not match the required size of {keySizeInBytes} bytes!\nPlease select a new one.",
+                            "Cipher Key File Length Wrong",
+                            "Open Cipher Key File",
+                            FileFilters.CIPHER_KEY_FILE_FILTER);
+                        if (keyFilePath == null) {
+                            return null;
+                        }
+                        keyFileValid = IsKeyFileValid(keyFilePath, keySizeInBytes);
+                    }
+
+                    return keyFilePath;
+                },
                 () => ShowFileDialogForKeyFile(
                     "The file you want to open requires a mac key file to decrypt!",
                     "Mac Key File Required",
