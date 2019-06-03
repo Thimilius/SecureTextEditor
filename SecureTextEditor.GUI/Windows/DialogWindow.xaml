@@ -19,12 +19,13 @@
             <RowDefinition Height="25" />
         </Grid.RowDefinitions>
 
+        <!-- Icon and Message -->
         <TextBlock Grid.Row="0" Name="IconText" VerticalAlignment="Center" HorizontalAlignment="Center"
                    Text="&#xf05a;" FontSize="25" FontFamily="{StaticResource FontAwesome}" />
-
         <TextBlock Grid.Row="1" Name="MessageText" FontSize="13" TextWrapping="Wrap"
                    VerticalAlignment="Center" TextAlignment="Center" HorizontalAlignment="Center" />
 
+        <!-- Buttons -->
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center">
             <StackPanel.Resources>
                 <Style TargetType="{x:Type Button}" BasedOn="{StaticResource {x:Type Button}}">

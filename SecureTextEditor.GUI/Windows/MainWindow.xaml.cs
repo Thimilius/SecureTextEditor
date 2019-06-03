@@ -13,11 +13,17 @@ using SecureTextEditor.GUI.Editor;
 
 namespace SecureTextEditor.GUI {
     /// <summary>
-    /// Interaction logic for MainWindow.xaml
+    /// Interaction logic for the main window.
     /// </summary>
     public partial class MainWindow : Window {
+        /// <summary>
+        /// Gets the text editor control.
+        /// </summary>
         public ITextEditorControl TextEditorControl { get; private set; }
 
+        /// <summary>
+        /// Creates a new main window.
+        /// </summary>
         public MainWindow() { 
             InitializeComponent();
 
@@ -40,30 +46,11 @@ namespace SecureTextEditor.GUI {
             EncodingCheckBoxUTF8.Click += (s, e) => ChangeEncoding(TextEncoding.UTF8);
         }
 
+        /// <summary>
+        /// Opens a file at a given path or opens up an file dialog for it.
+        /// </summary>
+        /// <param name="path">The path to a file to open or null if a dialog should be displyed</param>
         public void OpenFile(string path) {
-            string ShowFileDialogForKeyFile(string message, string messageTitle, string dialogTitle, string dialogFilter) {
-                DialogWindow.Show(
-                        Application.Current.MainWindow,
-                        message,
-                        messageTitle,
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Information
-                    );
-
-                // Show dialog for opening a file
-                var dialog = new OpenFileDialog {
-                    Title = dialogTitle,
-                    Filter = dialogFilter
-                };
-                bool? keyFileResult = dialog.ShowDialog();
-
-                if (keyFileResult == false) {
-                    return null;
-                } else {
-                    return dialog.FileName;
-                }
-            }
-
             // Check if we need to show the open file dialog first
             if (path == null) {
                 // Show dialog for opening a file
@@ -90,45 +77,7 @@ namespace SecureTextEditor.GUI {
             }
 
             // Open actual file
-            OpenFileResult result = FileHandler.OpenFile(path,
-                keySize => {
-                    bool IsKeyFileValid(string pathToKeyFile, int expectedKeySize) {
-                        System.IO.FileInfo info = new System.IO.FileInfo(pathToKeyFile);
-                        return info.Length == expectedKeySize;
-                    }
-                     
-                    int keySizeInBytes = keySize / 8;
-                    string keyFilePath = ShowFileDialogForKeyFile(
-                        "The file you want to open requires a cipher key file to decrypt!",
-                        "Cipher Key File Required",
-                        "Open Cipher Key File",
-                        FileFilters.CIPHER_KEY_FILE_FILTER);
-                    if (keyFilePath == null) {
-                        return null;
-                    }
-                    bool keyFileValid = IsKeyFileValid(keyFilePath, keySizeInBytes);
-
-                    while (!keyFileValid) {
-                        keyFilePath = ShowFileDialogForKeyFile(
-                            $"The key file you selected does not match the required size of {keySizeInBytes} bytes!\nPlease select a new one.",
-                            "Cipher Key File Length Wrong",
-                            "Open Cipher Key File",
-                            FileFilters.CIPHER_KEY_FILE_FILTER);
-                        if (keyFilePath == null) {
-                            return null;
-                        }
-                        keyFileValid = IsKeyFileValid(keyFilePath, keySizeInBytes);
-                    }
-
-                    return keyFilePath;
-                },
-                () => ShowFileDialogForKeyFile(
-                    "The file you want to open requires a mac key file to decrypt!",
-                    "Mac Key File Required",
-                    "Open Mac Key File",
-                    FileFilters.MAC_KEY_FILE_FILTER
-                )
-            );
+            OpenFileResult result = FileHandler.OpenFile(path, KeyFileResolver, MacKeyFileResolver);
 
             if (result.Status == OpenFileStatus.Success) {
                 // Open new tab for the file
@@ -159,12 +108,19 @@ namespace SecureTextEditor.GUI {
             }
         }
 
+        /// <summary>
+        /// Updates all ui elements of the main window.
+        /// </summary>
         public void UpdateUI() {
             UpdateEncodingStatus();
             UpdateEditorStatus();
             UpdateWindowTitle();
         }
 
+        /// <summary>
+        /// Prompts the dialog window for saving.
+        /// </summary>
+        /// <param name="tab">The tab that should get saved</param>
         public void PromptSaveDialog(ITextEditorTab tab) {
             // Show question dialog
             bool save = DialogWindow.Show(this,
@@ -175,6 +131,73 @@ namespace SecureTextEditor.GUI {
 
             if (save) {
                 PromptSaveWindow(tab);
+            }
+        }
+
+        private string KeyFileResolver(int keySize) {
+            bool IsKeyFileValid(string pathToKeyFile, int expectedKeySize) {
+                // We simply check if the size of the file that got selected matches the key size we expect
+                System.IO.FileInfo info = new System.IO.FileInfo(pathToKeyFile);
+                return info.Length == expectedKeySize;
+            }
+
+            int keySizeInBytes = keySize / 8;
+            // Prompt an initial dialog for the key file
+            string keyFilePath = ShowFileDialogForKeyFile(
+                "The file you want to open requires a cipher key file to decrypt!",
+                "Cipher Key File Required",
+                "Open Cipher Key File",
+                FileFilters.CIPHER_KEY_FILE_FILTER);
+            if (keyFilePath == null) {
+                return null;
+            }
+            bool keyFileValid = IsKeyFileValid(keyFilePath, keySizeInBytes);
+
+            // Prompt the dialog for as long as the key file is not valid
+            while (!keyFileValid) {
+                keyFilePath = ShowFileDialogForKeyFile(
+                    $"The key file you selected does not match the required size of {keySizeInBytes} bytes!\nPlease select a new one.",
+                    "Cipher Key File Length Wrong",
+                    "Open Cipher Key File",
+                    FileFilters.CIPHER_KEY_FILE_FILTER);
+                if (keyFilePath == null) {
+                    return null;
+                }
+                keyFileValid = IsKeyFileValid(keyFilePath, keySizeInBytes);
+            }
+
+            return keyFilePath;
+        }
+
+        private string MacKeyFileResolver() {
+            return ShowFileDialogForKeyFile(
+                "The file you want to open requires a mac key file to decrypt!",
+                "Mac Key File Required",
+                "Open Mac Key File",
+                FileFilters.MAC_KEY_FILE_FILTER
+            );
+        }
+
+        private string ShowFileDialogForKeyFile(string message, string messageTitle, string dialogTitle, string dialogFilter) {
+            DialogWindow.Show(
+                    Application.Current.MainWindow,
+                    message,
+                    messageTitle,
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information
+                );
+
+            // Show dialog for opening a file
+            var dialog = new OpenFileDialog {
+                Title = dialogTitle,
+                Filter = dialogFilter
+            };
+            bool? keyFileResult = dialog.ShowDialog();
+
+            if (keyFileResult == false) {
+                return null;
+            } else {
+                return dialog.FileName;
             }
         }
 
@@ -287,13 +310,16 @@ namespace SecureTextEditor.GUI {
         }
 
         private void UpdateEditorStatus() {
-            // Update status bar texts and take into account empty text editor
             TextBox editor = TextEditorControl.CurrentTab.Editor;
-            LinesLabel.Text = $"Lines: {Math.Max(1, editor.LineCount)}";
+
+            // Compute the values from the editor
             int caretIndex = editor.CaretIndex;
             int lineIndex = Math.Max(0, editor.GetLineIndexFromCharacterIndex(caretIndex));
-            LineLabel.Text = $"Ln: {lineIndex + 1}";
             int charIndex = Math.Max(0, editor.GetCharacterIndexFromLineIndex(lineIndex));
+
+            // Update the actual labels and take into account an empty text editor
+            LinesLabel.Text = $"Lines: {Math.Max(1, editor.LineCount)}";
+            LineLabel.Text = $"Ln: {lineIndex + 1}";
             ColumnLabel.Text = $"Col: {(caretIndex - charIndex) + 1}";
             SelectionLabel.Text = $"Sel: {editor.SelectionLength}";
         }

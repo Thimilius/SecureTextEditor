@@ -59,7 +59,7 @@ namespace SecureTextEditor.GUI.Config {
         public static void Load() {
             // If a settings file does not exits fallback to default config
             if (!System.IO.File.Exists(FILE_PATH)) {
-                SetDefaultSettings();
+                SetDefaultConfig();
                 return;
             }
 
@@ -68,11 +68,14 @@ namespace SecureTextEditor.GUI.Config {
                 string json = System.IO.File.ReadAllText(FILE_PATH);
                 Config = JsonConvert.DeserializeObject<Configuration>(json, SERIALIZER_SETTINGS);
             } catch {
-                SetDefaultSettings();
+                SetDefaultConfig();
             }
         }
 
-        private static void SetDefaultSettings() {
+        /// <summary>
+        /// Sets the configuration to be the default.
+        /// </summary>
+        private static void SetDefaultConfig() {
             // Set default config
             Config = new Configuration() {
                 Theme = Theme.DarkMode,

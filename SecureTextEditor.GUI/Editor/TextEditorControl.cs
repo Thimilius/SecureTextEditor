@@ -81,7 +81,7 @@ namespace SecureTextEditor.GUI.Editor {
                 return;
             }
 
-            // FIXME: We should use an object pool here to avoid using unnecessary memory
+            // Create a new text editor tab
             var tab = new TextEditorTab(this, metaData, content);
             var item = tab.TabItem;
             var editor = tab.Editor;

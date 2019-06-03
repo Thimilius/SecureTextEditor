@@ -16,7 +16,7 @@ using SecureTextEditor.GUI.Editor;
 
 namespace SecureTextEditor.GUI {
     /// <summary>
-    /// Interaction logic for SaveWindow.xaml
+    /// Interaction logic for the save window.
     /// </summary>
     public partial class SaveWindow : Window {
         private readonly ITextEditorControl m_TextEditorControl;
