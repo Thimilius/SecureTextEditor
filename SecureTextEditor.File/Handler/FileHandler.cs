@@ -23,6 +23,9 @@ namespace SecureTextEditor.File.Handler {
     /// <returns>The path to the mac key file to load</returns>
     public delegate string MacKeyFileResolver();
 
+    /// <summary>
+    /// Handler that abstracts opening and loading a secure text file.
+    /// </summary>
     public static class FileHandler {
         /// <summary>
         /// The extension used for the file.
