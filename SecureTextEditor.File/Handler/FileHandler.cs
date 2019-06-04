@@ -45,9 +45,9 @@ namespace SecureTextEditor.File.Handler {
         /// </summary>
         private static readonly JsonSerializerSettings SERIALIZER_SETTINGS = new JsonSerializerSettings() {
             Formatting = Formatting.Indented,
-            Converters = new List<JsonConverter>() { new StringEnumConverter() },
             TypeNameHandling = TypeNameHandling.Auto,
-            NullValueHandling = NullValueHandling.Ignore
+            NullValueHandling = NullValueHandling.Ignore,
+            Converters = new List<JsonConverter>() { new StringEnumConverter() }
         };
 
         public static async Task<SaveFileResult> SaveFileAsync(string path, EncryptionOptions options, TextEncoding encoding, string text) {

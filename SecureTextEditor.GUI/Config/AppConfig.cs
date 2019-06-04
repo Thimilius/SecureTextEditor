@@ -33,6 +33,7 @@ namespace SecureTextEditor.GUI.Config {
         /// </summary>
         private static readonly JsonSerializerSettings SERIALIZER_SETTINGS = new JsonSerializerSettings() {
             Formatting = Formatting.Indented,
+            TypeNameHandling = TypeNameHandling.Auto,
             Converters = new List<JsonConverter>() { new StringEnumConverter() }
         };
 
