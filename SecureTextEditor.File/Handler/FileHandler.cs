@@ -23,6 +23,8 @@ namespace SecureTextEditor.File.Handler {
     /// <returns>The path to the mac key file to load</returns>
     public delegate string MacKeyFileResolver();
 
+    // TODO: Add handling of no digest
+
     /// <summary>
     /// Handler that abstracts opening and loading a secure text file.
     /// </summary>

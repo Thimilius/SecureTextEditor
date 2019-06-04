@@ -4,6 +4,10 @@
     /// </summary>
     public enum DigestType {
         /// <summary>
+        /// Describes no type.
+        /// </summary>
+        None,
+        /// <summary>
         /// Describes the SHA-256 algorithm.
         /// </summary>
         SHA256,

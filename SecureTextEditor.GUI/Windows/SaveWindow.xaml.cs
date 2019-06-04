@@ -51,11 +51,17 @@ namespace SecureTextEditor.GUI {
 
             // Set up events
             EncryptionTypeComboBox.SelectionChanged += (s, e) => OnSecurityTypeSelectionChanged((EncryptionType)EncryptionTypeComboBox.SelectedItem);
+            AESModeComboBox.SelectionChanged += (s, e) => {
+                if (AESModeComboBox.SelectedItem != null) {
+                    OnAESModeSelectionChanged((CipherMode)AESModeComboBox.SelectedItem);
+                }
+            };
             AESPaddingComboBox.SelectionChanged += (s, e) => OnAESPaddingSelectionChanged((CipherPadding)AESPaddingComboBox.SelectedItem);
 
             // Set up initial ui visibility
             OnSecurityTypeSelectionChanged(options.Type);
             OnAESPaddingSelectionChanged(optionsAES.Padding);
+            OnAESModeSelectionChanged(optionsAES.Mode);
 
             // The selection of the mode is a littly hacky because of the weird dependency to the padding
             if (AESModeComboBox.Items.Contains(optionsAES.Mode)) {
@@ -159,6 +165,16 @@ namespace SecureTextEditor.GUI {
 
             // When changing just select the first element
             AESModeComboBox.SelectedIndex = 0;
+        }
+
+        private void OnAESModeSelectionChanged(CipherMode mode) {
+            if (mode == CipherMode.GCM || mode == CipherMode.CCM) {
+                DigestTypeComboBox.SelectedItem = DigestType.None;
+                DigestTypeComboBox.IsEnabled = false;
+            } else {
+                DigestTypeComboBox.IsEnabled = true;
+                DigestTypeComboBox.SelectedItem = DigestType.SHA256;
+            }
         }
 
         private EncryptionOptions BuildEncryptionOptions() {
