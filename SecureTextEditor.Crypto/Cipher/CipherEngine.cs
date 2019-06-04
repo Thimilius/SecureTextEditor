@@ -25,9 +25,9 @@ namespace SecureTextEditor.Crypto.Cipher {
         /// </summary>
         public static readonly int[] RC4_ACCEPTED_KEYS = new int[] { 128, 160, 192, 256, 512, 1024, 2048 };
         /// <summary>
-        /// The size of the tag used in GCM and CCM mode.
+        /// The size of the tag used in authenticated enryption modes(GCM and CCM).
         /// </summary>
-        private const int GCM_TAG_SIZE = 128;
+        private const int AE_TAG_SIZE = 128;
         /// <summary>
         /// The size of the special nonce used in CCM mode that must be between 7 and 13 octets.
         /// </summary>
@@ -194,7 +194,7 @@ namespace SecureTextEditor.Crypto.Cipher {
             if (iv == null || m_Type == CipherType.Stream || m_CipherMode == CipherMode.ECB) {
                 return keyParameter;
             } else if (m_CipherMode == CipherMode.GCM || m_CipherMode == CipherMode.CCM) {
-                return new AeadParameters(keyParameter, GCM_TAG_SIZE, iv);
+                return new AeadParameters(keyParameter, AE_TAG_SIZE, iv);
             } else {
                 return new ParametersWithIV(keyParameter, iv);
             }
