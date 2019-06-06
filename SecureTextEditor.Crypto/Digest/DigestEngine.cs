@@ -3,6 +3,7 @@ using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Macs;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Security;
 using System;
 
 namespace SecureTextEditor.Crypto.Digest {
@@ -62,7 +63,9 @@ namespace SecureTextEditor.Crypto.Digest {
         /// <returns>The generated key</returns>
         public byte[] GenerateKey() {
             if (IsMacConfigured()) {
-                return Generator.GenerateKey(KeyType.Generated, MAC_KEY_SIZE, null);
+                CipherKeyGenerator generator = new CipherKeyGenerator();
+                generator.Init(new KeyGenerationParameters(new SecureRandom(), MAC_KEY_SIZE));
+                return generator.GenerateKey();
             } else {
                 return null;
             }

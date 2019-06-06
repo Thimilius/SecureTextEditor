@@ -135,7 +135,17 @@ namespace SecureTextEditor.Crypto.Cipher {
                 throw new ArgumentException("Invalid key size", nameof(m_KeySize));
             }
 
-            return Generator.GenerateKey(m_KeyType, m_KeySize, password);
+            switch (m_KeyType) {
+                case KeyType.Generated:
+                    CipherKeyGenerator generator = new CipherKeyGenerator();
+                    generator.Init(new KeyGenerationParameters(new SecureRandom(), m_KeySize));
+                    return generator.GenerateKey();
+                case KeyType.PBE:
+                    return PbeParametersGenerator.Pkcs12PasswordToBytes(password);
+                case KeyType.PBEWithSCRYPT:
+                    return PbeParametersGenerator.Pkcs5PasswordToUtf8Bytes(password);
+                default: throw new InvalidOperationException();
+            }
         }
 
         /// <summary>

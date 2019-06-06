@@ -71,7 +71,7 @@ namespace SecureTextEditor.File.Handler {
 
                     // Encrypt text and save file
                     CipherEngine cipherEngine = GetCryptoEngine(options);
-                    byte[] cipherKey = cipherEngine.GenerateKey(options.KeySize);
+                    byte[] cipherKey = cipherEngine.GenerateKey(null);
                     byte[] iv = cipherEngine.GenerateIV();
                     byte[] cipher = cipherEngine.Encrypt(full, cipherKey, iv);
 
@@ -188,9 +188,9 @@ namespace SecureTextEditor.File.Handler {
 
         private static CipherEngine GetCryptoEngine(EncryptionOptions options) {
             if (options is EncryptionOptionsAES optionsAES) {
-                return new CipherEngine(optionsAES.CipherType, optionsAES.Mode, optionsAES.Padding);
+                return new CipherEngine(optionsAES.CipherType, optionsAES.Mode, optionsAES.Padding, options.KeyType, options.KeySize);
             } else if (options is EncryptionOptionsRC4 optionsRC4) {
-                return new CipherEngine(optionsRC4.CipherType, CipherMode.None, CipherPadding.None);
+                return new CipherEngine(optionsRC4.CipherType, CipherMode.None, CipherPadding.None, options.KeyType, options.KeySize);
             } else {
                 return null;
             }
