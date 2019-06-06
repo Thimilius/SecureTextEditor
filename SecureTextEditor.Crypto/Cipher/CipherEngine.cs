@@ -116,7 +116,13 @@ namespace SecureTextEditor.Crypto.Cipher {
                 length += m_Cipher.DoFinal(result, length);
                 return new CipherDecryptResult(CipherDecryptStatus.Success, null, result.Take(length).ToArray());
             } catch(InvalidCipherTextException e) {
-                return new CipherDecryptResult(CipherDecryptStatus.MacFailed, e, null);
+                // This is a little hackey way of determining the actual error
+                // but we don't really have control over that
+                if (e.Message == "pad block corrupted") {
+                    return new CipherDecryptResult(CipherDecryptStatus.Failed, e, null);
+                } else {
+                    return new CipherDecryptResult(CipherDecryptStatus.MacFailed, e, null);
+                }
             } catch (Exception e) {
                 return new CipherDecryptResult(CipherDecryptStatus.Failed, e, null);
             }

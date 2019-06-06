@@ -100,7 +100,7 @@ namespace SecureTextEditor.GUI {
             } else if (result.Status == OpenFileStatus.Failed) {
                 DialogWindow.Show(
                     Application.Current.MainWindow,
-                    $"Failed to open the file:\n{path}\n{result.Exception.GetType()}\n{result.Exception.Message}",
+                    $"Failed to open/decrypt the file!",
                     "Opening Failed",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error
@@ -135,8 +135,14 @@ namespace SecureTextEditor.GUI {
         }
 
         private char[] PasswordResolver() {
-            // TODO: Implement password window
-            return null;
+            PasswordWindow window = new PasswordWindow(this);
+            bool? result = window.ShowDialog();
+
+            if (result.Value == true) {
+                return window.Password.ToCharArray();
+            } else {
+                return null;
+            }
         }
 
         private string KeyFileResolver(int keySize) {

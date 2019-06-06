@@ -203,6 +203,7 @@ namespace SecureTextEditor.GUI {
                 default: throw new InvalidOperationException();
             }
 
+            options.KeyOption = (CipherKeyOption)KeyOptionComboBox.SelectedItem;
             options.KeySize = (int)KeySizeComboBox.SelectedItem;
             options.DigestType = (DigestType)DigestTypeComboBox.SelectedItem;
             return options;
