@@ -86,12 +86,14 @@ namespace SecureTextEditor.GUI.Config {
                 DefaultEncryptionOptions = new Dictionary<EncryptionType, EncryptionOptions>() {
                     { EncryptionType.AES, new EncryptionOptionsAES() {
                         DigestType = DigestType.SHA256,
+                        KeyType = KeyType.Generated,
                         KeySize = 192,
                         Mode = CipherMode.CBC,
                         Padding = CipherPadding.PKCS7
                     } },
                     { EncryptionType.RC4, new EncryptionOptionsRC4() {
                         DigestType = DigestType.SHA256,
+                        KeyType = KeyType.Generated,
                         KeySize = 192
                     } },
                 }

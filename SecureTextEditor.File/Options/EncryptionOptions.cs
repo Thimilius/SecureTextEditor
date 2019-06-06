@@ -21,6 +21,10 @@ namespace SecureTextEditor.File.Options {
         /// </summary>
         [JsonProperty(Required = Required.Always)] public DigestType DigestType { get; set; }
         /// <summary>
+        /// The type of key used in encryption.
+        /// </summary>
+        [JsonProperty(Required = Required.Always)] public KeyType KeyType { get; set; }
+        /// <summary>
         /// The size of the key used in for encryption.
         /// </summary>
         [JsonProperty(Required = Required.Always)] public int KeySize { get; set; }

@@ -32,14 +32,16 @@ namespace SecureTextEditor.GUI {
             m_CTSPaddingAvailable = m_TabToSave.Editor.Text.Length >= CipherEngine.BLOCK_SIZE;
 
             // Set up UI
-            DigestTypeComboBox.ItemsSource = GetEnumValuesWithout<DigestType>();
+            DigestTypeComboBox.ItemsSource = GetEnumValuesWithout(DigestType.None);
             EncryptionTypeComboBox.ItemsSource = GetEnumValuesWithout<EncryptionType>();
             AESPaddingComboBox.ItemsSource = GetEnumValuesWithout<CipherPadding>();
+            KeyTypeComboBox.ItemsSource = GetEnumValuesWithout<KeyType>();
 
             // Set default options
             EncryptionOptions options = tab.MetaData.FileMetaData.EncryptionOptions;
             EncryptionTypeComboBox.SelectedItem = options.Type;
             DigestTypeComboBox.SelectedItem = options.DigestType;
+            KeyTypeComboBox.SelectedItem = options.KeyType;
 
             EncryptionOptionsAES optionsAES = GetDefaultEncryptionOptions<EncryptionOptionsAES>(options, EncryptionType.AES);
             AESModeComboBox.SelectedItem = optionsAES.Mode;
@@ -47,6 +49,7 @@ namespace SecureTextEditor.GUI {
 
             // Set up events
             EncryptionTypeComboBox.SelectionChanged += (s, e) => OnEncrytionTypeSelectionChanged((EncryptionType)EncryptionTypeComboBox.SelectedItem);
+            KeyTypeComboBox.SelectionChanged += (s, e) => OnKeyTypeSelectionChanged((KeyType)KeyTypeComboBox.SelectedItem);
             AESModeComboBox.SelectionChanged += (s, e) => {
                 if (AESModeComboBox.SelectedItem != null) {
                     OnAESModeSelectionChanged((CipherMode)AESModeComboBox.SelectedItem);
@@ -147,6 +150,11 @@ namespace SecureTextEditor.GUI {
             KeySizeComboBox.SelectedIndex = 0;
         }
 
+        private void OnKeyTypeSelectionChanged(KeyType type) {
+            KeySizeOption.Visibility = type == KeyType.Generated ? Visibility.Visible : Visibility.Hidden;
+            PasswordOption.Visibility = type == KeyType.PBE || type == KeyType.PBEWithSCRYPT ? Visibility.Visible : Visibility.Hidden;
+        }
+
         private void OnAESPaddingSelectionChanged(CipherPadding padding) {
             if (padding == CipherPadding.None) {
                 // Only modes that have no padding should be available
@@ -167,12 +175,13 @@ namespace SecureTextEditor.GUI {
 
         private void OnAESModeSelectionChanged(CipherMode mode) {
             if (mode == CipherMode.GCM || mode == CipherMode.CCM) {
-                DigestTypeComboBox.SelectedItem = DigestType.None;
+                DigestTypeComboBox.ItemsSource = new DigestType[] { DigestType.None };
                 DigestTypeComboBox.IsEnabled = false;
             } else {
+                DigestTypeComboBox.ItemsSource = GetEnumValuesWithout(DigestType.None);
                 DigestTypeComboBox.IsEnabled = true;
-                DigestTypeComboBox.SelectedItem = DigestType.SHA256;
             }
+            DigestTypeComboBox.SelectedIndex = 0;
         }
 
         private EncryptionOptions BuildEncryptionOptions() {
