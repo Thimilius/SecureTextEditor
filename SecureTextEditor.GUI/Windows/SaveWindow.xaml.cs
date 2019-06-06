@@ -24,6 +24,10 @@ namespace SecureTextEditor.GUI {
         private readonly bool m_CTSPaddingAvailable;
         private bool m_SaveInProgress;
 
+        // TODO: RC4 should not have PBEWithSCRYPT option
+        // TODO: PBE should only use CBC with some padding
+        // TODO: PBEWithSCRYPT should only use GCM with no padding
+
         public SaveWindow(ITextEditorControl control, ITextEditorTab tab) {
             InitializeComponent();
 
