@@ -68,7 +68,7 @@
                             <Setter Property="Width" Value="200" />
                         </Style>
 
-                        <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+                        <Style TargetType="PasswordBox" BasedOn="{StaticResource {x:Type PasswordBox}}">
                             <Setter Property="VerticalAlignment" Value="Center" />
                             <Setter Property="HorizontalAlignment" Value="Center" />
                             <Setter Property="Width" Value="200" />
@@ -133,7 +133,7 @@
                             <!-- Password -->
                             <StackPanel Grid.Column="0" Grid.Row="1">
                                 <Label Content="Password:" />
-                                <TextBox />
+                                <PasswordBox Name="PasswordTextBox" />
                             </StackPanel>
                         </Border>
                     </Grid>

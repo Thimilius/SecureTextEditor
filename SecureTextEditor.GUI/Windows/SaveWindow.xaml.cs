@@ -23,6 +23,8 @@ namespace SecureTextEditor.GUI {
         private readonly bool m_CTSPaddingAvailable;
         private bool m_SaveInProgress;
 
+        // TODO: Validate password input 
+
         public SaveWindow(ITextEditorControl control, ITextEditorTab tab) {
             InitializeComponent();
 
@@ -88,7 +90,9 @@ namespace SecureTextEditor.GUI {
             m_SaveInProgress = true;
             TextEncoding encoding = m_TabToSave.MetaData.FileMetaData.Encoding;
             string text = m_TabToSave.Editor.Text;
-            FileMetaData fileMetaData = await PerformSave(BuildEncryptionOptions(), encoding, text); 
+            string password = PasswordTextBox.Password;
+            FileMetaData fileMetaData = await PerformSave(BuildEncryptionOptions(), encoding, text, password);
+            PasswordTextBox.Clear();
             m_SaveInProgress = false;
 
             // Proceed only if the file got actually saved
@@ -114,7 +118,7 @@ namespace SecureTextEditor.GUI {
             SaveButton.IsEnabled = true;
         }
 
-        private async Task<FileMetaData> PerformSave(EncryptionOptions options, TextEncoding encoding, string text) {
+        private async Task<FileMetaData> PerformSave(EncryptionOptions options, TextEncoding encoding, string text, string password) {
             // Show dialog for saving a file
             SaveFileDialog dialog = new SaveFileDialog() {
                 Title = "Save Secure Text File",
@@ -128,7 +132,7 @@ namespace SecureTextEditor.GUI {
             }
             string path = dialog.FileName;
 
-            SaveFileResult result = await FileHandler.SaveFileAsync(path, options, encoding, text);
+            SaveFileResult result = await FileHandler.SaveFileAsync(path, options, encoding, text, password);
             if (result.Status == SaveFileStatus.Success) {
                 return result.FileMetaData;
             } else {

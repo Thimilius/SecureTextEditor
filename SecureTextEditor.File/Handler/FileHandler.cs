@@ -23,8 +23,6 @@ namespace SecureTextEditor.File.Handler {
     /// <returns>The path to the mac key file to load</returns>
     public delegate string MacKeyFileResolver();
 
-    // TODO: Add handling of no digest
-
     /// <summary>
     /// Handler that abstracts opening and loading a secure text file.
     /// </summary>
@@ -52,28 +50,32 @@ namespace SecureTextEditor.File.Handler {
             Converters = new List<JsonConverter>() { new StringEnumConverter() }
         };
 
-        public static async Task<SaveFileResult> SaveFileAsync(string path, EncryptionOptions options, TextEncoding encoding, string text) {
+        public static async Task<SaveFileResult> SaveFileAsync(string path, EncryptionOptions options, TextEncoding encoding, string text, string password) {
             try {
                 string fileName = Path.GetFileName(path);
 
                 await Task.Run(() => {
                     byte[] encodedText = GetEncoding(encoding).GetBytes(text);
+                    byte[] messageToEncrypt = encodedText;
+                    byte[] macKey = null;
 
-                    // We compute the digest from message
-                    DigestEngine digestEngine = new DigestEngine(options.DigestType);
-                    byte[] macKey = digestEngine.GenerateKey();
-                    byte[] digest = digestEngine.Digest(encodedText, macKey);
+                    if (options.DigestType != DigestType.None) {
+                        // We compute the digest from message
+                        DigestEngine digestEngine = new DigestEngine(options.DigestType);
+                        macKey = digestEngine.GenerateKey();
+                        byte[] digest = digestEngine.Digest(encodedText, macKey);
 
-                    // Append the digest to the text
-                    byte[] full = new byte[encodedText.Length + digest.Length];
-                    Buffer.BlockCopy(encodedText, 0, full, 0, encodedText.Length);
-                    Buffer.BlockCopy(digest, 0, full, encodedText.Length, digest.Length);
+                        // Append the digest to the text
+                        messageToEncrypt = new byte[encodedText.Length + digest.Length];
+                        Buffer.BlockCopy(encodedText, 0, messageToEncrypt, 0, encodedText.Length);
+                        Buffer.BlockCopy(digest, 0, messageToEncrypt, encodedText.Length, digest.Length);
+                    }
 
                     // Encrypt text and save file
                     CipherEngine cipherEngine = GetCryptoEngine(options);
                     byte[] cipherKey = cipherEngine.GenerateKey(null);
                     byte[] iv = cipherEngine.GenerateIV();
-                    byte[] cipher = cipherEngine.Encrypt(full, cipherKey, iv);
+                    byte[] cipher = cipherEngine.Encrypt(messageToEncrypt, cipherKey, iv);
 
                     SecureTextFile textFile = new SecureTextFile(options, encoding, iv != null ? Convert.ToBase64String(iv) : null, Convert.ToBase64String(cipher));
                     SaveSecureTextFile(path, textFile);
@@ -82,8 +84,10 @@ namespace SecureTextEditor.File.Handler {
                     System.IO.File.WriteAllBytes(GetPathForCipherKeyFile(path), cipherKey);
 
                     // If we have a mac key to save, save it to a seperate file as well
-                    if (macKey != null) {
-                        System.IO.File.WriteAllBytes(GetPathForMacKeyFile(path), macKey);
+                    if (options.DigestType != DigestType.None) {
+                        if (macKey != null) {
+                            System.IO.File.WriteAllBytes(GetPathForMacKeyFile(path), macKey);
+                        }
                     }
                 });
                 await Task.Delay(250);
@@ -124,7 +128,7 @@ namespace SecureTextEditor.File.Handler {
 
                 // Try loading in the mac key if we need it 
                 byte[] macKey = null;
-                if (options.DigestType != DigestType.SHA256) {
+                if (options.DigestType == DigestType.AESCMAC || options.DigestType == DigestType.HMACSHA256) {
                     string macKeyPath = GetPathForMacKeyFile(path);
                     if (!System.IO.File.Exists(macKeyPath)) {
                         macKeyPath = macKeyFileResolver?.Invoke();
@@ -146,20 +150,23 @@ namespace SecureTextEditor.File.Handler {
                     return new OpenFileResult(OpenFileStatus.Failed, decryptResult.Exception, null, null);
                 }
 
-                byte[] full = decryptResult.Result;
+                byte[] messageDecrypted = decryptResult.Result;
+                byte[] message = messageDecrypted;
+                // Reverse the appending of the hash if needed
+                if (options.DigestType != DigestType.None) {
+                    DigestEngine digestEngine = new DigestEngine(options.DigestType);
 
-                DigestEngine digestEngine = new DigestEngine(options.DigestType);
+                    // We need to extract the hash from the cipher
+                    int digestLength = digestEngine.GetDigestLength();
+                    int messageLength = messageDecrypted.Length - digestLength;
+                    message = messageDecrypted.Take(messageLength).ToArray();
+                    byte[] digest = messageDecrypted.Skip(messageLength).ToArray();
 
-                // We need to extract the hash from the cipher
-                int digestLength = digestEngine.GetDigestLength();
-                int messageLength = full.Length - digestLength;
-                byte[] message = full.Take(messageLength).ToArray();
-                byte[] digest = full.Skip(messageLength).ToArray();
-
-                // Compare saved and new computed digest
-                byte[] newDigest = digestEngine.Digest(message, macKey);
-                if (!DigestEngine.AreEqual(newDigest, digest)) {
-                    return new OpenFileResult(OpenFileStatus.MacFailed, decryptResult.Exception, null, null);
+                    // Compare saved and new computed digest
+                    byte[] newDigest = digestEngine.Digest(message, macKey);
+                    if (!DigestEngine.AreEqual(newDigest, digest)) {
+                        return new OpenFileResult(OpenFileStatus.MacFailed, decryptResult.Exception, null, null);
+                    }
                 }
 
                 string text = GetEncoding(textFile.Encoding).GetString(message);
