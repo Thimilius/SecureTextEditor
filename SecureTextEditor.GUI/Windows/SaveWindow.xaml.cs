@@ -34,15 +34,11 @@ namespace SecureTextEditor.GUI {
             // Set up UI
             DigestTypeComboBox.ItemsSource = GetEnumValuesWithout<DigestType>();
             EncryptionTypeComboBox.ItemsSource = GetEnumValuesWithout<EncryptionType>();
-            AESKeySizeComboBox.ItemsSource = CipherEngine.AES_ACCEPTED_KEYS;
             AESPaddingComboBox.ItemsSource = GetEnumValuesWithout<CipherPadding>();
-            RC4KeySizeComboBox.ItemsSource = CipherEngine.RC4_ACCEPTED_KEYS;
 
             // Set default options
             EncryptionOptions options = tab.MetaData.FileMetaData.EncryptionOptions;
             EncryptionTypeComboBox.SelectedItem = options.Type;
-            AESKeySizeComboBox.SelectedItem = options.KeySize;
-            RC4KeySizeComboBox.SelectedItem = options.KeySize;
             DigestTypeComboBox.SelectedItem = options.DigestType;
 
             EncryptionOptionsAES optionsAES = GetDefaultEncryptionOptions<EncryptionOptionsAES>(options, EncryptionType.AES);
@@ -50,7 +46,7 @@ namespace SecureTextEditor.GUI {
             AESPaddingComboBox.SelectedItem = optionsAES.Padding;
 
             // Set up events
-            EncryptionTypeComboBox.SelectionChanged += (s, e) => OnSecurityTypeSelectionChanged((EncryptionType)EncryptionTypeComboBox.SelectedItem);
+            EncryptionTypeComboBox.SelectionChanged += (s, e) => OnEncrytionTypeSelectionChanged((EncryptionType)EncryptionTypeComboBox.SelectedItem);
             AESModeComboBox.SelectionChanged += (s, e) => {
                 if (AESModeComboBox.SelectedItem != null) {
                     OnAESModeSelectionChanged((CipherMode)AESModeComboBox.SelectedItem);
@@ -59,7 +55,7 @@ namespace SecureTextEditor.GUI {
             AESPaddingComboBox.SelectionChanged += (s, e) => OnAESPaddingSelectionChanged((CipherPadding)AESPaddingComboBox.SelectedItem);
 
             // Set up initial ui visibility
-            OnSecurityTypeSelectionChanged(options.Type);
+            OnEncrytionTypeSelectionChanged(options.Type);
             OnAESPaddingSelectionChanged(optionsAES.Padding);
             OnAESModeSelectionChanged(optionsAES.Mode);
 
@@ -70,6 +66,7 @@ namespace SecureTextEditor.GUI {
                 AESPaddingComboBox.SelectedItem = CipherPadding.None;
                 AESModeComboBox.SelectedItem = optionsAES.Mode;
             }
+            KeySizeComboBox.SelectedItem = options.KeySize;
         }
 
         private void CancelSave(object sender, RoutedEventArgs e) {
@@ -144,9 +141,10 @@ namespace SecureTextEditor.GUI {
             }
         }
 
-        private void OnSecurityTypeSelectionChanged(EncryptionType type) {
+        private void OnEncrytionTypeSelectionChanged(EncryptionType type) {
             AESOptions.Visibility = type == EncryptionType.AES ? Visibility.Visible : Visibility.Hidden;
-            RC4Options.Visibility = type == EncryptionType.RC4 ? Visibility.Visible : Visibility.Hidden;
+            KeySizeComboBox.ItemsSource = type == EncryptionType.AES ? CipherEngine.AES_ACCEPTED_KEYS : CipherEngine.RC4_ACCEPTED_KEYS;
+            KeySizeComboBox.SelectedIndex = 0;
         }
 
         private void OnAESPaddingSelectionChanged(CipherPadding padding) {
@@ -183,19 +181,17 @@ namespace SecureTextEditor.GUI {
             switch (encryptionType) {
                 case EncryptionType.AES:
                     options = new EncryptionOptionsAES() {
-                        KeySize = (int)AESKeySizeComboBox.SelectedItem,
                         Mode = (CipherMode)AESModeComboBox.SelectedItem,
                         Padding = (CipherPadding)AESPaddingComboBox.SelectedItem
                     };
                     break;
                 case EncryptionType.RC4:
-                    options = new EncryptionOptionsRC4() {
-                        KeySize = (int)RC4KeySizeComboBox.SelectedItem,
-                    };
+                    options = new EncryptionOptionsRC4();
                     break;
                 default: throw new InvalidOperationException();
             }
 
+            options.KeySize = (int)KeySizeComboBox.SelectedItem;
             options.DigestType = (DigestType)DigestTypeComboBox.SelectedItem;
             return options;
         }

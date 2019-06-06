@@ -68,6 +68,12 @@
                             <Setter Property="Width" Value="200" />
                         </Style>
 
+                        <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+                            <Setter Property="VerticalAlignment" Value="Center" />
+                            <Setter Property="HorizontalAlignment" Value="Center" />
+                            <Setter Property="Width" Value="200" />
+                        </Style>
+                        
                         <Style TargetType="Label" BasedOn="{StaticResource {x:Type Label}}">
                             <Setter Property="Margin" Value="0 0 0 4" />
                         </Style>
@@ -78,11 +84,9 @@
                     </Grid.ColumnDefinitions>
 
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="1.5*" />
-                        <RowDefinition Height="5" />
-                        <RowDefinition Height="1*" />
-                        <RowDefinition Height="5" />
                         <RowDefinition Height="3*" />
+                        <RowDefinition Height="5" />
+                        <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
                     <!-- File options -->
@@ -93,18 +97,45 @@
                         </Grid.ColumnDefinitions>
 
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="25" />
+                            <RowDefinition Height="*" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
+                        
+                        <!-- Encryption option -->
+                        <StackPanel Grid.Column="0">
+                            <Label Content="Encryption Type:" />
+                            <ComboBox Name="EncryptionTypeComboBox" />
+                        </StackPanel>
 
-                        <!-- Options Label -->
-                        <Label Grid.ColumnSpan="2" Content="File Options:" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <!-- Key option -->
+                        <StackPanel Grid.Column="1">
+                            <Label Content="Key Option:" />
+                            <ComboBox Name="KeyOptionComboBox" />
+                        </StackPanel>
 
                         <!-- Digest type option -->
-                        <StackPanel Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2">
+                        <StackPanel Grid.Column="0" Grid.Row="1">
                             <Label Content="Digest Type:" />
                             <ComboBox Name="DigestTypeComboBox" />
                         </StackPanel>
+
+                        <!-- Key size selection -->
+                        <Border Grid.Column="1" Grid.Row="1" BorderThickness="0">
+                            <!-- Key size -->
+                            <StackPanel Grid.Column="0" Grid.Row="1">
+                                <Label Content="Key Size:" />
+                                <ComboBox Name="KeySizeComboBox" />
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- Password selection -->
+                        <Border Grid.Column="1" Grid.Row="1" BorderThickness="0" Visibility="Hidden">
+                            <!-- Password -->
+                            <StackPanel Grid.Column="0" Grid.Row="1">
+                                <Label Content="Password:" />
+                                <TextBox />
+                            </StackPanel>
+                        </Border>
                     </Grid>
                     
                     <!-- Separator -->
@@ -118,23 +149,6 @@
                         <Separator Grid.Column="1"></Separator>
                     </Grid>
 
-                    <!-- Encryption option -->
-                    <StackPanel Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="2" Orientation="Horizontal">
-                        <Label VerticalAlignment="Center" Content="Encryption Type:" Margin="0 0 4 0" />
-                        <ComboBox Name="EncryptionTypeComboBox" />
-                    </StackPanel>
-
-                    <!-- Separator -->
-                    <Grid Grid.Row="3">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="10*" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        
-                        <Separator Grid.Column="1"></Separator>
-                    </Grid>
-                    
                     <!-- AES options -->
                     <Border Name="AESOptions">
                         <Grid>
@@ -142,21 +156,6 @@
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="25" />
-                                <RowDefinition Height="*" />
-                                <RowDefinition Height="*" />
-                            </Grid.RowDefinitions>
-
-                            <!-- Options Label -->
-                            <Label Grid.ColumnSpan="2" Content="AES Options:" HorizontalAlignment="Center" VerticalAlignment="Center" />
-
-                            <!-- Key size option -->
-                            <StackPanel Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2">
-                                <Label Content="Key Size:" />
-                                <ComboBox Name="AESKeySizeComboBox" />
-                            </StackPanel>
 
                             <!-- Cipher mode option -->
                             <StackPanel Grid.Column="0" Grid.Row="2">
@@ -168,31 +167,6 @@
                             <StackPanel Grid.Column="1" Grid.Row="2">
                                 <Label Content="Padding:" />
                                 <ComboBox Name="AESPaddingComboBox" />
-                            </StackPanel>
-                        </Grid>
-                    </Border>
-
-                    <!--ARC4 options -->
-                    <Border Name="RC4Options">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="25" />
-                                <RowDefinition Height="*" />
-                                <RowDefinition Height="*" />
-                            </Grid.RowDefinitions>
-
-                            <!-- Options Label -->
-                            <Label Grid.ColumnSpan="2" Content="RC4 Options:" HorizontalAlignment="Center" VerticalAlignment="Center" />
-
-                            <!-- Key size option -->
-                            <StackPanel Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="2">
-                                <Label Content="Key Size:" />
-                                <ComboBox Name="RC4KeySizeComboBox" />
                             </StackPanel>
                         </Grid>
                     </Border>
