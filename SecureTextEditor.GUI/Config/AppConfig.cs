@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
-using System.IO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using SecureTextEditor.Crypto;
 using SecureTextEditor.Crypto.Cipher;
 using SecureTextEditor.Crypto.Digest;
 using SecureTextEditor.File;
@@ -20,8 +18,8 @@ namespace SecureTextEditor.GUI.Config {
             [JsonProperty(Required = Required.Always)] public Theme Theme { get; set; }
             [JsonProperty(Required = Required.Always)] public int Zoom { get; set; }
             [JsonProperty(Required = Required.Always)] public TextEncoding NewFileTextEncoding { get; set; }
-            [JsonProperty(Required = Required.Always)] public EncryptionType DefaultEncryptionType { get; set; }
-            [JsonProperty(Required = Required.Always)] public IDictionary<EncryptionType, EncryptionOptions> DefaultEncryptionOptions { get; set; }
+            [JsonProperty(Required = Required.Always)] public CipherType DefaultCipherType { get; set; }
+            [JsonProperty(Required = Required.Always)] public IDictionary<CipherType, EncryptionOptions> DefaultEncryptionOptions { get; set; }
         }
 
         /// <summary>
@@ -82,18 +80,18 @@ namespace SecureTextEditor.GUI.Config {
                 Theme = Theme.DarkMode,
                 Zoom = 16,
                 NewFileTextEncoding = TextEncoding.UTF8,
-                DefaultEncryptionType = EncryptionType.AES,
-                DefaultEncryptionOptions = new Dictionary<EncryptionType, EncryptionOptions>() {
-                    { EncryptionType.AES, new EncryptionOptionsAES() {
+                DefaultCipherType = CipherType.AES,
+                DefaultEncryptionOptions = new Dictionary<CipherType, EncryptionOptions>() {
+                    { CipherType.AES, new EncryptionOptionsAES() {
                         DigestType = DigestType.SHA256,
-                        KeyType = KeyType.Generated,
+                        KeyOption = CipherKeyOption.Generated,
                         KeySize = 192,
                         Mode = CipherMode.CBC,
                         Padding = CipherPadding.PKCS7
                     } },
-                    { EncryptionType.RC4, new EncryptionOptionsRC4() {
+                    { CipherType.RC4, new EncryptionOptionsRC4() {
                         DigestType = DigestType.SHA256,
-                        KeyType = KeyType.Generated,
+                        KeyOption = CipherKeyOption.Generated,
                         KeySize = 192
                     } },
                 }

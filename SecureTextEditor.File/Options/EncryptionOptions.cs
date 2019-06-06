@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using SecureTextEditor.Crypto;
 using SecureTextEditor.Crypto.Cipher;
 using SecureTextEditor.Crypto.Digest;
 
@@ -11,19 +10,15 @@ namespace SecureTextEditor.File.Options {
         /// <summary>
         /// The general type of algorithm.
         /// </summary>
-        [JsonProperty(Required = Required.Always)] public abstract EncryptionType Type { get; }
-        /// <summary>
-        /// The cipher type used in encryption.
-        /// </summary>
-        [JsonProperty(Required = Required.Always)] public abstract CipherType CipherType { get; }
+        [JsonProperty(Required = Required.Always)] public abstract CipherType Type { get; }
         /// <summary>
         /// The digest type used for hashing.
         /// </summary>
         [JsonProperty(Required = Required.Always)] public DigestType DigestType { get; set; }
         /// <summary>
-        /// The type of key used in encryption.
+        /// The key option to use for encryption.
         /// </summary>
-        [JsonProperty(Required = Required.Always)] public KeyType KeyType { get; set; }
+        [JsonProperty(Required = Required.Always)] public CipherKeyOption KeyOption { get; set; }
         /// <summary>
         /// The size of the key used in for encryption.
         /// </summary>

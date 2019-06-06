@@ -101,16 +101,16 @@
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
                         
-                        <!-- Encryption option -->
+                        <!-- Cipher type -->
                         <StackPanel Grid.Column="0">
-                            <Label Content="Encryption Type:" />
-                            <ComboBox Name="EncryptionTypeComboBox" />
+                            <Label Content="Cipher Type:" />
+                            <ComboBox Name="CipherTypeComboBox" />
                         </StackPanel>
 
                         <!-- Key option -->
                         <StackPanel Grid.Column="1">
-                            <Label Content="Key Type:" />
-                            <ComboBox Name="KeyTypeComboBox" />
+                            <Label Content="Key Option:" />
+                            <ComboBox Name="KeyOptionComboBox" />
                         </StackPanel>
 
                         <!-- Digest type option -->

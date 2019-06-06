@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using SecureTextEditor.Crypto;
+using SecureTextEditor.Crypto.Cipher;
 using SecureTextEditor.File;
 using SecureTextEditor.File.Options;
 
@@ -21,12 +21,12 @@ namespace SecureTextEditor.GUI.Config {
         /// </summary>
         TextEncoding NewFileTextEncoding { get; set; }
         /// <summary>
-        /// Gets or sets the default emcryption type when saving a file.
+        /// Gets or sets the default cipher type when saving a file.
         /// </summary>
-        EncryptionType DefaultEncryptionType { get; set; }
+        CipherType DefaultCipherType { get; set; }
         /// <summary>
         /// Gets or sets the default encryption options for the corresponding type.
         /// </summary>
-        IDictionary<EncryptionType, EncryptionOptions> DefaultEncryptionOptions { get; set; }
+        IDictionary<CipherType, EncryptionOptions> DefaultEncryptionOptions { get; set; }
     }
 }

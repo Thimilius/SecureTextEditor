@@ -188,9 +188,9 @@ namespace SecureTextEditor.File.Handler {
 
         private static CipherEngine GetCryptoEngine(EncryptionOptions options) {
             if (options is EncryptionOptionsAES optionsAES) {
-                return new CipherEngine(optionsAES.CipherType, optionsAES.Mode, optionsAES.Padding, options.KeyType, options.KeySize);
+                return new CipherEngine(optionsAES.Type, optionsAES.Mode, optionsAES.Padding, options.KeyOption, options.KeySize);
             } else if (options is EncryptionOptionsRC4 optionsRC4) {
-                return new CipherEngine(optionsRC4.CipherType, CipherMode.None, CipherPadding.None, options.KeyType, options.KeySize);
+                return new CipherEngine(optionsRC4.Type, CipherMode.None, CipherPadding.None, options.KeyOption, options.KeySize);
             } else {
                 return null;
             }

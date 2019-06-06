@@ -6,10 +6,10 @@
         /// <summary>
         /// Describes the block mode.
         /// </summary>
-        Block,
+        AES,
         /// <summary>
         /// Describes the stream mode.
         /// </summary>
-        Stream
+        RC4
     }
 }

@@ -2,7 +2,6 @@
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Org.BouncyCastle.Utilities.Encoders;
-using SecureTextEditor.Crypto;
 using SecureTextEditor.Crypto.Cipher;
 
 namespace SecureTextEditor.Tests {
@@ -16,7 +15,7 @@ namespace SecureTextEditor.Tests {
 
         [TestMethod]
         public void SCRYPT_Test() {
-            CipherEngine engine = new CipherEngine(CipherType.Block, CipherMode.GCM, CipherPadding.None, KeyType.PBEWithSCRYPT, 128);
+            CipherEngine engine = new CipherEngine(CipherType.AES, CipherMode.GCM, CipherPadding.None, CipherKeyOption.PBEWithSCRYPT, 128);
 
             byte[] message = BLOCK_UNALIGNED_MESSAGE;
             byte[] key = engine.GenerateKey(PASSWORD);
@@ -28,7 +27,7 @@ namespace SecureTextEditor.Tests {
 
         [TestMethod]
         public void PBEWithSHA256And128BitAESCBCBC_Test() {
-            CipherEngine engine = new CipherEngine(CipherType.Block, CipherMode.CBC, CipherPadding.PKCS7, KeyType.PBE, 128);
+            CipherEngine engine = new CipherEngine(CipherType.AES, CipherMode.CBC, CipherPadding.PKCS7, CipherKeyOption.PBE, 128);
 
             byte[] message = BLOCK_UNALIGNED_MESSAGE;
             byte[] key = engine.GenerateKey(PASSWORD);
@@ -40,7 +39,7 @@ namespace SecureTextEditor.Tests {
 
         [TestMethod]
         public void PBEWithSHAAnd40BitRC4_Test() {
-            CipherEngine engine = new CipherEngine(CipherType.Stream, CipherMode.None, CipherPadding.None, KeyType.PBE, 40);
+            CipherEngine engine = new CipherEngine(CipherType.RC4, CipherMode.None, CipherPadding.None, CipherKeyOption.PBE, 40);
 
             byte[] message = BLOCK_UNALIGNED_MESSAGE;
             byte[] key = engine.GenerateKey(PASSWORD);

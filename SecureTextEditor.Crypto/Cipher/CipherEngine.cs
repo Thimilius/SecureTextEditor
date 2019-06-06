@@ -59,7 +59,7 @@ namespace SecureTextEditor.Crypto.Cipher {
         /// <summary>
         /// The type of key that is used.
         /// </summary>
-        private readonly KeyType m_KeyType;
+        private readonly CipherKeyOption m_KeyOption;
         /// <summary>
         /// The size of the key to use.
         /// </summary>
@@ -69,15 +69,15 @@ namespace SecureTextEditor.Crypto.Cipher {
         /// Creates a new crypto engine with given parameters.
         /// </summary>
         /// <param name="type">The type of cipher to use</param>
-        /// <param name="keyType">The type of key to use</param>
+        /// <param name="option">The key option to use</param>
         /// <param name="mode">The cipher block mode to use</param>
         /// <param name="padding">The cipher block padding to use</param>
         /// <param name="encoding">The encoding to use</param>
-        public CipherEngine(CipherType type, CipherMode mode, CipherPadding padding, KeyType keyType, int keySize) {
+        public CipherEngine(CipherType type, CipherMode mode, CipherPadding padding, CipherKeyOption option, int keySize) {
             m_Type = type;
             m_CipherMode = mode;
             m_Cipher = GetCipher(type, mode, GetCipherPadding(padding));
-            m_KeyType = keyType;
+            m_KeyOption = option;
             m_KeySize = keySize;
         }
 
@@ -128,21 +128,21 @@ namespace SecureTextEditor.Crypto.Cipher {
         /// <param name="password">The password required for password based encryption (Can be null if not needed)</param>
         /// <returns>The generated key</returns>
         public byte[] GenerateKey(char[] password) {
-            if (m_Type == CipherType.Block && !AES_ACCEPTED_KEYS.Contains(m_KeySize)) {
+            if (m_Type == CipherType.AES && !AES_ACCEPTED_KEYS.Contains(m_KeySize)) {
                 throw new ArgumentException("Invalid key size", nameof(m_KeySize));
             }
-            if (m_Type == CipherType.Stream && !RC4_ACCEPTED_KEYS.Contains(m_KeySize)) {
+            if (m_Type == CipherType.RC4 && !RC4_ACCEPTED_KEYS.Contains(m_KeySize)) {
                 throw new ArgumentException("Invalid key size", nameof(m_KeySize));
             }
 
-            switch (m_KeyType) {
-                case KeyType.Generated:
+            switch (m_KeyOption) {
+                case CipherKeyOption.Generated:
                     CipherKeyGenerator generator = new CipherKeyGenerator();
                     generator.Init(new KeyGenerationParameters(new SecureRandom(), m_KeySize));
                     return generator.GenerateKey();
-                case KeyType.PBE:
+                case CipherKeyOption.PBE:
                     return PbeParametersGenerator.Pkcs12PasswordToBytes(password);
-                case KeyType.PBEWithSCRYPT:
+                case CipherKeyOption.PBEWithSCRYPT:
                     return PbeParametersGenerator.Pkcs5PasswordToUtf8Bytes(password);
                 default: throw new InvalidOperationException();
             }
@@ -170,7 +170,7 @@ namespace SecureTextEditor.Crypto.Cipher {
         /// <param name="padding">The cipher block padding to use</param>
         /// <returns>The cipher</returns>
         private IBufferedCipher GetCipher(CipherType type, CipherMode mode, IBlockCipherPadding padding) {
-            if (type == CipherType.Block) {
+            if (type == CipherType.AES) {
                 switch (mode) {
                     case CipherMode.ECB: return padding == null ? new BufferedBlockCipher(BLOCK_CIPHER_ENGINE) : new PaddedBufferedBlockCipher(BLOCK_CIPHER_ENGINE, padding);
                     case CipherMode.CBC: return padding == null ? new BufferedBlockCipher(new CbcBlockCipher(BLOCK_CIPHER_ENGINE)) : new PaddedBufferedBlockCipher(new CbcBlockCipher(BLOCK_CIPHER_ENGINE), padding);
@@ -213,29 +213,29 @@ namespace SecureTextEditor.Crypto.Cipher {
         /// <param name="iv">The initilization vector (or nonce)</param>
         /// <returns>The generated cipher parameters</returns>
         private ICipherParameters GenerateCipherParameters(byte[] key, byte[] iv) {
-            switch (m_KeyType) {
-                case KeyType.Generated:
+            switch (m_KeyOption) {
+                case CipherKeyOption.Generated:
                     KeyParameter keyParameter = new KeyParameter(key);
-                    if (iv == null || m_Type == CipherType.Stream || m_CipherMode == CipherMode.ECB) {
+                    if (iv == null || m_Type == CipherType.RC4 || m_CipherMode == CipherMode.ECB) {
                         return keyParameter;
                     } else if (m_CipherMode == CipherMode.GCM || m_CipherMode == CipherMode.CCM) {
                         return new AeadParameters(keyParameter, AE_TAG_SIZE, iv);
                     } else {
                         return new ParametersWithIV(keyParameter, iv);
                     }
-                case KeyType.PBE:
+                case CipherKeyOption.PBE:
                     PbeParametersGenerator generator = null;
                     string algorithm = null;
-                    if (m_Type == CipherType.Block) {
+                    if (m_Type == CipherType.AES) {
                         generator = new Pkcs12ParametersGenerator(new Sha256Digest());
                         algorithm = "AES";
-                    } else if (m_Type == CipherType.Stream) {
+                    } else if (m_Type == CipherType.RC4) {
                         generator = new Pkcs12ParametersGenerator(new Sha1Digest());
                         algorithm = "RC4";
                     }
                     generator.Init(key, iv, 2048);
                     return generator.GenerateDerivedParameters(algorithm, m_KeySize);
-                case KeyType.PBEWithSCRYPT:
+                case CipherKeyOption.PBEWithSCRYPT:
                     keyParameter = new KeyParameter(SCrypt.Generate(key, iv, 2048, 16, 1, m_KeySize / 8));
                     return new ParametersWithIV(keyParameter, iv);
                 default: throw new InvalidOperationException();
