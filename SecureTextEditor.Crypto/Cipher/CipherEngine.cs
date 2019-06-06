@@ -7,6 +7,7 @@ using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Crypto.Generators;
+using Org.BouncyCastle.Crypto.Digests;
 
 namespace SecureTextEditor.Crypto.Cipher {
     /// <summary>
@@ -213,7 +214,17 @@ namespace SecureTextEditor.Crypto.Cipher {
                         return new ParametersWithIV(keyParameter, iv);
                     }
                 case KeyType.PBE:
-                    throw new NotImplementedException();
+                    PbeParametersGenerator generator = null;
+                    string algorithm = null;
+                    if (m_Type == CipherType.Block) {
+                        generator = new Pkcs12ParametersGenerator(new Sha256Digest());
+                        algorithm = "AES";
+                    } else if (m_Type == CipherType.Stream) {
+                        generator = new Pkcs12ParametersGenerator(new Sha1Digest());
+                        algorithm = "RC4";
+                    }
+                    generator.Init(key, iv, 2048);
+                    return generator.GenerateDerivedParameters(algorithm, m_KeySize);
                 case KeyType.PBEWithSCRYPT:
                     keyParameter = new KeyParameter(SCrypt.Generate(key, iv, 2048, 16, 1, m_KeySize / 8));
                     return new ParametersWithIV(keyParameter, iv);
