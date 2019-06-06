@@ -4,6 +4,7 @@ using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Utilities.Encoders;
+using SecureTextEditor.Crypto;
 using SecureTextEditor.Crypto.Cipher;
 
 namespace SecureTextEditor.Tests {
@@ -24,7 +25,7 @@ namespace SecureTextEditor.Tests {
         [TestMethod]
         public void ECB_Test() {
             foreach (var padding in CIPHER_BLOCK_PADDINGS) {
-                CipherEngine engine = new CipherEngine(CipherType.Block, CipherMode.ECB, padding);
+                CipherEngine engine = new CipherEngine(CipherType.Block, CipherMode.ECB, padding, KeyType.Generated, 128);
 
                 // Use block aligned message for no padding
                 byte[] message = BLOCK_UNALIGNED_MESSAGE;
@@ -41,7 +42,7 @@ namespace SecureTextEditor.Tests {
         [TestMethod]
         public void CBC_Test() {
             foreach (var padding in CIPHER_BLOCK_PADDINGS) {
-                CipherEngine engine = new CipherEngine(CipherType.Block, CipherMode.CBC, padding);
+                CipherEngine engine = new CipherEngine(CipherType.Block, CipherMode.CBC, padding, KeyType.Generated, 128);
 
                 // Use block aligned message for no padding
                 byte[] message = BLOCK_UNALIGNED_MESSAGE;
@@ -57,7 +58,7 @@ namespace SecureTextEditor.Tests {
 
         [TestMethod]
         public void CTS_Test() {
-            CipherEngine engine = new CipherEngine(CipherType.Block, CipherMode.CTS, CipherPadding.None);
+            CipherEngine engine = new CipherEngine(CipherType.Block, CipherMode.CTS, CipherPadding.None, KeyType.Generated, 128);
             byte[] cipher = engine.Encrypt(BLOCK_UNALIGNED_MESSAGE, KEY, IV);
             CipherDecryptResult result = engine.Decrypt(cipher, KEY, IV);
             Assert.IsTrue(BLOCK_UNALIGNED_MESSAGE.SequenceEqual(result.Result));
@@ -70,7 +71,7 @@ namespace SecureTextEditor.Tests {
 
         [TestMethod]
         public void CTR_Test() {
-            CipherEngine engine = new CipherEngine(CipherType.Block, CipherMode.CTR, CipherPadding.None);
+            CipherEngine engine = new CipherEngine(CipherType.Block, CipherMode.CTR, CipherPadding.None, KeyType.Generated, 128);
             byte[] cipher = engine.Encrypt(BLOCK_UNALIGNED_MESSAGE, KEY, IV);
             CipherDecryptResult result = engine.Decrypt(cipher, KEY, IV);
             Assert.IsTrue(BLOCK_UNALIGNED_MESSAGE.SequenceEqual(result.Result));
@@ -78,7 +79,7 @@ namespace SecureTextEditor.Tests {
 
         [TestMethod]
         public void CFB_Test() {
-            CipherEngine engine = new CipherEngine(CipherType.Block, CipherMode.CFB, CipherPadding.None);
+            CipherEngine engine = new CipherEngine(CipherType.Block, CipherMode.CFB, CipherPadding.None, KeyType.Generated, 128);
             byte[] cipher = engine.Encrypt(BLOCK_UNALIGNED_MESSAGE, KEY, IV);
             CipherDecryptResult result = engine.Decrypt(cipher, KEY, IV);
             Assert.IsTrue(BLOCK_UNALIGNED_MESSAGE.SequenceEqual(result.Result));
@@ -86,7 +87,7 @@ namespace SecureTextEditor.Tests {
 
         [TestMethod]
         public void OFB_Test() {
-            CipherEngine engine = new CipherEngine(CipherType.Block, CipherMode.OFB, CipherPadding.None);
+            CipherEngine engine = new CipherEngine(CipherType.Block, CipherMode.OFB, CipherPadding.None, KeyType.Generated, 128);
             byte[] cipher = engine.Encrypt(BLOCK_UNALIGNED_MESSAGE, KEY, IV);
             CipherDecryptResult result = engine.Decrypt(cipher, KEY, IV);
             Assert.IsTrue(BLOCK_UNALIGNED_MESSAGE.SequenceEqual(result.Result));
@@ -95,14 +96,14 @@ namespace SecureTextEditor.Tests {
         [TestMethod]
         public void Block_Mode_Out_Of_Range_Test() {
             Assert.ThrowsException<ArgumentOutOfRangeException>(() => {
-                new CipherEngine(CipherType.Block, (CipherMode)999, CipherPadding.PKCS7);
+                new CipherEngine(CipherType.Block, (CipherMode)999, CipherPadding.PKCS7, KeyType.Generated, 128);
             });
         }
 
         [TestMethod]
         public void Block_Padding_Out_Of_Range_Test() {
             Assert.ThrowsException<ArgumentOutOfRangeException>(() => {
-                new CipherEngine(CipherType.Block, CipherMode.CBC, (CipherPadding)999);
+                new CipherEngine(CipherType.Block, CipherMode.CBC, (CipherPadding)999, KeyType.Generated, 128);
             });
         }
     }

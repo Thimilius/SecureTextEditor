@@ -62,7 +62,7 @@ namespace SecureTextEditor.Crypto.Digest {
         /// <returns>The generated key</returns>
         public byte[] GenerateKey() {
             if (IsMacConfigured()) {
-                return Generator.GenerateKey(MAC_KEY_SIZE);
+                return Generator.GenerateKey(KeyType.Generated, MAC_KEY_SIZE, null);
             } else {
                 return null;
             }

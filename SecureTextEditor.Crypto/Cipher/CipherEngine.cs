@@ -6,6 +6,7 @@ using Org.BouncyCastle.Crypto.Paddings;
 using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Crypto.Generators;
 
 namespace SecureTextEditor.Crypto.Cipher {
     /// <summary>
@@ -23,7 +24,7 @@ namespace SecureTextEditor.Crypto.Cipher {
         /// <summary>
         /// The keys accepted in RC4 encryption.
         /// </summary>
-        public static readonly int[] RC4_ACCEPTED_KEYS = new int[] { 128, 160, 192, 256, 512, 1024, 2048 };
+        public static readonly int[] RC4_ACCEPTED_KEYS = new int[] { 40, 64, 128, 160, 192, 256, 512, 1024, 2048 };
         /// <summary>
         /// The size of the tag used in authenticated enryption modes(GCM and CCM).
         /// </summary>
@@ -54,18 +55,29 @@ namespace SecureTextEditor.Crypto.Cipher {
         /// The actual concrete cipher that will be used for encrypting and decrypting.
         /// </summary>
         private readonly IBufferedCipher m_Cipher;
+        /// <summary>
+        /// The type of key that is used.
+        /// </summary>
+        private readonly KeyType m_KeyType;
+        /// <summary>
+        /// The size of the key to use.
+        /// </summary>
+        private readonly int m_KeySize;
 
         /// <summary>
         /// Creates a new crypto engine with given parameters.
         /// </summary>
         /// <param name="type">The type of cipher to use</param>
+        /// <param name="keyType">The type of key to use</param>
         /// <param name="mode">The cipher block mode to use</param>
         /// <param name="padding">The cipher block padding to use</param>
         /// <param name="encoding">The encoding to use</param>
-        public CipherEngine(CipherType type, CipherMode mode, CipherPadding padding) {
+        public CipherEngine(CipherType type, CipherMode mode, CipherPadding padding, KeyType keyType, int keySize) {
             m_Type = type;
             m_CipherMode = mode;
             m_Cipher = GetCipher(type, mode, GetCipherPadding(padding));
+            m_KeyType = keyType;
+            m_KeySize = keySize;
         }
 
         /// <summary>
@@ -112,17 +124,17 @@ namespace SecureTextEditor.Crypto.Cipher {
         /// <summary>
         /// Generates a key for use with this engine.
         /// </summary>
-        /// <param name="keySize">The size of the key</param>
+        /// <param name="password">The password required for password based encryption (Can be null if not needed)</param>
         /// <returns>The generated key</returns>
-        public byte[] GenerateKey(int keySize) {
-            if (m_Type == CipherType.Block && !AES_ACCEPTED_KEYS.Contains(keySize)) {
-                throw new ArgumentException("Invalid key size", nameof(keySize));
+        public byte[] GenerateKey(char[] password) {
+            if (m_Type == CipherType.Block && !AES_ACCEPTED_KEYS.Contains(m_KeySize)) {
+                throw new ArgumentException("Invalid key size", nameof(m_KeySize));
             }
-            if (m_Type == CipherType.Stream && !RC4_ACCEPTED_KEYS.Contains(keySize)) {
-                throw new ArgumentException("Invalid key size", nameof(keySize));
+            if (m_Type == CipherType.Stream && !RC4_ACCEPTED_KEYS.Contains(m_KeySize)) {
+                throw new ArgumentException("Invalid key size", nameof(m_KeySize));
             }
 
-            return Generator.GenerateKey(keySize);
+            return Generator.GenerateKey(m_KeyType, m_KeySize, password);
         }
 
         /// <summary>
@@ -190,13 +202,22 @@ namespace SecureTextEditor.Crypto.Cipher {
         /// <param name="iv">The initilization vector (or nonce)</param>
         /// <returns>The generated cipher parameters</returns>
         private ICipherParameters GenerateCipherParameters(byte[] key, byte[] iv) {
-            KeyParameter keyParameter = new KeyParameter(key);
-            if (iv == null || m_Type == CipherType.Stream || m_CipherMode == CipherMode.ECB) {
-                return keyParameter;
-            } else if (m_CipherMode == CipherMode.GCM || m_CipherMode == CipherMode.CCM) {
-                return new AeadParameters(keyParameter, AE_TAG_SIZE, iv);
-            } else {
-                return new ParametersWithIV(keyParameter, iv);
+            switch (m_KeyType) {
+                case KeyType.Generated:
+                    KeyParameter keyParameter = new KeyParameter(key);
+                    if (iv == null || m_Type == CipherType.Stream || m_CipherMode == CipherMode.ECB) {
+                        return keyParameter;
+                    } else if (m_CipherMode == CipherMode.GCM || m_CipherMode == CipherMode.CCM) {
+                        return new AeadParameters(keyParameter, AE_TAG_SIZE, iv);
+                    } else {
+                        return new ParametersWithIV(keyParameter, iv);
+                    }
+                case KeyType.PBE:
+                    throw new NotImplementedException();
+                case KeyType.PBEWithSCRYPT:
+                    keyParameter = new KeyParameter(SCrypt.Generate(key, iv, 2048, 16, 1, m_KeySize / 8));
+                    return new ParametersWithIV(keyParameter, iv);
+                default: throw new InvalidOperationException();
             }
         }
     }
