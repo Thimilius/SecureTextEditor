@@ -77,7 +77,7 @@ namespace SecureTextEditor.GUI {
             }
 
             // Open actual file
-            OpenFileResult result = FileHandler.OpenFile(path, KeyFileResolver, MacKeyFileResolver);
+            OpenFileResult result = FileHandler.OpenFile(path, PasswordResolver, KeyFileResolver, MacKeyFileResolver);
 
             if (result.Status == OpenFileStatus.Success) {
                 // Open new tab for the file
@@ -132,6 +132,11 @@ namespace SecureTextEditor.GUI {
             if (save) {
                 PromptSaveWindow(tab);
             }
+        }
+
+        private char[] PasswordResolver() {
+            // TODO: Implement password window
+            return null;
         }
 
         private string KeyFileResolver(int keySize) {

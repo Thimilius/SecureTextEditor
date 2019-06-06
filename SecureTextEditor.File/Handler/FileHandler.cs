@@ -12,13 +12,18 @@ using SecureTextEditor.File.Options;
 
 namespace SecureTextEditor.File.Handler {
     /// <summary>
+    /// Handler to resolve the password used in password based encryption.
+    /// </summary>
+    /// <returns>The password used in password based encryption</returns>
+    public delegate char[] PasswordResolver();
+    /// <summary>
     /// Handler to resolve the path to a cipher key file.
     /// </summary>
     /// <param name="keySize">The key size that is to be expected</param>
     /// <returns>The path to the cipher key file to load</returns>
     public delegate string CipherKeyFileResolver(int keySize);
     /// <summary>
-    /// Handler to resolver the path to a mac key file.
+    /// Handler to resolve the path to a mac key file.
     /// </summary>
     /// <returns>The path to the mac key file to load</returns>
     public delegate string MacKeyFileResolver();
@@ -73,7 +78,7 @@ namespace SecureTextEditor.File.Handler {
 
                     // Encrypt text and save file
                     CipherEngine cipherEngine = GetCryptoEngine(options);
-                    byte[] cipherKey = cipherEngine.GenerateKey(null);
+                    byte[] cipherKey = cipherEngine.GenerateKey(options.KeyOption == CipherKeyOption.Generate ? null : password.ToCharArray());
                     byte[] iv = cipherEngine.GenerateIV();
                     byte[] cipher = cipherEngine.Encrypt(messageToEncrypt, cipherKey, iv);
 
@@ -105,7 +110,7 @@ namespace SecureTextEditor.File.Handler {
             }
         }
 
-        public static OpenFileResult OpenFile(string path, CipherKeyFileResolver cipherKeyFileResolver, MacKeyFileResolver macKeyFileResolver) {
+        public static OpenFileResult OpenFile(string path, PasswordResolver passwordResolver, CipherKeyFileResolver cipherKeyFileResolver, MacKeyFileResolver macKeyFileResolver) {
             try {
                 string fileName = Path.GetFileName(path);
 
@@ -114,17 +119,30 @@ namespace SecureTextEditor.File.Handler {
                 TextEncoding encoding = textFile.Encoding;
                 EncryptionOptions options = textFile.EncryptionOptions;
 
-                // Try loading in the key file at the same location
+                CipherEngine cipherEngine = GetCryptoEngine(options);
+
+                // Get the key from a file or get it from a password in case of password based encryption
                 byte[] cipherKey = null;
-                string cipherKeyPath = GetPathForCipherKeyFile(path);
-                if (!System.IO.File.Exists(cipherKeyPath)) {
-                    cipherKeyPath = cipherKeyFileResolver?.Invoke(options.KeySize);
-                    // If no path was supplied, we bail out
-                    if (cipherKeyPath == null) {
+                if (options.KeyOption == CipherKeyOption.Generate) {
+                    // Try loading in the key file at the same location
+                    string cipherKeyPath = GetPathForCipherKeyFile(path);
+                    if (!System.IO.File.Exists(cipherKeyPath)) {
+                        cipherKeyPath = cipherKeyFileResolver?.Invoke(options.KeySize);
+                        // If no path was supplied, we bail out
+                        if (cipherKeyPath == null) {
+                            return new OpenFileResult(OpenFileStatus.Canceled, null, null, null);
+                        }
+                    }
+                    cipherKey = System.IO.File.ReadAllBytes(cipherKeyPath);
+                } else {
+                    char[] password = passwordResolver?.Invoke();
+                    // If no password was supplied, we bail out
+                    if (password == null) {
                         return new OpenFileResult(OpenFileStatus.Canceled, null, null, null);
+                    } else {
+                        cipherKey = cipherEngine.GenerateKey(password);
                     }
                 }
-                cipherKey = System.IO.File.ReadAllBytes(cipherKeyPath);
 
                 // Try loading in the mac key if we need it 
                 byte[] macKey = null;
@@ -141,7 +159,6 @@ namespace SecureTextEditor.File.Handler {
                 }
 
                 // Decrypt cipher
-                CipherEngine cipherEngine = GetCryptoEngine(options);
                 byte[] iv = textFile.Base64IV != null ? Convert.FromBase64String(textFile.Base64IV) : null;
                 CipherDecryptResult decryptResult = cipherEngine.Decrypt(Convert.FromBase64String(textFile.Base64Cipher), cipherKey, iv);
                 if (decryptResult.Status == CipherDecryptStatus.MacFailed) {
@@ -150,9 +167,9 @@ namespace SecureTextEditor.File.Handler {
                     return new OpenFileResult(OpenFileStatus.Failed, decryptResult.Exception, null, null);
                 }
 
+                // Reverse the appending of the hash if needed
                 byte[] messageDecrypted = decryptResult.Result;
                 byte[] message = messageDecrypted;
-                // Reverse the appending of the hash if needed
                 if (options.DigestType != DigestType.None) {
                     DigestEngine digestEngine = new DigestEngine(options.DigestType);
 

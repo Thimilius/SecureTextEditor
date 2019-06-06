@@ -154,7 +154,7 @@ namespace SecureTextEditor.GUI {
         }
 
         private void OnKeyOptionSelectionChanged(CipherKeyOption option) {
-            KeySizeOption.Visibility = option == CipherKeyOption.Generated ? Visibility.Visible : Visibility.Hidden;
+            KeySizeOption.Visibility = option == CipherKeyOption.Generate ? Visibility.Visible : Visibility.Hidden;
             PasswordOption.Visibility = option == CipherKeyOption.PBE || option == CipherKeyOption.PBEWithSCRYPT ? Visibility.Visible : Visibility.Hidden;
         }
 

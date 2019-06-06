@@ -136,7 +136,7 @@ namespace SecureTextEditor.Crypto.Cipher {
             }
 
             switch (m_KeyOption) {
-                case CipherKeyOption.Generated:
+                case CipherKeyOption.Generate:
                     CipherKeyGenerator generator = new CipherKeyGenerator();
                     generator.Init(new KeyGenerationParameters(new SecureRandom(), m_KeySize));
                     return generator.GenerateKey();
@@ -214,7 +214,7 @@ namespace SecureTextEditor.Crypto.Cipher {
         /// <returns>The generated cipher parameters</returns>
         private ICipherParameters GenerateCipherParameters(byte[] key, byte[] iv) {
             switch (m_KeyOption) {
-                case CipherKeyOption.Generated:
+                case CipherKeyOption.Generate:
                     KeyParameter keyParameter = new KeyParameter(key);
                     if (iv == null || m_Type == CipherType.RC4 || m_CipherMode == CipherMode.ECB) {
                         return keyParameter;

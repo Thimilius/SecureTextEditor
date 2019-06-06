@@ -6,7 +6,7 @@
         /// <summary>
         /// Describes that a key is to be generated.
         /// </summary>
-        Generated,
+        Generate,
         /// <summary>
         /// Describes that a key is to be generated from a provieded password.
         /// </summary>
