@@ -1,14 +1,14 @@
 ﻿using System.Windows;
 
-namespace SecureTextEditor.GUI {
+namespace SecureTextEditor.GUI.Dialog {
     /// <summary>
     /// Interaction logic for a dialog window.
     /// </summary>
-    public partial class DialogWindow : Window {
+    public partial class DialogBox : Window {
         /// <summary>
         /// Creates a new dialog window.
         /// </summary>
-        public DialogWindow() {
+        private DialogBox() {
             InitializeComponent();
         }
 
@@ -21,7 +21,7 @@ namespace SecureTextEditor.GUI {
         /// <param name="caption">The title of the dialog window</param>
         /// <returns>True if ok was clicked, false if cancel was clicked</returns>
         public static bool Show(Window owner, string message, string caption) {
-            return Show(owner, message, caption, MessageBoxButton.OK, MessageBoxImage.Information);
+            return Show(owner, message, caption, DialogBoxButton.OK, DialogBoxIcon.Information);
         }
 
         /// <summary>
@@ -33,9 +33,9 @@ namespace SecureTextEditor.GUI {
         /// <param name="button">The buttons to display</param>
         /// <param name="icon">The icon to display</param>
         /// <returns>True if ok was clicked, false if cancel was clicked</returns>
-        public static bool Show(Window owner, string message, string caption, MessageBoxButton button, MessageBoxImage icon) {
+        public static bool Show(Window owner, string message, string caption, DialogBoxButton button, DialogBoxIcon icon) {
             // Create window and set properties
-            var dialog = new DialogWindow() {
+            var dialog = new DialogBox() {
                 Owner = owner,
                 Title = caption
             };
@@ -76,11 +76,10 @@ namespace SecureTextEditor.GUI {
         /// </summary>
         /// <param name="dialog">The dialog window to set up</param>
         /// <param name="button">The buttons to set up</param>
-        private static void SetButtons(DialogWindow dialog, MessageBoxButton button) {
+        private static void SetButtons(DialogBox dialog, DialogBoxButton button) {
             // Set the right buttons
             switch (button) {
-                case MessageBoxButton.YesNoCancel:
-                case MessageBoxButton.YesNo:
+                case DialogBoxButton.YesNo:
                     dialog.CancelButton.Content = "No";
                     dialog.OkButton.Content = "Yes";
                     break;
@@ -95,13 +94,13 @@ namespace SecureTextEditor.GUI {
         /// </summary>
         /// <param name="dialog">The dialog window to set up</param>
         /// <param name="icon">The icon to set up</param>
-        private static void SetIcon(DialogWindow dialog, MessageBoxImage icon) {
+        private static void SetIcon(DialogBox dialog, DialogBoxIcon icon) {
             // Set the right Font Awesome icon
             switch (icon) {
-                case MessageBoxImage.Question: dialog.IconText.Text = "\uf059"; break;
-                case MessageBoxImage.Information: dialog.IconText.Text = "\uf05a"; break;
-                case MessageBoxImage.Warning: dialog.IconText.Text = "\uf071"; break;
-                case MessageBoxImage.Error: dialog.IconText.Text = "\uf06a"; break;
+                case DialogBoxIcon.Information: dialog.IconText.Text = "\uf05a"; break;
+                case DialogBoxIcon.Question: dialog.IconText.Text = "\uf059"; break;
+                case DialogBoxIcon.Error: dialog.IconText.Text = "\uf06a"; break;
+                case DialogBoxIcon.Key: dialog.IconText.Text = "\uf084"; break;
                 default: dialog.IconText.Text = ""; break;
             }
         }

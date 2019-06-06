@@ -68,6 +68,8 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Config\IConfig.cs" />
+    <Compile Include="Dialog\DialogBoxButton.cs" />
+    <Compile Include="Dialog\DialogBoxIcon.cs" />
     <Compile Include="Editor\ITextEditorControl.cs" />
     <Compile Include="Editor\ITextEditorTab.cs" />
     <Compile Include="Editor\TextEditorControl.cs" />
@@ -76,8 +78,8 @@
     <Compile Include="Config\AppConfig.cs" />
     <Compile Include="Config\Theme.cs" />
     <Compile Include="Editor\TextEditorCommands.cs" />
-    <Compile Include="Windows\DialogWindow.xaml.cs">
-      <DependentUpon>DialogWindow.xaml</DependentUpon>
+    <Compile Include="Dialog\DialogBox.xaml.cs">
+      <DependentUpon>DialogBox.xaml</DependentUpon>
     </Compile>
     <Compile Include="Windows\PasswordWindow.xaml.cs">
       <DependentUpon>PasswordWindow.xaml</DependentUpon>
@@ -85,7 +87,7 @@
     <Compile Include="Windows\SaveWindow.xaml.cs">
       <DependentUpon>SaveWindow.xaml</DependentUpon>
     </Compile>
-    <Page Include="Windows\DialogWindow.xaml">
+    <Page Include="Dialog\DialogBox.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

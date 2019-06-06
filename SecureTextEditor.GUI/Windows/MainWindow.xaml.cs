@@ -9,6 +9,7 @@ using Microsoft.Win32;
 using SecureTextEditor.File;
 using SecureTextEditor.File.Handler;
 using SecureTextEditor.GUI.Config;
+using SecureTextEditor.GUI.Dialog;
 using SecureTextEditor.GUI.Editor;
 
 namespace SecureTextEditor.GUI {
@@ -90,20 +91,20 @@ namespace SecureTextEditor.GUI {
                 // Update UI
                 UpdateEncodingStatus();
             } else if (result.Status == OpenFileStatus.MacFailed) {
-                DialogWindow.Show(
+                DialogBox.Show(
                     Application.Current.MainWindow,
                     "It appears the file can not be restored correctly!\nThis can be an indication that the file got tampered with!",
                     "File Broken",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error
+                    DialogBoxButton.OK,
+                    DialogBoxIcon.Error
                 );
             } else if (result.Status == OpenFileStatus.Failed) {
-                DialogWindow.Show(
+                DialogBox.Show(
                     Application.Current.MainWindow,
                     $"Failed to open/decrypt the file!",
                     "Opening Failed",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error
+                    DialogBoxButton.OK,
+                    DialogBoxIcon.Error
                 );
             }
         }
@@ -123,11 +124,11 @@ namespace SecureTextEditor.GUI {
         /// <param name="tab">The tab that should get saved</param>
         public void PromptSaveDialog(ITextEditorTab tab) {
             // Show question dialog
-            bool save = DialogWindow.Show(this,
+            bool save = DialogBox.Show(this,
                 $"Do you want to save \"{tab.MetaData.FileMetaData.FileName}\" before closing?",
                 "Save",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Question);
+                DialogBoxButton.YesNo,
+                DialogBoxIcon.Question);
 
             if (save) {
                 PromptSaveWindow(tab);
@@ -190,12 +191,12 @@ namespace SecureTextEditor.GUI {
         }
 
         private string ShowFileDialogForKeyFile(string message, string messageTitle, string dialogTitle, string dialogFilter) {
-            DialogWindow.Show(
+            DialogBox.Show(
                     Application.Current.MainWindow,
                     message,
                     messageTitle,
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information
+                    DialogBoxButton.OK,
+                    DialogBoxIcon.Key
                 );
 
             // Show dialog for opening a file

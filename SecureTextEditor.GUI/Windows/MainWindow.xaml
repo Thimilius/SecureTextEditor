@@ -82,7 +82,7 @@
                     <ColumnDefinition Width="25" />
                 </Grid.ColumnDefinitions>
 
-                <TextBlock Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Center" Text="&#xf00c;" FontFamily="{StaticResource FontAwesome}" />
+                <TextBlock Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Center" Text="&#xf303;" FontFamily="{StaticResource FontAwesome}" />
 
                 <!-- Vertical seperator -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal">

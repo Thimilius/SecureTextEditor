@@ -11,6 +11,7 @@ using SecureTextEditor.File;
 using SecureTextEditor.File.Handler;
 using SecureTextEditor.File.Options;
 using SecureTextEditor.GUI.Config;
+using SecureTextEditor.GUI.Dialog;
 using SecureTextEditor.GUI.Editor;
 
 namespace SecureTextEditor.GUI {
@@ -22,8 +23,6 @@ namespace SecureTextEditor.GUI {
         private readonly ITextEditorTab m_TabToSave;
         private readonly bool m_CTSPaddingAvailable;
         private bool m_SaveInProgress;
-
-        // TODO: Validate password input 
 
         public SaveWindow(ITextEditorControl control, ITextEditorTab tab) {
             InitializeComponent();
@@ -51,6 +50,7 @@ namespace SecureTextEditor.GUI {
             // Set up events
             CipherTypeComboBox.SelectionChanged += (s, e) => OnCipherTypeSelectionChanged((CipherType)CipherTypeComboBox.SelectedItem);
             KeyOptionComboBox.SelectionChanged += (s, e) => OnKeyOptionSelectionChanged((CipherKeyOption)KeyOptionComboBox.SelectedItem);
+            PasswordTextBox.PasswordChanged += (s, e) => OnPasswordChanged(PasswordTextBox.Password);
             AESModeComboBox.SelectionChanged += (s, e) => {
                 if (AESModeComboBox.SelectedItem != null) {
                     OnAESModeSelectionChanged((CipherMode)AESModeComboBox.SelectedItem);
@@ -60,6 +60,7 @@ namespace SecureTextEditor.GUI {
 
             // Set up initial ui visibility
             OnCipherTypeSelectionChanged(options.Type);
+            OnPasswordChanged("");
             OnAESPaddingSelectionChanged(optionsAES.Padding);
             OnAESModeSelectionChanged(optionsAES.Mode);
 
@@ -136,12 +137,12 @@ namespace SecureTextEditor.GUI {
             if (result.Status == SaveFileStatus.Success) {
                 return result.FileMetaData;
             } else {
-                DialogWindow.Show(
+                DialogBox.Show(
                     Application.Current.MainWindow,
                     $"Failed to save the file:\n{path}!\n{result.Exception.GetType()}\n{result.Exception.Message}",
                     "Saving Failed",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error
+                    DialogBoxButton.OK,
+                    DialogBoxIcon.Error
                 );
                 return null;
             }
@@ -156,6 +157,14 @@ namespace SecureTextEditor.GUI {
         private void OnKeyOptionSelectionChanged(CipherKeyOption option) {
             KeySizeOption.Visibility = option == CipherKeyOption.Generate ? Visibility.Visible : Visibility.Hidden;
             PasswordOption.Visibility = option == CipherKeyOption.PBE || option == CipherKeyOption.PBEWithSCRYPT ? Visibility.Visible : Visibility.Hidden;
+            SaveButton.IsEnabled = option == CipherKeyOption.Generate;
+            PasswordTextBox.Clear();
+        }
+
+        private void OnPasswordChanged(string password) {
+            if ((CipherKeyOption)KeyOptionComboBox.SelectedItem != CipherKeyOption.Generate) {
+                SaveButton.IsEnabled = password != null && password != "";
+            }
         }
 
         private void OnAESPaddingSelectionChanged(CipherPadding padding) {
