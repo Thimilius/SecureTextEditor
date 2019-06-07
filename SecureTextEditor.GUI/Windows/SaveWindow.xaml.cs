@@ -24,10 +24,6 @@ namespace SecureTextEditor.GUI {
         private readonly bool m_CTSPaddingAvailable;
         private bool m_SaveInProgress;
 
-        // TODO: RC4 should not have PBEWithSCRYPT option
-        // TODO: PBE should only use CBC with some padding
-        // TODO: PBEWithSCRYPT should only use GCM with no padding
-
         public SaveWindow(ITextEditorControl control, ITextEditorTab tab) {
             InitializeComponent();
 
@@ -67,6 +63,7 @@ namespace SecureTextEditor.GUI {
             OnPasswordChanged("");
             OnAESPaddingSelectionChanged(optionsAES.Padding);
             OnAESModeSelectionChanged(optionsAES.Mode);
+            OnKeyOptionSelectionChanged(options.KeyOption);
 
             // The selection of the mode is a littly hacky because of the weird dependency to the padding
             if (AESModeComboBox.Items.Contains(optionsAES.Mode)) {
@@ -154,6 +151,7 @@ namespace SecureTextEditor.GUI {
 
         private void OnCipherTypeSelectionChanged(CipherType type) {
             AESOptions.Visibility = type == CipherType.AES ? Visibility.Visible : Visibility.Hidden;
+            KeyOptionComboBox.ItemsSource = type == CipherType.AES ? GetEnumValuesWithout<CipherKeyOption>() : GetEnumValuesWithout(CipherKeyOption.PBEWithSCRYPT);
             KeySizeComboBox.ItemsSource = type == CipherType.AES ? CipherEngine.AES_ACCEPTED_KEYS : CipherEngine.RC4_ACCEPTED_KEYS;
             KeySizeComboBox.SelectedIndex = KeySizeComboBox.Items.Count - 1;
         }
@@ -163,6 +161,19 @@ namespace SecureTextEditor.GUI {
             PasswordOption.Visibility = option == CipherKeyOption.PBE || option == CipherKeyOption.PBEWithSCRYPT ? Visibility.Visible : Visibility.Hidden;
             SaveButton.IsEnabled = option == CipherKeyOption.Generate;
             PasswordTextBox.Clear();
+
+            // Use special options for pbe and pbe with SCRYPT
+            if (option == CipherKeyOption.PBE) {
+                // PBE supports only CBC mode with PKCS7 padding
+                AESPaddingComboBox.SelectedItem = CipherPadding.PKCS7;
+                AESModeComboBox.SelectedItem = CipherMode.CBC;
+            } else if (option == CipherKeyOption.PBEWithSCRYPT) {
+                // PBEWithSCRYPT supports only GCM mode
+                AESPaddingComboBox.SelectedItem = CipherPadding.None;
+                AESModeComboBox.SelectedItem = CipherMode.GCM;
+            }
+            AESModeComboBox.IsEnabled = option == CipherKeyOption.Generate;
+            AESPaddingComboBox.IsEnabled = option == CipherKeyOption.Generate;
         }
 
         private void OnPasswordChanged(string password) {
