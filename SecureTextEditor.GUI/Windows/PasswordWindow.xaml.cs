@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using System.Windows.Input;
 
 namespace SecureTextEditor.GUI {
     /// <summary>
@@ -52,6 +53,19 @@ namespace SecureTextEditor.GUI {
             DialogResult = true;
             Password = PasswordTextBox.Password;
             Close();
+        }
+
+        /// <summary>
+        /// Callback whenever the window recieves a key down event.
+        /// </summary>
+        /// <param name="e">The event parameters</param>
+        protected override void OnKeyDown(KeyEventArgs e) {
+            base.OnKeyDown(e);
+
+            // Submit on enter
+            if (e.Key == Key.Enter) {
+                OnSubmit(null, null);
+            }
         }
     }
 }
