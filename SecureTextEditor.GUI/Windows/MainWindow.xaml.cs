@@ -39,7 +39,6 @@ namespace SecureTextEditor.GUI {
             TextEditorControl.NewTab("");
 
             // Subscribe to global events
-            EditorTabControl.MouseWheel += OnZoomChanged;
             Closing += OnWindowClosing;
             ThemeCheckBoxLightMode.Click += (s, e) => ChangeTheme(Theme.LightMode);
             ThemeCheckBoxDarkMode.Click += (s, e) => ChangeTheme(Theme.DarkMode);
@@ -262,17 +261,6 @@ namespace SecureTextEditor.GUI {
 
         private void OnZoomReset(object sender, RoutedEventArgs e) {
             TextEditorControl.ZoomReset();
-        }
-
-        private void OnZoomChanged(object sender, MouseWheelEventArgs e) {
-            // Handles zoom change via mouse wheel when control is held down
-            if (Keyboard.PrimaryDevice.Modifiers == ModifierKeys.Control) {
-                if (e.Delta > 0) {
-                    TextEditorControl.ZoomIn();
-                } else {
-                    TextEditorControl.ZoomOut();
-                }
-            }
         }
 
         private void OnCloseTab(object sender, RoutedEventArgs e) {
