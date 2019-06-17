@@ -49,7 +49,11 @@ namespace SecureTextEditor.GUI {
 
             // Set up events
             CipherTypeComboBox.SelectionChanged += (s, e) => OnCipherTypeSelectionChanged((CipherType)CipherTypeComboBox.SelectedItem);
-            KeyOptionComboBox.SelectionChanged += (s, e) => OnKeyOptionSelectionChanged((CipherKeyOption)KeyOptionComboBox.SelectedItem);
+            KeyOptionComboBox.SelectionChanged += (s, e) => {
+                if (KeyOptionComboBox.SelectedItem != null) {
+                    OnKeyOptionSelectionChanged((CipherKeyOption)KeyOptionComboBox.SelectedItem);
+                }
+            };
             PasswordTextBox.PasswordChanged += (s, e) => OnPasswordChanged(PasswordTextBox.Password);
             AESModeComboBox.SelectionChanged += (s, e) => {
                 if (AESModeComboBox.SelectedItem != null) {
@@ -152,6 +156,7 @@ namespace SecureTextEditor.GUI {
         private void OnCipherTypeSelectionChanged(CipherType type) {
             AESOptions.Visibility = type == CipherType.AES ? Visibility.Visible : Visibility.Hidden;
             KeyOptionComboBox.ItemsSource = type == CipherType.AES ? GetEnumValuesWithout<CipherKeyOption>() : GetEnumValuesWithout(CipherKeyOption.PBEWithSCRYPT);
+            KeyOptionComboBox.SelectedIndex = 0;
             KeySizeComboBox.ItemsSource = type == CipherType.AES ? CipherEngine.AES_ACCEPTED_KEYS : CipherEngine.RC4_ACCEPTED_KEYS;
             KeySizeComboBox.SelectedIndex = KeySizeComboBox.Items.Count - 1;
         }
