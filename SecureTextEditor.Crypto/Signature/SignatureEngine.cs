@@ -71,10 +71,18 @@ namespace SecureTextEditor.Crypto.Signature {
         private AsymmetricCipherKeyPair GetKeyPair() {
             switch (m_Type) {
                 case SignatureType.SHA256WithDSA:
-                    DsaKeyPairGenerator generator = new DsaKeyPairGenerator();
-                    DsaParametersGenerator parametersGenerator = new DsaParametersGenerator();
+                    int GetN() {
+                        switch (m_KeySize) {
+                            case 1024: return 160;
+                            case 3072: return 256;
+                            default: throw new InvalidOperationException();
+                        }
+                    }
 
-                    parametersGenerator.Init(m_KeySize, CERTAINTY, new SecureRandom());
+                    DsaKeyPairGenerator generator = new DsaKeyPairGenerator();
+                    DsaParametersGenerator parametersGenerator = new DsaParametersGenerator(new Sha256Digest());
+
+                    parametersGenerator.Init(new DsaParameterGenerationParameters(m_KeySize, GetN(), CERTAINTY, new SecureRandom()));
 
                     var parameters = parametersGenerator.GenerateParameters();
                     generator.Init(new DsaKeyGenerationParameters(new SecureRandom(), parameters));

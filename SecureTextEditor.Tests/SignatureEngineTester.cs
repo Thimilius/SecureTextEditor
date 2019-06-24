@@ -13,7 +13,7 @@ namespace SecureTextEditor.Tests {
 
         [TestMethod]
         public void SHA256WithDSA_Test() {
-            SignatureEngine engine = new SignatureEngine(SignatureType.SHA256WithDSA, 1024);
+            SignatureEngine engine = new SignatureEngine(SignatureType.SHA256WithDSA, 3072);
             SignatureKeyPair keyPair = engine.GenerateKeyPair();
             byte[] sign = engine.Sign(BLOCK_UNALIGNED_MESSAGE, keyPair.PrivateKey);
             bool verify = engine.Verify(BLOCK_UNALIGNED_MESSAGE, sign, keyPair.PublicKey);
