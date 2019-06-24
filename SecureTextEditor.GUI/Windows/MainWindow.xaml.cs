@@ -3,7 +3,6 @@ using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 using AdonisUI;
 using Microsoft.Win32;
 using SecureTextEditor.File;
@@ -89,11 +88,19 @@ namespace SecureTextEditor.GUI {
 
                 // Update UI
                 UpdateEncodingStatus();
+            } else if (result.Status == OpenFileStatus.SignatureFailed) {
+                DialogBox.Show(
+                    Application.Current.MainWindow,
+                    "It appears the file can not be restored correctly!\nThis can be an indication that the file got tampered with!",
+                    "Signature Failed",
+                    DialogBoxButton.OK,
+                    DialogBoxIcon.Error
+                );
             } else if (result.Status == OpenFileStatus.MacFailed) {
                 DialogBox.Show(
                     Application.Current.MainWindow,
                     "It appears the file can not be restored correctly!\nThis can be an indication that the file got tampered with!",
-                    "File Broken",
+                    "Mac Failed",
                     DialogBoxButton.OK,
                     DialogBoxIcon.Error
                 );

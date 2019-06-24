@@ -14,6 +14,10 @@ namespace SecureTextEditor.File.Handler {
         /// </summary>
         Canceled,
         /// <summary>
+        /// Describes that the open file operation failed because of a signature that could not be verifyed.
+        /// </summary>
+        SignatureFailed,
+        /// <summary>
         /// Describes that the open file operation failed because of a mac that did not match.
         /// </summary>
         MacFailed,

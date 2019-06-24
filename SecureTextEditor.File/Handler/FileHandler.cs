@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using SecureTextEditor.Crypto.Cipher;
 using SecureTextEditor.Crypto.Digest;
+using SecureTextEditor.Crypto.Signature;
 using SecureTextEditor.File.Options;
 
 namespace SecureTextEditor.File.Handler {
@@ -82,7 +83,19 @@ namespace SecureTextEditor.File.Handler {
                     byte[] iv = cipherEngine.GenerateIV();
                     byte[] cipher = cipherEngine.Encrypt(messageToEncrypt, cipherKey, iv);
 
-                    SecureTextFile textFile = new SecureTextFile(options, encoding, iv != null ? Convert.ToBase64String(iv) : null, Convert.ToBase64String(cipher));
+                    // Sign the cipher
+                    SignatureEngine signaturEngine = new SignatureEngine(options.SignatureType, options.SignatureKeySize);
+                    SignatureKeyPair keyPair = signaturEngine.GenerateKeyPair();
+                    byte[] sign = signaturEngine.Sign(cipher, keyPair.PrivateKey);
+
+                    SecureTextFile textFile = new SecureTextFile(
+                        options,
+                        encoding,
+                        iv != null ? Convert.ToBase64String(iv) : null,
+                        Convert.ToBase64String(keyPair.PublicKey),
+                        Convert.ToBase64String(sign),
+                        Convert.ToBase64String(cipher)
+                    );
                     SaveSecureTextFile(path, textFile);
 
                     // Save cipher key into file next to the text file
@@ -118,6 +131,7 @@ namespace SecureTextEditor.File.Handler {
                 SecureTextFile textFile = LoadSecureTextFile<SecureTextFile>(path);
                 TextEncoding encoding = textFile.Encoding;
                 EncryptionOptions options = textFile.EncryptionOptions;
+                byte[] cipher = Convert.FromBase64String(textFile.Base64Cipher);
 
                 CipherEngine cipherEngine = GetCryptoEngine(options);
 
@@ -158,9 +172,15 @@ namespace SecureTextEditor.File.Handler {
                     macKey = System.IO.File.ReadAllBytes(macKeyPath);
                 }
 
+                // Verify signature
+                SignatureEngine signatureEngine = new SignatureEngine(options.SignatureType, options.SignatureKeySize);
+                if (!signatureEngine.Verify(cipher, Convert.FromBase64String(textFile.Base64Signature), Convert.FromBase64String(textFile.Base64SignatureKey))) {
+                    return new OpenFileResult(OpenFileStatus.SignatureFailed, null, null, null);
+                }
+
                 // Decrypt cipher
                 byte[] iv = textFile.Base64IV != null ? Convert.FromBase64String(textFile.Base64IV) : null;
-                CipherDecryptResult decryptResult = cipherEngine.Decrypt(Convert.FromBase64String(textFile.Base64Cipher), cipherKey, iv);
+                CipherDecryptResult decryptResult = cipherEngine.Decrypt(cipher, cipherKey, iv);
                 if (decryptResult.Status == CipherDecryptStatus.MacFailed) {
                     return new OpenFileResult(OpenFileStatus.MacFailed, decryptResult.Exception, null, null);
                 } else if (decryptResult.Status == CipherDecryptStatus.Failed) {
