@@ -19,11 +19,11 @@ namespace SecureTextEditor.Crypto.Cipher {
         /// </summary>
         public const int BLOCK_SIZE = 16;
         /// <summary>
-        /// The keys accepted in AES encryption.
+        /// The key sizes accepted in AES encryption.
         /// </summary>
         public static readonly int[] AES_ACCEPTED_KEYS = new int[] { 128, 192, 256 };
         /// <summary>
-        /// The keys accepted in RC4 encryption.
+        /// The key sizes accepted in RC4 encryption.
         /// </summary>
         public static readonly int[] RC4_ACCEPTED_KEYS = new int[] { 40, 64, 128, 160, 192, 256, 512, 1024, 2048 };
         /// <summary>
@@ -53,10 +53,6 @@ namespace SecureTextEditor.Crypto.Cipher {
         /// </summary>
         private readonly CipherMode m_CipherMode;
         /// <summary>
-        /// The actual concrete cipher that will be used for encrypting and decrypting.
-        /// </summary>
-        private readonly IBufferedCipher m_Cipher;
-        /// <summary>
         /// The type of key that is used.
         /// </summary>
         private readonly CipherKeyOption m_KeyOption;
@@ -64,6 +60,10 @@ namespace SecureTextEditor.Crypto.Cipher {
         /// The size of the key to use.
         /// </summary>
         private readonly int m_KeySize;
+        /// <summary>
+        /// The actual concrete cipher that will be used for encrypting and decrypting.
+        /// </summary>
+        private readonly IBufferedCipher m_Cipher;
 
         /// <summary>
         /// Creates a new crypto engine with given parameters.
@@ -74,16 +74,7 @@ namespace SecureTextEditor.Crypto.Cipher {
         /// <param name="padding">The cipher block padding to use</param>
         /// <param name="encoding">The encoding to use</param>
         public CipherEngine(CipherType type, CipherMode mode, CipherPadding padding, CipherKeyOption option, int keySize) {
-            // Verify key options
-            if (option == CipherKeyOption.PBE) {
-                if (mode != CipherMode.CBC) {
-                    throw new InvalidOperationException("Key option PBE is only supported with CBC mode!");
-                }
-            } else if (option == CipherKeyOption.PBEWithSCRYPT) {
-                if (type != CipherType.AES || mode != CipherMode.GCM || padding != CipherPadding.None) {
-                    throw new InvalidOperationException("Key option PBEWithSCRYPT is only supported via AES with GCM and no padding!");
-                }
-            }
+            ValidateParameters(type, mode, padding, option, keySize);
 
             m_Type = type;
             m_CipherMode = mode;
@@ -145,12 +136,7 @@ namespace SecureTextEditor.Crypto.Cipher {
         /// <param name="password">The password required for password based encryption (Can be null if not needed)</param>
         /// <returns>The generated key</returns>
         public byte[] GenerateKey(char[] password) {
-            if (m_Type == CipherType.AES && !AES_ACCEPTED_KEYS.Contains(m_KeySize)) {
-                throw new ArgumentException("Invalid key size", nameof(m_KeySize));
-            }
-            if (m_Type == CipherType.RC4 && !RC4_ACCEPTED_KEYS.Contains(m_KeySize)) {
-                throw new ArgumentException("Invalid key size", nameof(m_KeySize));
-            }
+            
 
             switch (m_KeyOption) {
                 case CipherKeyOption.Generate:
@@ -256,6 +242,27 @@ namespace SecureTextEditor.Crypto.Cipher {
                     keyParameter = new KeyParameter(SCrypt.Generate(key, iv, 2048, 16, 1, m_KeySize / 8));
                     return new ParametersWithIV(keyParameter, iv);
                 default: throw new InvalidOperationException();
+            }
+        }
+
+        private void ValidateParameters(CipherType type, CipherMode mode, CipherPadding padding, CipherKeyOption option, int keySize) {
+            // Verify key options
+            if (option == CipherKeyOption.PBE) {
+                if (type == CipherType.AES && mode != CipherMode.CBC) {
+                    throw new InvalidOperationException("Key option PBE with AES is only supported with CBC mode!");
+                }
+            } else if (option == CipherKeyOption.PBEWithSCRYPT) {
+                if (type != CipherType.AES || mode != CipherMode.GCM || padding != CipherPadding.None) {
+                    throw new InvalidOperationException("Key option PBEWithSCRYPT is only supported via AES with GCM and no padding!");
+                }
+            }
+
+            // Verify key sizes
+            if (type == CipherType.AES && !AES_ACCEPTED_KEYS.Contains(keySize)) {
+                throw new InvalidOperationException($"Invalid key size of {keySize}!");
+            }
+            if (type == CipherType.RC4 && !RC4_ACCEPTED_KEYS.Contains(keySize)) {
+                throw new InvalidOperationException($"Invalid key size of {keySize}!");
             }
         }
     }
