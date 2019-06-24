@@ -54,7 +54,6 @@
                         <Style TargetType="Border">
                             <Setter Property="BorderThickness" Value="0" />
                             <Setter Property="BorderBrush" Value="Transparent" />
-                            <Setter Property="Grid.Row" Value="4" />
                         </Style>
 
                         <Style TargetType="StackPanel">
@@ -84,6 +83,8 @@
                     </Grid.ColumnDefinitions>
 
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="5" />
                         <RowDefinition Height="*" />
                         <RowDefinition Height="5" />
                         <RowDefinition Height="*" />
@@ -122,8 +123,39 @@
                         <Separator Grid.Column="1"></Separator>
                     </Grid>
 
-                    <!-- Key options -->
+                    <!-- Signature options -->
                     <Grid Grid.Row="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Signature type -->
+                        <StackPanel Grid.Column="0">
+                            <Label Content="Signature Type:" />
+                            <ComboBox Name="SignatureTypeComboBox" />
+                        </StackPanel>
+
+                        <!-- Signature key size option -->
+                        <StackPanel Grid.Column="1">
+                            <Label Content="Signature Key Size:" />
+                            <ComboBox Name="SignatureKeySizeComboBox" />
+                        </StackPanel>
+                    </Grid>
+                    
+                    <!-- Separator -->
+                    <Grid Grid.Row="3">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="9.2*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Separator Grid.Column="1"></Separator>
+                    </Grid>
+                    
+                    <!-- Key options -->
+                    <Grid Grid.Row="4">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
@@ -155,7 +187,7 @@
                     </Grid>
                     
                     <!-- Separator -->
-                    <Grid Grid.Row="3">
+                    <Grid Grid.Row="5">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="9.2*" />
@@ -166,7 +198,7 @@
                     </Grid>
 
                     <!-- AES options -->
-                    <Border Name="AESOptions">
+                    <Border Name="AESOptions" Grid.Row="6">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />

@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using SecureTextEditor.Crypto.Cipher;
 using SecureTextEditor.Crypto.Digest;
+using SecureTextEditor.Crypto.Signature;
 
 namespace SecureTextEditor.File.Options {
     /// <summary>
@@ -15,6 +16,14 @@ namespace SecureTextEditor.File.Options {
         /// The digest type used for hashing.
         /// </summary>
         [JsonProperty(Required = Required.Always)] public DigestType DigestType { get; set; }
+        /// <summary>
+        /// The signature type used.
+        /// </summary>
+        [JsonProperty(Required = Required.Always)] public SignatureType SignatureType { get; set; }
+        /// <summary>
+        /// The size of the key used for the signature.
+        /// </summary>
+        [JsonProperty(Required = Required.Always)] public int SignatureKeySize { get; set; }
         /// <summary>
         /// The key option to use for encryption.
         /// </summary>

@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using SecureTextEditor.Crypto.Cipher;
 using SecureTextEditor.Crypto.Digest;
+using SecureTextEditor.Crypto.Signature;
 using SecureTextEditor.File;
 using SecureTextEditor.File.Options;
 
@@ -86,13 +87,17 @@ namespace SecureTextEditor.GUI.Config {
                         DigestType = DigestType.SHA256,
                         KeyOption = CipherKeyOption.Generate,
                         KeySize = 192,
+                        SignatureType = SignatureType.SHA256WithDSA,
+                        SignatureKeySize = 1024,
                         Mode = CipherMode.CBC,
                         Padding = CipherPadding.PKCS7
                     } },
                     { CipherType.RC4, new EncryptionOptionsRC4() {
                         DigestType = DigestType.SHA256,
                         KeyOption = CipherKeyOption.Generate,
-                        KeySize = 192
+                        KeySize = 192,
+                        SignatureType = SignatureType.SHA256WithDSA,
+                        SignatureKeySize = 1024
                     } },
                 }
             };

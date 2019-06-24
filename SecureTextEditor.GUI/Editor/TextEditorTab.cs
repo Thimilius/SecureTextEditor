@@ -1,7 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using SecureTextEditor.File;
 
 namespace SecureTextEditor.GUI.Editor {
     public class TextEditorTab : ITextEditorTab {

@@ -7,6 +7,7 @@ using System.Windows;
 using Microsoft.Win32;
 using SecureTextEditor.Crypto.Cipher;
 using SecureTextEditor.Crypto.Digest;
+using SecureTextEditor.Crypto.Signature;
 using SecureTextEditor.File;
 using SecureTextEditor.File.Handler;
 using SecureTextEditor.File.Options;
@@ -32,15 +33,19 @@ namespace SecureTextEditor.GUI {
             m_CTSPaddingAvailable = m_TabToSave.Editor.Text.Length >= CipherEngine.BLOCK_SIZE;
 
             // Set up UI
-            DigestTypeComboBox.ItemsSource = GetEnumValuesWithout(DigestType.None);
             CipherTypeComboBox.ItemsSource = GetEnumValuesWithout<CipherType>();
-            AESPaddingComboBox.ItemsSource = GetEnumValuesWithout<CipherPadding>();
+            DigestTypeComboBox.ItemsSource = GetEnumValuesWithout(DigestType.None);
+            SignatureTypeComboBox.ItemsSource = GetEnumValuesWithout<SignatureType>();
+            SignatureKeySizeComboBox.ItemsSource = SignatureEngine.ACCEPTED_KEYS;
             KeyOptionComboBox.ItemsSource = GetEnumValuesWithout<CipherKeyOption>();
+            AESPaddingComboBox.ItemsSource = GetEnumValuesWithout<CipherPadding>();
 
             // Set default options
             EncryptionOptions options = tab.MetaData.FileMetaData.EncryptionOptions;
             CipherTypeComboBox.SelectedItem = options.Type;
             DigestTypeComboBox.SelectedItem = options.DigestType;
+            SignatureTypeComboBox.SelectedItem = options.SignatureType;
+            SignatureKeySizeComboBox.SelectedItem = options.SignatureKeySize;
             KeyOptionComboBox.SelectedItem = options.KeyOption;
 
             EncryptionOptionsAES optionsAES = GetDefaultEncryptionOptions<EncryptionOptionsAES>(options, CipherType.AES);
@@ -48,19 +53,27 @@ namespace SecureTextEditor.GUI {
             AESPaddingComboBox.SelectedItem = optionsAES.Padding;
 
             // Set up events
-            CipherTypeComboBox.SelectionChanged += (s, e) => OnCipherTypeSelectionChanged((CipherType)CipherTypeComboBox.SelectedItem);
+            CipherTypeComboBox.SelectionChanged += (s, e) => {
+                if (CipherTypeComboBox.SelectedItem is CipherType type) {
+                    OnCipherTypeSelectionChanged(type);
+                }
+            };
             KeyOptionComboBox.SelectionChanged += (s, e) => {
-                if (KeyOptionComboBox.SelectedItem != null) {
-                    OnKeyOptionSelectionChanged((CipherKeyOption)KeyOptionComboBox.SelectedItem);
+                if (KeyOptionComboBox.SelectedItem is CipherKeyOption option) {
+                    OnKeyOptionSelectionChanged(option);
+                }
+            };
+            AESModeComboBox.SelectionChanged += (s, e) => {
+                if (AESModeComboBox.SelectedItem is CipherMode mode) {
+                    OnAESModeSelectionChanged(mode);
+                }
+            };
+            AESPaddingComboBox.SelectionChanged += (s, e) => {
+                if (AESPaddingComboBox.SelectedItem is CipherPadding padding) {
+                    OnAESPaddingSelectionChanged(padding);
                 }
             };
             PasswordTextBox.PasswordChanged += (s, e) => OnPasswordChanged(PasswordTextBox.Password);
-            AESModeComboBox.SelectionChanged += (s, e) => {
-                if (AESModeComboBox.SelectedItem != null) {
-                    OnAESModeSelectionChanged((CipherMode)AESModeComboBox.SelectedItem);
-                }
-            };
-            AESPaddingComboBox.SelectionChanged += (s, e) => OnAESPaddingSelectionChanged((CipherPadding)AESPaddingComboBox.SelectedItem);
 
             // Set up initial ui visibility
             OnCipherTypeSelectionChanged(options.Type);
@@ -232,9 +245,12 @@ namespace SecureTextEditor.GUI {
                 default: throw new InvalidOperationException();
             }
 
+            options.DigestType = (DigestType)DigestTypeComboBox.SelectedItem;
+            options.SignatureType = (SignatureType)SignatureTypeComboBox.SelectedItem;
+            options.SignatureKeySize = (int)SignatureKeySizeComboBox.SelectedItem;
             options.KeyOption = (CipherKeyOption)KeyOptionComboBox.SelectedItem;
             options.KeySize = (int)KeySizeComboBox.SelectedItem;
-            options.DigestType = (DigestType)DigestTypeComboBox.SelectedItem;
+            
             return options;
         }
 
