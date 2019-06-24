@@ -74,6 +74,17 @@ namespace SecureTextEditor.Crypto.Cipher {
         /// <param name="padding">The cipher block padding to use</param>
         /// <param name="encoding">The encoding to use</param>
         public CipherEngine(CipherType type, CipherMode mode, CipherPadding padding, CipherKeyOption option, int keySize) {
+            // Verify key options
+            if (option == CipherKeyOption.PBE) {
+                if (mode != CipherMode.CBC) {
+                    throw new InvalidOperationException("Key option PBE is only supported with CBC mode!");
+                }
+            } else if (option == CipherKeyOption.PBEWithSCRYPT) {
+                if (type != CipherType.AES || mode != CipherMode.GCM || padding != CipherPadding.None) {
+                    throw new InvalidOperationException("Key option PBEWithSCRYPT is only supported via AES with GCM and no padding!");
+                }
+            }
+
             m_Type = type;
             m_CipherMode = mode;
             m_Cipher = GetCipher(type, mode, GetCipherPadding(padding));
