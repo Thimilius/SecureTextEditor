@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -16,7 +17,7 @@ namespace SecureTextEditor.File.Handler {
     /// Handler to resolve the password used in password based encryption.
     /// </summary>
     /// <returns>The password used in password based encryption</returns>
-    public delegate char[] PasswordResolver();
+    public delegate SecureString PasswordResolver();
     /// <summary>
     /// Handler to resolve the path to a cipher key file.
     /// </summary>
@@ -56,7 +57,7 @@ namespace SecureTextEditor.File.Handler {
             Converters = new List<JsonConverter>() { new StringEnumConverter() }
         };
 
-        public static async Task<SaveFileResult> SaveFileAsync(string path, EncryptionOptions options, TextEncoding encoding, string text, string password) {
+        public static async Task<SaveFileResult> SaveFileAsync(string path, EncryptionOptions options, TextEncoding encoding, string text, SecureString password) {
             try {
                 string fileName = Path.GetFileName(path);
 
@@ -79,7 +80,7 @@ namespace SecureTextEditor.File.Handler {
 
                     // Encrypt text and save file
                     CipherEngine cipherEngine = GetCryptoEngine(options);
-                    byte[] cipherKey = cipherEngine.GenerateKey(options.KeyOption == CipherKeyOption.Generate ? null : password.ToCharArray());
+                    byte[] cipherKey = password.Process(chars => cipherEngine.GenerateKey(options.KeyOption == CipherKeyOption.Generate ? null : chars));
                     byte[] iv = cipherEngine.GenerateIV();
                     byte[] cipher = cipherEngine.Encrypt(messageToEncrypt, cipherKey, iv);
 
@@ -98,13 +99,15 @@ namespace SecureTextEditor.File.Handler {
                     );
                     SaveSecureTextFile(path, textFile);
 
-                    // Save cipher key into file next to the text file
+                    // Save cipher key into file next to the text file and clear the array
                     System.IO.File.WriteAllBytes(GetPathForCipherKeyFile(path), cipherKey);
+                    cipherKey.Clear();
 
-                    // If we have a mac key to save, save it to a seperate file as well
+                    // If we have a mac key to save, save it to a seperate file as well and clear the array
                     if (options.DigestType != DigestType.None) {
                         if (macKey != null) {
                             System.IO.File.WriteAllBytes(GetPathForMacKeyFile(path), macKey);
+                            macKey.Clear();
                         }
                     }
                 });
@@ -149,12 +152,12 @@ namespace SecureTextEditor.File.Handler {
                     }
                     cipherKey = System.IO.File.ReadAllBytes(cipherKeyPath);
                 } else {
-                    char[] password = passwordResolver?.Invoke();
+                    SecureString password = passwordResolver?.Invoke();
                     // If no password was supplied, we bail out
                     if (password == null) {
                         return new OpenFileResult(OpenFileStatus.Canceled, null, null, null);
                     } else {
-                        cipherKey = cipherEngine.GenerateKey(password);
+                        cipherKey = password.Process(chars => cipherEngine.GenerateKey(chars));
                     }
                 }
 
@@ -181,6 +184,10 @@ namespace SecureTextEditor.File.Handler {
                 // Decrypt cipher
                 byte[] iv = textFile.Base64IV != null ? Convert.FromBase64String(textFile.Base64IV) : null;
                 CipherDecryptResult decryptResult = cipherEngine.Decrypt(cipher, cipherKey, iv);
+
+                // Clear out the cipher key because we no longer need it
+                cipherKey.Clear();
+
                 if (decryptResult.Status == CipherDecryptStatus.MacFailed) {
                     return new OpenFileResult(OpenFileStatus.MacFailed, decryptResult.Exception, null, null);
                 } else if (decryptResult.Status == CipherDecryptStatus.Failed) {
@@ -201,6 +208,12 @@ namespace SecureTextEditor.File.Handler {
 
                     // Compare saved and new computed digest
                     byte[] newDigest = digestEngine.Digest(message, macKey);
+
+                    // Clear out mac key if we had one because we no longer need it
+                    if (macKey != null) {
+                        macKey.Clear();
+                    }
+
                     if (!DigestEngine.AreEqual(newDigest, digest)) {
                         return new OpenFileResult(OpenFileStatus.MacFailed, decryptResult.Exception, null, null);
                     }

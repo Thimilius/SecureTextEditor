@@ -136,8 +136,6 @@ namespace SecureTextEditor.Crypto.Cipher {
         /// <param name="password">The password required for password based encryption (Can be null if not needed)</param>
         /// <returns>The generated key</returns>
         public byte[] GenerateKey(char[] password) {
-            
-
             switch (m_KeyOption) {
                 case CipherKeyOption.Generate:
                     CipherKeyGenerator generator = new CipherKeyGenerator();

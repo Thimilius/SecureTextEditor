@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Linq;
+using System.Security;
 using System.Windows;
 using System.Windows.Controls;
 using AdonisUI;
@@ -141,12 +142,12 @@ namespace SecureTextEditor.GUI {
             }
         }
 
-        private char[] PasswordResolver() {
+        private SecureString PasswordResolver() {
             PasswordWindow window = new PasswordWindow(this);
             bool? result = window.ShowDialog();
 
             if (result.Value == true) {
-                return window.Password.ToCharArray();
+                return window.Password;
             } else {
                 return null;
             }

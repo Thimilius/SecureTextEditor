@@ -1,15 +1,17 @@
-﻿using System.Windows;
+﻿using System;
+using System.Security;
+using System.Windows;
 using System.Windows.Input;
 
 namespace SecureTextEditor.GUI {
     /// <summary>
     /// Interaction logic for the password window.
     /// </summary>
-    public partial class PasswordWindow : Window {
+    public partial class PasswordWindow : Window, IDisposable {
         /// <summary>
         /// The password typed in.
         /// </summary>
-        public string Password { get; private set; }
+        public SecureString Password { get; private set; }
 
         /// <summary>
         /// Creates a new password window.
@@ -21,6 +23,10 @@ namespace SecureTextEditor.GUI {
             PasswordTextBox.PasswordChanged += (s, e) => OnPasswordChanged(PasswordTextBox.Password);
             OnPasswordChanged(PasswordTextBox.Password);
             PasswordTextBox.Focus();
+        }
+
+        public void Clear() {
+
         }
 
         /// <summary>
@@ -51,7 +57,7 @@ namespace SecureTextEditor.GUI {
         private void OnSubmit(object sender, RoutedEventArgs e) {
             // Set result and close window
             DialogResult = true;
-            Password = PasswordTextBox.Password;
+            Password = PasswordTextBox.SecurePassword;
             Close();
         }
 
@@ -66,6 +72,14 @@ namespace SecureTextEditor.GUI {
             if (e.Key == Key.Enter) {
                 OnSubmit(null, null);
             }
+        }
+
+        /// <summary>
+        /// Dispose this window.
+        /// </summary>
+        public void Dispose() {
+            // Clear out the password box
+            PasswordTextBox.Clear();
         }
     }
 }

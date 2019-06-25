@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Security;
 using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.Win32;
@@ -24,6 +25,8 @@ namespace SecureTextEditor.GUI {
         private readonly ITextEditorTab m_TabToSave;
         private readonly bool m_CTSPaddingAvailable;
         private bool m_SaveInProgress;
+
+        // FIXME: Handle password based encryption ui
 
         public SaveWindow(ITextEditorControl control, ITextEditorTab tab) {
             InitializeComponent();
@@ -82,7 +85,7 @@ namespace SecureTextEditor.GUI {
             OnAESModeSelectionChanged(optionsAES.Mode);
             OnKeyOptionSelectionChanged(options.KeyOption);
 
-            // The selection of the mode is a littly hacky because of the weird dependency to the padding
+            // For some selections it is a littly hacky because of the weird dependency to the padding
             if (AESModeComboBox.Items.Contains(optionsAES.Mode)) {
                 AESModeComboBox.SelectedItem = optionsAES.Mode;
             } else {
@@ -90,6 +93,7 @@ namespace SecureTextEditor.GUI {
                 AESModeComboBox.SelectedItem = optionsAES.Mode;
             }
             KeySizeComboBox.SelectedItem = options.KeySize;
+            KeyOptionComboBox.SelectedItem = options.KeyOption;
         }
 
         private void CancelSave(object sender, RoutedEventArgs e) {
@@ -109,8 +113,9 @@ namespace SecureTextEditor.GUI {
             m_SaveInProgress = true;
             TextEncoding encoding = m_TabToSave.MetaData.FileMetaData.Encoding;
             string text = m_TabToSave.Editor.Text;
-            string password = PasswordTextBox.Password;
+            SecureString password = PasswordTextBox.SecurePassword;
             FileMetaData fileMetaData = await PerformSave(BuildEncryptionOptions(), encoding, text, password);
+            // It is important that we clear out the password text box!
             PasswordTextBox.Clear();
             m_SaveInProgress = false;
 
@@ -137,7 +142,7 @@ namespace SecureTextEditor.GUI {
             SaveButton.IsEnabled = true;
         }
 
-        private async Task<FileMetaData> PerformSave(EncryptionOptions options, TextEncoding encoding, string text, string password) {
+        private async Task<FileMetaData> PerformSave(EncryptionOptions options, TextEncoding encoding, string text, SecureString password) {
             // Show dialog for saving a file
             SaveFileDialog dialog = new SaveFileDialog() {
                 Title = "Save Secure Text File",
