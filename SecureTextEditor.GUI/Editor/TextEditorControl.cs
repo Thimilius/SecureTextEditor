@@ -9,24 +9,71 @@ using SecureTextEditor.File.Handler;
 using SecureTextEditor.GUI.Config;
 
 namespace SecureTextEditor.GUI.Editor {
+    /// <summary>
+    /// Implements a text editor control.
+    /// </summary>
     public class TextEditorControl : ITextEditorControl {
+        /// <summary>
+        /// Defines the maximum amount of tabs that can be open at the same time.
+        /// </summary>
         private const int MAX_TABS = 10;
+
+        /// <summary>
+        /// Defines the minimum zoom level.
+        /// </summary>
         private const int ZOOM_MIN_LIMIT = 4;
+        /// <summary>
+        /// Defines the maximum zoom level.
+        /// </summary>
         private const int ZOOM_MAX_LIMIT = 60;
+        /// <summary>
+        /// Defines the default zoom level.
+        /// </summary>
+        private const int ZOOM_DEFAULT = 16;
+        /// <summary>
+        /// Defines the zoom change on zoom in and zoom out.
+        /// </summary>
+        private const int ZOOM_CHANGE = 2;
 
-        private MainWindow m_Window;
-        private TabControl m_TabControl;
-        private int m_Zoom; // Actually describes font size
+        /// <summary>
+        /// Holds a reference to the main window this control belongs to.
+        /// </summary>
+        private readonly MainWindow m_Window;
+        /// <summary>
+        /// Holds a reference to the tab control that belongs to this control.
+        /// </summary>
+        private readonly TabControl m_TabControl;
 
+        private readonly List<int> m_NewTabCounterList;
+        /// <summary>
+        /// Holds the current new tab counter.
+        /// </summary>
         private int m_NewTabCounter;
-        private List<int> m_NewTabCounterList;
 
+        /// <summary>
+        /// Holds the current zoom (Simply measured in font size).
+        /// </summary>
+        private int m_Zoom;
+
+        /// <summary>
+        /// <see cref="ITextEditorControl.CurrentTab"/>
+        /// </summary>
         public ITextEditorTab CurrentTab { get; private set; }
-
+        /// <summary>
+        /// <see cref="ITextEditorControl.Tabs"/>
+        /// </summary>
         public IEnumerable<ITextEditorTab> Tabs => m_TabControl.Items.Cast<TabItem>().Select(i => (ITextEditorTab)i.Tag);
 
+        /// <summary>
+        /// <see cref="ITextEditorControl.TabChanged"/>
+        /// </summary>
         public event Action TabChanged;
 
+        /// <summary>
+        /// Creates a new text editor control with given parameters.
+        /// </summary>
+        /// <param name="window">The window the text editor belongs to</param>
+        /// <param name="tabControl">The tab control that should belong to the text editor</param>
         public TextEditorControl(MainWindow window, TabControl tabControl) {
             m_Window = window;
             m_TabControl = tabControl;
@@ -39,8 +86,11 @@ namespace SecureTextEditor.GUI.Editor {
             m_Zoom = AppConfig.Config.Zoom;
         }
 
+        /// <summary>
+        /// <see cref="ITextEditorControl.NewTab(string)"/>
+        /// </summary>
         public void NewTab(string content) {
-            string name = $"New {GetTabCounter()}";
+            string name = $"New {GetNewTabCounter()}";
 
             NewTab(content, new TextEditorTabMetaData() {
                 FileMetaData = new FileMetaData() {
@@ -52,8 +102,11 @@ namespace SecureTextEditor.GUI.Editor {
                 IsNew = true,
                 IsDirty = false
             });
-        } 
+        }
 
+        /// <summary>
+        /// <see cref="ITextEditorControl.NewTab(string, TextEditorTabMetaData)"/>
+        /// </summary>
         public void NewTab(string content, TextEditorTabMetaData metaData) {
             // Currently we have a maximum number of concurrently open tabs
             if (m_TabControl.Items.Count == MAX_TABS) {
@@ -106,6 +159,9 @@ namespace SecureTextEditor.GUI.Editor {
             SelectTab(tab);
         }
 
+        /// <summary>
+        /// <see cref="ITextEditorControl.CloseTab(ITextEditorTab)"/>
+        /// </summary>
         public void CloseTab(ITextEditorTab tab) {
             // We don't bother closing the tab if its the last one
             if (IsLastTabNewAndEmpty()) {
@@ -129,30 +185,46 @@ namespace SecureTextEditor.GUI.Editor {
             }
         }
 
+        /// <summary>
+        /// <see cref="ITextEditorControl.SelectTab(ITextEditorTab)"/>
+        /// </summary>
         public void SelectTab(ITextEditorTab tab) {
             CurrentTab = tab;
             tab.Focus();
         }
 
+        /// <summary>
+        /// <see cref="ITextEditorControl.ZoomIn"/>
+        /// </summary>
         public void ZoomIn() {
-            m_Zoom += 2;
-            SetZoom();
+            SetZoom(m_Zoom + ZOOM_CHANGE);
         }
 
+        /// <summary>
+        /// <see cref="ITextEditorControl.ZoomOut"/>
+        /// </summary>
         public void ZoomOut() {
-            m_Zoom -= 2;
-            SetZoom();
+            SetZoom(m_Zoom - ZOOM_CHANGE);
         }
 
+        /// <summary>
+        /// <see cref="ITextEditorControl.ZoomReset"/>
+        /// </summary>
         public void ZoomReset() {
-            m_Zoom = 16;
-            SetZoom();
+            SetZoom(ZOOM_DEFAULT);
         }
 
+        /// <summary>
+        /// <see cref="ITextEditorControl.NotifyThatTabGotSaved(ITextEditorTab)"/>
+        /// </summary>
         public void NotifyThatTabGotSaved(ITextEditorTab tab) {
             NotifyThatTabGotClosed(tab);
         }
 
+        /// <summary>
+        /// Notify that a tab got closed.
+        /// </summary>
+        /// <param name="tab">The tab that got closed</param>
         private void NotifyThatTabGotClosed(ITextEditorTab tab) {
             // Only process "new" tabs that were not saved before
             if (tab.MetaData.IsNew) {
@@ -161,12 +233,22 @@ namespace SecureTextEditor.GUI.Editor {
             }
         }
 
-        private void SetZoom() {
+        /// <summary>
+        /// Sets the new zoom.
+        /// </summary>
+        private void SetZoom(int zoom) {
+            m_Zoom = zoom;
+
             ClampZoom();
-            CurrentTab.Editor.FontSize = m_Zoom;
-            AppConfig.Config.Zoom = m_Zoom;
+            CurrentTab.Editor.FontSize = zoom;
+
+            // Save zoom in config
+            AppConfig.Config.Zoom = zoom;
         }
 
+        /// <summary>
+        /// Clamps the zoom to its minimum and maximum limit.
+        /// </summary>
         private void ClampZoom() {
             // We clamp the zoom value to its limits
             if (m_Zoom < ZOOM_MIN_LIMIT) {
@@ -176,8 +258,12 @@ namespace SecureTextEditor.GUI.Editor {
             }
         }
 
-        private int GetTabCounter() {
-            // Figure out the counter for the new tab
+        /// <summary>
+        /// Gets the current tab counter for a new tab.
+        /// </summary>
+        /// <returns>The tab counter</returns>
+        private int GetNewTabCounter() {
+            // If we have counters left in the list try getting the smallest one first
             if (m_NewTabCounterList.Count > 0) {
                 m_NewTabCounterList.Sort();
                 int counter = m_NewTabCounterList[0];
@@ -188,6 +274,10 @@ namespace SecureTextEditor.GUI.Editor {
             }
         }
 
+        /// <summary>
+        /// Checks whether or not only one tab is left and that this tab is empty.
+        /// </summary>
+        /// <returns>True if only one tab is left and this tab is empty otherwise false</returns>
         private bool IsLastTabNewAndEmpty() {
             if (m_TabControl.Items.Count == 1) {
                 ITextEditorTab tab = Tabs.First();
@@ -197,6 +287,11 @@ namespace SecureTextEditor.GUI.Editor {
             }
         }
 
+        /// <summary>
+        /// Callback that gets called when the selection in the tab control changes.
+        /// </summary>
+        /// <param name="sender">The sender of the event</param>
+        /// <param name="e">The event parameters</param>
         private void OnTabControlSelectionChanged(object sender, SelectionChangedEventArgs e) {
             if (e.Source is TabControl) {
                 if (e.AddedItems.Count > 0) {
@@ -204,7 +299,7 @@ namespace SecureTextEditor.GUI.Editor {
                         // Update the current tab
                         CurrentTab = tab.Tag as TextEditorTab;
 
-                        SetZoom();
+                        SetZoom(m_Zoom);
 
                         // Invoke event
                         TabChanged?.Invoke();
@@ -213,6 +308,11 @@ namespace SecureTextEditor.GUI.Editor {
             }
         }
 
+        /// <summary>
+        /// Callback that gets called on mouse move preview of tab item.
+        /// </summary>
+        /// <param name="sender">The sender of the event</param>
+        /// <param name="e">The event parameters</param>
         private void OnTabItemPreviewMouseMove(object sender, MouseEventArgs e) {
             // Check we clicked on an actual TabItem
             if (!(e.Source is TabItem tabItem)) {
@@ -225,6 +325,11 @@ namespace SecureTextEditor.GUI.Editor {
             }
         }
 
+        /// <summary>
+        /// Callback that gets called it a tab item gets dropped.
+        /// </summary>
+        /// <param name="sender">The sender of the event</param>
+        /// <param name="e">The event parameters</param>
         private void OnTabItemDrop(object sender, DragEventArgs e) {
             TabItem FindTargetTabItem(object originalSource) {
                 var current = originalSource as DependencyObject;
@@ -256,6 +361,11 @@ namespace SecureTextEditor.GUI.Editor {
             }
         }
 
+        /// <summary>
+        /// Callback that gets called when a tab item gives feedback.
+        /// </summary>
+        /// <param name="sender">The sender of the event</param>
+        /// <param name="e">The event parameters</param>
         private void OnTabItemGiveFeedback(object sender, GiveFeedbackEventArgs e) {
             // We do not want to display the ugly cursors while doing drag and drop
             e.UseDefaultCursors = false;
