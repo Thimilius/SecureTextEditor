@@ -16,6 +16,8 @@ using SecureTextEditor.GUI.Config;
 using SecureTextEditor.GUI.Dialog;
 using SecureTextEditor.GUI.Editor;
 
+// TODO: Finish xml docs
+
 namespace SecureTextEditor.GUI {
     /// <summary>
     /// Interaction logic for the save window.
@@ -25,8 +27,6 @@ namespace SecureTextEditor.GUI {
         private readonly ITextEditorTab m_TabToSave;
         private readonly bool m_CTSPaddingAvailable;
         private bool m_SaveInProgress;
-
-        // FIXME: Handle password based encryption ui
 
         public SaveWindow(ITextEditorControl control, ITextEditorTab tab) {
             InitializeComponent();

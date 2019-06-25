@@ -12,6 +12,8 @@ using SecureTextEditor.Crypto.Digest;
 using SecureTextEditor.Crypto.Signature;
 using SecureTextEditor.File.Options;
 
+// TODO: Finish xml docs
+
 namespace SecureTextEditor.File.Handler {
     /// <summary>
     /// Handler to resolve the password used in password based encryption.
@@ -80,9 +82,12 @@ namespace SecureTextEditor.File.Handler {
 
                     // Encrypt text and save file
                     CipherEngine cipherEngine = GetCryptoEngine(options);
-                    byte[] cipherKey = password.Process(chars => cipherEngine.GenerateKey(options.KeyOption == CipherKeyOption.Generate ? null : chars));
                     byte[] iv = cipherEngine.GenerateIV();
+                    byte[] cipherKey = password.Process(chars => cipherEngine.GenerateKey(options.KeyOption == CipherKeyOption.Generate ? null : chars, iv));
                     byte[] cipher = cipherEngine.Encrypt(messageToEncrypt, cipherKey, iv);
+
+                    // We overwrite the current key size with the correct one
+                    options.KeySize = cipherEngine.KeySize;
 
                     // Sign the cipher
                     SignatureEngine signaturEngine = new SignatureEngine(options.SignatureType, options.SignatureKeySize);
@@ -97,6 +102,7 @@ namespace SecureTextEditor.File.Handler {
                         Convert.ToBase64String(sign),
                         Convert.ToBase64String(cipher)
                     );
+                    // FIXME: Why does the iv still get saved even though its null?
                     SaveSecureTextFile(path, textFile);
 
                     // Save cipher key into file next to the text file and clear the array
@@ -135,6 +141,7 @@ namespace SecureTextEditor.File.Handler {
                 TextEncoding encoding = textFile.Encoding;
                 EncryptionOptions options = textFile.EncryptionOptions;
                 byte[] cipher = Convert.FromBase64String(textFile.Base64Cipher);
+                byte[] iv = textFile.Base64IV != null ? Convert.FromBase64String(textFile.Base64IV) : null;
 
                 CipherEngine cipherEngine = GetCryptoEngine(options);
 
@@ -157,7 +164,7 @@ namespace SecureTextEditor.File.Handler {
                     if (password == null) {
                         return new OpenFileResult(OpenFileStatus.Canceled, null, null, null);
                     } else {
-                        cipherKey = password.Process(chars => cipherEngine.GenerateKey(chars));
+                        cipherKey = password.Process(chars => cipherEngine.GenerateKey(chars, iv));
                     }
                 }
 
@@ -182,7 +189,6 @@ namespace SecureTextEditor.File.Handler {
                 }
 
                 // Decrypt cipher
-                byte[] iv = textFile.Base64IV != null ? Convert.FromBase64String(textFile.Base64IV) : null;
                 CipherDecryptResult decryptResult = cipherEngine.Decrypt(cipher, cipherKey, iv);
 
                 // Clear out the cipher key because we no longer need it

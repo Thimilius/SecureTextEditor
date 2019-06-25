@@ -9,7 +9,7 @@ namespace SecureTextEditor.File {
         /// <summary>
         /// Version number for the secure text file format for compatability reasons.
         /// </summary>
-        [JsonProperty(Required = Required.Always)] internal string Version { get; } = "0.1";
+        [JsonProperty(Required = Required.Always)] internal string Version { get; } = "0.1.0";
         /// <summary>
         /// The options used for encryption.
         /// </summary>

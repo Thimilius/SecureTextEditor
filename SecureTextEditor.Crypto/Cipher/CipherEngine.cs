@@ -9,6 +9,8 @@ using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Digests;
 
+// TODO: Finish xml docs
+
 namespace SecureTextEditor.Crypto.Cipher {
     /// <summary>
     /// Cryptographic engine abstracting a block (AES) and stream (RC4) cipher.
@@ -43,6 +45,11 @@ namespace SecureTextEditor.Crypto.Cipher {
         /// The underlying stream cipher used in stream type.
         /// </summary>
         private static readonly IStreamCipher STREAM_CIPHER_ENGINE = new RC4Engine();
+
+        /// <summary>
+        /// Gets the size of the cryptographic key used.
+        /// </summary>
+        public int KeySize => m_KeySize;
 
         /// <summary>
         /// The type of cipher that is used.
@@ -80,7 +87,7 @@ namespace SecureTextEditor.Crypto.Cipher {
             m_CipherMode = mode;
             m_Cipher = GetCipher(type, mode, GetCipherPadding(padding));
             m_KeyOption = option;
-            m_KeySize = keySize;
+            m_KeySize = GetKeySize(type, option, keySize);
         }
 
         /// <summary>
@@ -134,17 +141,31 @@ namespace SecureTextEditor.Crypto.Cipher {
         /// Generates a key for use with this engine.
         /// </summary>
         /// <param name="password">The password required for password based encryption (Can be null if not needed)</param>
+        /// <param name="iv">The iv that is needed for key generation (Can be null if not needed)</param>
         /// <returns>The generated key</returns>
-        public byte[] GenerateKey(char[] password) {
+        public byte[] GenerateKey(char[] password, byte[] iv) {
             switch (m_KeyOption) {
                 case CipherKeyOption.Generate:
                     CipherKeyGenerator generator = new CipherKeyGenerator();
                     generator.Init(new KeyGenerationParameters(new SecureRandom(), m_KeySize));
                     return generator.GenerateKey();
                 case CipherKeyOption.PBE:
-                    return PbeParametersGenerator.Pkcs12PasswordToBytes(password);
+                    PbeParametersGenerator pbeGenerator = null;
+                    string algorithm = null;
+                    if (m_Type == CipherType.AES) {
+                        pbeGenerator = new Pkcs12ParametersGenerator(new Sha256Digest());
+                        algorithm = "AES";
+                    } else if (m_Type == CipherType.RC4) {
+                        pbeGenerator = new Pkcs12ParametersGenerator(new Sha1Digest());
+                        algorithm = "RC4";
+                    }
+                    // TODO: What do these parameters mean?
+                    pbeGenerator.Init(PbeParametersGenerator.Pkcs12PasswordToBytes(password), iv, 2048);
+                    return ((KeyParameter)pbeGenerator.GenerateDerivedParameters(algorithm, m_KeySize)).GetKey();
                 case CipherKeyOption.PBEWithSCRYPT:
-                    return PbeParametersGenerator.Pkcs5PasswordToUtf8Bytes(password);
+                    // TODO: What do these parameters mean?
+                    byte[] key = PbeParametersGenerator.Pkcs5PasswordToUtf8Bytes(password);
+                    return SCrypt.Generate(key, iv, 2048, 16, 1, m_KeySize / 8);
                 default: throw new InvalidOperationException();
             }
         }
@@ -224,21 +245,19 @@ namespace SecureTextEditor.Crypto.Cipher {
                     } else {
                         return new ParametersWithIV(keyParameter, iv);
                     }
-                case CipherKeyOption.PBE:
-                    PbeParametersGenerator generator = null;
-                    string algorithm = null;
-                    if (m_Type == CipherType.AES) {
-                        generator = new Pkcs12ParametersGenerator(new Sha256Digest());
-                        algorithm = "AES";
-                    } else if (m_Type == CipherType.RC4) {
-                        generator = new Pkcs12ParametersGenerator(new Sha1Digest());
-                        algorithm = "RC4";
-                    }
-                    generator.Init(key, iv, 2048);
-                    return generator.GenerateDerivedParameters(algorithm, m_KeySize);
+                case CipherKeyOption.PBE: return new KeyParameter(key);
                 case CipherKeyOption.PBEWithSCRYPT:
-                    keyParameter = new KeyParameter(SCrypt.Generate(key, iv, 2048, 16, 1, m_KeySize / 8));
+                    keyParameter = new KeyParameter(key);
                     return new ParametersWithIV(keyParameter, iv);
+                default: throw new InvalidOperationException();
+            }
+        }
+
+        private int GetKeySize(CipherType type, CipherKeyOption option, int keySize) {
+            switch (option) {
+                case CipherKeyOption.Generate: return keySize;
+                case CipherKeyOption.PBE: return type == CipherType.AES ? 128 : 40; // PBE either means AES 128 or RC4 40 
+                case CipherKeyOption.PBEWithSCRYPT: return 256; // PBEWithSCRYPT means AES 256
                 default: throw new InvalidOperationException();
             }
         }

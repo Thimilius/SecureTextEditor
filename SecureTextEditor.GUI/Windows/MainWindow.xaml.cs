@@ -12,6 +12,8 @@ using SecureTextEditor.GUI.Config;
 using SecureTextEditor.GUI.Dialog;
 using SecureTextEditor.GUI.Editor;
 
+// TODO: Finish xml docs
+
 namespace SecureTextEditor.GUI {
     /// <summary>
     /// Interaction logic for the main window.
