@@ -16,7 +16,7 @@ namespace SecureTextEditor.Tests {
             CipherEngine engine = new CipherEngine(CipherType.AES, CipherMode.GCM, CipherPadding.None, CipherKeyOption.PBEWithSCRYPT, 128);
 
             byte[] message = BLOCK_UNALIGNED_MESSAGE;
-            byte[] key = engine.GenerateKey(PASSWORD);
+            byte[] key = engine.GenerateKey(PASSWORD, null);
 
             byte[] cipher = engine.Encrypt(message, key, IV);
             CipherDecryptResult result = engine.Decrypt(cipher, key, IV);
@@ -28,7 +28,7 @@ namespace SecureTextEditor.Tests {
             CipherEngine engine = new CipherEngine(CipherType.AES, CipherMode.CBC, CipherPadding.PKCS7, CipherKeyOption.PBE, 128);
 
             byte[] message = BLOCK_UNALIGNED_MESSAGE;
-            byte[] key = engine.GenerateKey(PASSWORD);
+            byte[] key = engine.GenerateKey(PASSWORD, null);
 
             byte[] cipher = engine.Encrypt(message, key, IV);
             CipherDecryptResult result = engine.Decrypt(cipher, key, IV);
@@ -40,7 +40,7 @@ namespace SecureTextEditor.Tests {
             CipherEngine engine = new CipherEngine(CipherType.RC4, CipherMode.None, CipherPadding.None, CipherKeyOption.PBE, 40);
 
             byte[] message = BLOCK_UNALIGNED_MESSAGE;
-            byte[] key = engine.GenerateKey(PASSWORD);
+            byte[] key = engine.GenerateKey(PASSWORD, null);
 
             byte[] cipher = engine.Encrypt(message, key, IV);
             CipherDecryptResult result = engine.Decrypt(cipher, key, IV);
