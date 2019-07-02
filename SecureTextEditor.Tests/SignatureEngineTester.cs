@@ -11,6 +11,8 @@ namespace SecureTextEditor.Tests {
     public class SignatureEngineTester {
         private static readonly byte[] BLOCK_UNALIGNED_MESSAGE = Encoding.UTF8.GetBytes("This is my secrect text message");
 
+        // TODO: Test that signatures are different for non-deterministic dsa
+
         [TestMethod]
         public void SHA256WithDSA_Test() {
             SignatureEngine engine = new SignatureEngine(SignatureType.SHA256WithDSA, 3072);

@@ -9,8 +9,6 @@ using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Digests;
 
-// TODO: Finish xml docs
-
 namespace SecureTextEditor.Crypto.Cipher {
     /// <summary>
     /// Cryptographic engine abstracting a block (AES) and stream (RC4) cipher.
@@ -49,7 +47,7 @@ namespace SecureTextEditor.Crypto.Cipher {
         /// <summary>
         /// Gets the size of the cryptographic key used.
         /// </summary>
-        public int KeySize => m_KeySize;
+        public int KeySize { get; }
 
         /// <summary>
         /// The type of cipher that is used.
@@ -64,10 +62,6 @@ namespace SecureTextEditor.Crypto.Cipher {
         /// </summary>
         private readonly CipherKeyOption m_KeyOption;
         /// <summary>
-        /// The size of the key to use.
-        /// </summary>
-        private readonly int m_KeySize;
-        /// <summary>
         /// The actual concrete cipher that will be used for encrypting and decrypting.
         /// </summary>
         private readonly IBufferedCipher m_Cipher;
@@ -80,14 +74,15 @@ namespace SecureTextEditor.Crypto.Cipher {
         /// <param name="mode">The cipher block mode to use</param>
         /// <param name="padding">The cipher block padding to use</param>
         /// <param name="encoding">The encoding to use</param>
-        public CipherEngine(CipherType type, CipherMode mode, CipherPadding padding, CipherKeyOption option, int keySize) {
-            ValidateParameters(type, mode, padding, option, keySize);
+        /// <param name="wantedKeySize">The wanted key size</param>
+        public CipherEngine(CipherType type, CipherMode mode, CipherPadding padding, CipherKeyOption option, int wantedKeySize) {
+            ValidateParameters(type, mode, padding, option, wantedKeySize);
 
             m_Type = type;
             m_CipherMode = mode;
             m_Cipher = GetCipher(type, mode, GetCipherPadding(padding));
             m_KeyOption = option;
-            m_KeySize = GetKeySize(type, option, keySize);
+            KeySize = GetKeySize(type, option, wantedKeySize);
         }
 
         /// <summary>
@@ -146,10 +141,12 @@ namespace SecureTextEditor.Crypto.Cipher {
         public byte[] GenerateKey(char[] password, byte[] iv) {
             switch (m_KeyOption) {
                 case CipherKeyOption.Generate:
+                    // Simple cipher key generation
                     CipherKeyGenerator generator = new CipherKeyGenerator();
-                    generator.Init(new KeyGenerationParameters(new SecureRandom(), m_KeySize));
+                    generator.Init(new KeyGenerationParameters(new SecureRandom(), KeySize));
                     return generator.GenerateKey();
                 case CipherKeyOption.PBE:
+                    // Generate key from password (depending on cipher type)
                     PbeParametersGenerator pbeGenerator = null;
                     string algorithm = null;
                     if (m_Type == CipherType.AES) {
@@ -161,11 +158,12 @@ namespace SecureTextEditor.Crypto.Cipher {
                     }
                     // TODO: What do these parameters mean?
                     pbeGenerator.Init(PbeParametersGenerator.Pkcs12PasswordToBytes(password), iv, 2048);
-                    return ((KeyParameter)pbeGenerator.GenerateDerivedParameters(algorithm, m_KeySize)).GetKey();
+                    return ((KeyParameter)pbeGenerator.GenerateDerivedParameters(algorithm, KeySize)).GetKey();
                 case CipherKeyOption.PBEWithSCRYPT:
+                    // Generate cipher key from password with SCRYPT
                     // TODO: What do these parameters mean?
-                    byte[] key = PbeParametersGenerator.Pkcs5PasswordToUtf8Bytes(password);
-                    return SCrypt.Generate(key, iv, 2048, 16, 1, m_KeySize / 8);
+                    byte[] encoded = PbeParametersGenerator.Pkcs5PasswordToUtf8Bytes(password);
+                    return SCrypt.Generate(encoded, iv, 2048, 16, 1, KeySize / 8);
                 default: throw new InvalidOperationException();
             }
         }
@@ -178,7 +176,9 @@ namespace SecureTextEditor.Crypto.Cipher {
             if (m_CipherMode == CipherMode.ECB) {
                 return null;
             } else {
-                byte[] iv = new byte[m_CipherMode == CipherMode.CCM ? CCM_NONCE_SIZE : m_Cipher.GetBlockSize()];
+                // If we use CCM the iv is treated as the nonce
+                int size = m_CipherMode == CipherMode.CCM ? CCM_NONCE_SIZE : m_Cipher.GetBlockSize();
+                byte[] iv = new byte[size];
                 new SecureRandom().NextBytes(iv);
                 return iv;
             }
@@ -253,16 +253,31 @@ namespace SecureTextEditor.Crypto.Cipher {
             }
         }
 
-        private int GetKeySize(CipherType type, CipherKeyOption option, int keySize) {
+        /// <summary>
+        /// Gets the key size based on the given parameters.
+        /// </summary>
+        /// <param name="type">The type of cipher</param>
+        /// <param name="option">The key option</param>
+        /// <param name="wantedKeySize">The wanted key size</param>
+        /// <returns>The key size</returns>
+        private int GetKeySize(CipherType type, CipherKeyOption option, int wantedKeySize) {
             switch (option) {
-                case CipherKeyOption.Generate: return keySize;
+                case CipherKeyOption.Generate: return wantedKeySize;
                 case CipherKeyOption.PBE: return type == CipherType.AES ? 128 : 40; // PBE either means AES 128 or RC4 40 
                 case CipherKeyOption.PBEWithSCRYPT: return 256; // PBEWithSCRYPT means AES 256
                 default: throw new InvalidOperationException();
             }
         }
 
-        private void ValidateParameters(CipherType type, CipherMode mode, CipherPadding padding, CipherKeyOption option, int keySize) {
+        /// <summary>
+        /// Validates the engine configuration based on given parameters.
+        /// </summary>
+        /// <param name="type">The cipher type</param>
+        /// <param name="mode">The cipher mode</param>
+        /// <param name="padding">The cipher padding</param>
+        /// <param name="option">The key option</param>
+        /// <param name="wantedKeySize">The wanted key size</param>
+        private void ValidateParameters(CipherType type, CipherMode mode, CipherPadding padding, CipherKeyOption option, int wantedKeySize) {
             // Verify key options
             if (option == CipherKeyOption.PBE) {
                 if (type == CipherType.AES && mode != CipherMode.CBC) {
@@ -275,11 +290,11 @@ namespace SecureTextEditor.Crypto.Cipher {
             }
 
             // Verify key sizes
-            if (type == CipherType.AES && !AES_ACCEPTED_KEYS.Contains(keySize)) {
-                throw new InvalidOperationException($"Invalid key size of {keySize}!");
+            if (type == CipherType.AES && !AES_ACCEPTED_KEYS.Contains(wantedKeySize)) {
+                throw new InvalidOperationException($"Invalid key size of {wantedKeySize}!");
             }
-            if (type == CipherType.RC4 && !RC4_ACCEPTED_KEYS.Contains(keySize)) {
-                throw new InvalidOperationException($"Invalid key size of {keySize}!");
+            if (type == CipherType.RC4 && !RC4_ACCEPTED_KEYS.Contains(wantedKeySize)) {
+                throw new InvalidOperationException($"Invalid key size of {wantedKeySize}!");
             }
         }
     }

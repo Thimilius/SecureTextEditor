@@ -89,6 +89,7 @@ namespace SecureTextEditor.File.Handler {
                     // We overwrite the current key size with the correct one
                     options.KeySize = cipherEngine.KeySize;
 
+                    // TODO: The signing should be treated as a different digest option
                     // Sign the cipher
                     SignatureEngine signaturEngine = new SignatureEngine(options.SignatureType, options.SignatureKeySize);
                     SignatureKeyPair keyPair = signaturEngine.GenerateKeyPair();
