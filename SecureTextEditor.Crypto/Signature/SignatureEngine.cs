@@ -89,7 +89,7 @@ namespace SecureTextEditor.Crypto.Signature {
             byte[] privateEncoded = privateInfo.GetEncoded();
             byte[] publicEncoded = publicInfo.GetEncoded();
 
-            return new SignatureKeyPair(privateEncoded, publicEncoded);
+            return new SignatureKeyPair(privateEncoded, publicEncoded, keyPair);
         }
 
         /// <summary>

@@ -54,6 +54,7 @@
     <Compile Include="Digest\DigestEngine.cs" />
     <Compile Include="Digest\DigestType.cs" />
     <Compile Include="Cipher\CipherKeyOption.cs" />
+    <Compile Include="KeyStorage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Signature\SignatureEngine.cs" />
     <Compile Include="Signature\SignatureKeyPair.cs" />

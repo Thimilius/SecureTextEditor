@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Org.BouncyCastle.Crypto;
 
 namespace SecureTextEditor.Crypto.Signature {
     /// <summary>
@@ -10,22 +6,27 @@ namespace SecureTextEditor.Crypto.Signature {
     /// </summary>
     public class SignatureKeyPair {
         /// <summary>
-        /// Gets the private key.
+        /// Gets the encoded private key.
         /// </summary>
         public byte[] PrivateKey { get; }
         /// <summary>
-        /// Gets the public key.
+        /// Gets the encoded public key.
         /// </summary>
         public byte[] PublicKey { get; }
+        /// <summary>
+        /// The key pair used internally.
+        /// </summary>
+        internal AsymmetricCipherKeyPair Pair { get; }
 
         /// <summary>
         /// Generates
         /// </summary>
         /// <param name="privateKey"></param>
         /// <param name="publicKey"></param>
-        public SignatureKeyPair(byte[] privateKey, byte[] publicKey) {
+        internal SignatureKeyPair(byte[] privateKey, byte[] publicKey, AsymmetricCipherKeyPair pair) {
             PrivateKey = privateKey;
             PublicKey = publicKey;
+            Pair = pair;
         }
     }
 }
