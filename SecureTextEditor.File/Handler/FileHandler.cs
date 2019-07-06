@@ -94,6 +94,7 @@ namespace SecureTextEditor.File.Handler {
                     SignatureEngine signaturEngine = new SignatureEngine(options.SignatureType, options.SignatureKeySize);
                     SignatureKeyPair keyPair = signaturEngine.GenerateKeyPair();
                     byte[] sign = signaturEngine.Sign(cipher, keyPair.PrivateKey);
+                    // TODO: Clear out signature key pair
 
                     SecureTextFile textFile = new SecureTextFile(
                         options,

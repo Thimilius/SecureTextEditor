@@ -27,8 +27,9 @@ namespace SecureTextEditor.Tests {
         public void KeyStorage_Test() {
             SignatureEngine engine = new SignatureEngine(SignatureType.SHA256WithDSA, 1024);
             SignatureKeyPair keyPair = engine.GenerateKeyPair();
-            KeyStorage storage = new KeyStorage();
+            SignatureKeyStorage storage = new SignatureKeyStorage();
             storage.Store(keyPair);
+            SignatureKeyPair loadedPair = storage.Retrieve(keyPair.PublicKey);
         }
     }
 }
