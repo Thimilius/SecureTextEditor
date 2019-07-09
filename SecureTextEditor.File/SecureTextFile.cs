@@ -25,11 +25,11 @@ namespace SecureTextEditor.File {
         /// <summary>
         /// The public key used for verifying the signature encoded in Base64.
         /// </summary>
-        [JsonProperty(Required = Required.Always)] internal string Base64SignatureKey { get; }
+        [JsonProperty(Required = Required.Default)] internal string Base64SignatureKey { get; }
         /// <summary>
         /// The signature of the whole file encoded in Base64.
         /// </summary>
-        [JsonProperty(Required = Required.Always)] internal string Base64Signature { get; }
+        [JsonProperty(Required = Required.Default)] internal string Base64Signature { get; }
         /// <summary>
         /// The actual cipher encoded in Base64.
         /// </summary>

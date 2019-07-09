@@ -91,19 +91,23 @@ namespace SecureTextEditor.File.Handler {
 
                     // TODO: The signing should be treated as a different digest option
                     // Sign the cipher
-                    SignatureEngine signaturEngine = new SignatureEngine(options.SignatureType, options.SignatureKeySize);
-                    SignatureKeyPair keyPair = signaturEngine.GenerateKeyPair();
-                    byte[] sign = signaturEngine.Sign(cipher, keyPair.PrivateKey);
-                    // TODO: Clear out signature key pair
+                    SignatureKeyPair keyPair = null;
+                    byte[] sign = null;
+                    if (options.SignatureType != SignatureType.None) {
+                        SignatureEngine signaturEngine = new SignatureEngine(options.SignatureType, options.SignatureKeySize);
+                        keyPair = signaturEngine.GenerateKeyPair();
+                        sign = signaturEngine.Sign(cipher, keyPair.PrivateKey);
+                    }
 
                     SecureTextFile textFile = new SecureTextFile(
                         options,
                         encoding,
                         iv != null ? Convert.ToBase64String(iv) : null,
-                        Convert.ToBase64String(keyPair.PublicKey),
-                        Convert.ToBase64String(sign),
+                        keyPair != null ? Convert.ToBase64String(keyPair.PublicKey) : null,
+                        sign != null ? Convert.ToBase64String(sign) : null,
                         Convert.ToBase64String(cipher)
                     );
+                    // TODO: Clear out signature key pair
                     // FIXME: Why does the iv still get saved even though its null?
                     SaveSecureTextFile(path, textFile);
 
@@ -185,9 +189,11 @@ namespace SecureTextEditor.File.Handler {
                 }
 
                 // Verify signature
-                SignatureEngine signatureEngine = new SignatureEngine(options.SignatureType, options.SignatureKeySize);
-                if (!signatureEngine.Verify(cipher, Convert.FromBase64String(textFile.Base64Signature), Convert.FromBase64String(textFile.Base64SignatureKey))) {
-                    return new OpenFileResult(OpenFileStatus.SignatureFailed, null, null, null);
+                if (options.SignatureType != SignatureType.None) {
+                    SignatureEngine signatureEngine = new SignatureEngine(options.SignatureType, options.SignatureKeySize);
+                    if (!signatureEngine.Verify(cipher, Convert.FromBase64String(textFile.Base64Signature), Convert.FromBase64String(textFile.Base64SignatureKey))) {
+                        return new OpenFileResult(OpenFileStatus.SignatureFailed, null, null, null);
+                    }
                 }
 
                 // Decrypt cipher

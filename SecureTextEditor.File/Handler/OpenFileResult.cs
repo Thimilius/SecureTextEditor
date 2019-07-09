@@ -48,6 +48,8 @@ namespace SecureTextEditor.File.Handler {
         /// </summary>
         public string Text { get; }
 
+        // TODO: Add overload without meta data and text
+
         /// <summary>
         /// Creates a new open file result object with given parameters.
         /// </summary>

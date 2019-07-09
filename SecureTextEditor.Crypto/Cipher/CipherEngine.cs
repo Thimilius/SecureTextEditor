@@ -132,6 +132,7 @@ namespace SecureTextEditor.Crypto.Cipher {
             }
         }
 
+        // FIXME: We do not generate a salt for the password! BAD!
         /// <summary>
         /// Generates a key for use with this engine.
         /// </summary>

@@ -17,6 +17,7 @@ using SecureTextEditor.GUI.Dialog;
 using SecureTextEditor.GUI.Editor;
 
 // TODO: Finish xml docs
+// FIXME: Refresh the whole ui when something changes so that the dependencies are easier to handle
 
 namespace SecureTextEditor.GUI {
     /// <summary>
@@ -37,7 +38,7 @@ namespace SecureTextEditor.GUI {
 
             // Set up UI
             CipherTypeComboBox.ItemsSource = GetEnumValuesWithout<CipherType>();
-            DigestTypeComboBox.ItemsSource = GetEnumValuesWithout(DigestType.None);
+            DigestTypeComboBox.ItemsSource = GetEnumValuesWithout<DigestType>();
             SignatureTypeComboBox.ItemsSource = GetEnumValuesWithout<SignatureType>();
             SignatureKeySizeComboBox.ItemsSource = SignatureEngine.ACCEPTED_KEYS;
             KeyOptionComboBox.ItemsSource = GetEnumValuesWithout<CipherKeyOption>();
@@ -59,6 +60,11 @@ namespace SecureTextEditor.GUI {
             CipherTypeComboBox.SelectionChanged += (s, e) => {
                 if (CipherTypeComboBox.SelectedItem is CipherType type) {
                     OnCipherTypeSelectionChanged(type);
+                }
+            };
+            SignatureTypeComboBox.SelectionChanged += (s, e) => {
+                if (SignatureTypeComboBox.SelectedItem is SignatureType type) {
+                    OnSignatureTypeSelectionChanged(type);
                 }
             };
             KeyOptionComboBox.SelectionChanged += (s, e) => {
@@ -94,6 +100,8 @@ namespace SecureTextEditor.GUI {
             }
             KeySizeComboBox.SelectedItem = options.KeySize;
             KeyOptionComboBox.SelectedItem = options.KeyOption;
+
+            OnSignatureTypeSelectionChanged(options.SignatureType);
         }
 
         private void CancelSave(object sender, RoutedEventArgs e) {
@@ -179,6 +187,17 @@ namespace SecureTextEditor.GUI {
             KeySizeComboBox.SelectedIndex = KeySizeComboBox.Items.Count - 1;
         }
 
+        private void OnSignatureTypeSelectionChanged(SignatureType type) {
+            if (type == SignatureType.None) {
+                SignatureKeySizeComboBox.IsEnabled = false;
+                DigestTypeComboBox.IsEnabled = true;
+            } else {
+                SignatureKeySizeComboBox.IsEnabled = true;
+                DigestTypeComboBox.SelectedItem = DigestType.None;
+                DigestTypeComboBox.IsEnabled = false;
+            }
+        }
+
         private void OnKeyOptionSelectionChanged(CipherKeyOption option) {
             KeySizeOption.Visibility = option == CipherKeyOption.Generate ? Visibility.Visible : Visibility.Hidden;
             PasswordOption.Visibility = option == CipherKeyOption.PBE || option == CipherKeyOption.PBEWithSCRYPT ? Visibility.Visible : Visibility.Hidden;
@@ -225,13 +244,11 @@ namespace SecureTextEditor.GUI {
 
         private void OnAESModeSelectionChanged(CipherMode mode) {
             if (mode == CipherMode.GCM || mode == CipherMode.CCM) {
-                DigestTypeComboBox.ItemsSource = new DigestType[] { DigestType.None };
+                DigestTypeComboBox.SelectedItem = DigestType.None;
                 DigestTypeComboBox.IsEnabled = false;
             } else {
-                DigestTypeComboBox.ItemsSource = GetEnumValuesWithout(DigestType.None);
                 DigestTypeComboBox.IsEnabled = true;
             }
-            DigestTypeComboBox.SelectedIndex = 0;
         }
 
         private EncryptionOptions BuildEncryptionOptions() {
