@@ -1,4 +1,7 @@
 @echo off
+
+mkdir docs
+
 cd "SecureTextEditor.Crypto"
 doxygen .doxygen
 cd..
