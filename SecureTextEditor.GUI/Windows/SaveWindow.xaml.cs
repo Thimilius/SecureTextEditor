@@ -42,7 +42,7 @@ namespace SecureTextEditor.GUI {
             CipherTypeComboBox.ItemsSource = GetEnumValuesWithout<CipherType>();
             DigestTypeComboBox.ItemsSource = GetEnumValuesWithout<DigestType>();
             SignatureTypeComboBox.ItemsSource = GetEnumValuesWithout<SignatureType>();
-            SignatureKeySizeComboBox.ItemsSource = SignatureEngine.ACCEPTED_KEYS;
+            SignatureKeySizeComboBox.ItemsSource = SignatureEngine.DSA_ACCEPTED_KEYS;
             KeyOptionComboBox.ItemsSource = GetEnumValuesWithout<CipherKeyOption>();
             AESPaddingComboBox.ItemsSource = GetEnumValuesWithout<CipherPadding>();
 
@@ -52,11 +52,11 @@ namespace SecureTextEditor.GUI {
             DigestTypeComboBox.SelectedItem = options.DigestType;
             SignatureTypeComboBox.SelectedItem = options.SignatureType;
             SignatureKeySizeComboBox.SelectedItem = options.SignatureKeySize;
-            KeyOptionComboBox.SelectedItem = options.KeyOption;
+            KeyOptionComboBox.SelectedItem = options.CipherKeyOption;
 
             EncryptionOptionsAES optionsAES = GetDefaultEncryptionOptions<EncryptionOptionsAES>(options, CipherType.AES);
-            AESModeComboBox.SelectedItem = optionsAES.Mode;
-            AESPaddingComboBox.SelectedItem = optionsAES.Padding;
+            AESModeComboBox.SelectedItem = optionsAES.AESMode;
+            AESPaddingComboBox.SelectedItem = optionsAES.AESPadding;
 
             // Set up events
             CipherTypeComboBox.SelectionChanged += (s, e) => {
@@ -89,21 +89,22 @@ namespace SecureTextEditor.GUI {
             // Set up initial ui visibility
             OnCipherTypeSelectionChanged(options.Type);
             OnPasswordChanged("");
-            OnAESPaddingSelectionChanged(optionsAES.Padding);
-            OnAESModeSelectionChanged(optionsAES.Mode);
-            OnKeyOptionSelectionChanged(options.KeyOption);
+            OnAESPaddingSelectionChanged(optionsAES.AESPadding);
+            OnAESModeSelectionChanged(optionsAES.AESMode);
+            OnKeyOptionSelectionChanged(options.CipherKeyOption);
 
             // For some selections it is a littly hacky because of the weird dependency to the padding
-            if (AESModeComboBox.Items.Contains(optionsAES.Mode)) {
-                AESModeComboBox.SelectedItem = optionsAES.Mode;
+            if (AESModeComboBox.Items.Contains(optionsAES.AESMode)) {
+                AESModeComboBox.SelectedItem = optionsAES.AESMode;
             } else {
                 AESPaddingComboBox.SelectedItem = CipherPadding.None;
-                AESModeComboBox.SelectedItem = optionsAES.Mode;
+                AESModeComboBox.SelectedItem = optionsAES.AESMode;
             }
-            KeySizeComboBox.SelectedItem = options.KeySize;
-            KeyOptionComboBox.SelectedItem = options.KeyOption;
+            KeySizeComboBox.SelectedItem = options.CipherKeySize;
+            KeyOptionComboBox.SelectedItem = options.CipherKeyOption;
 
             OnSignatureTypeSelectionChanged(options.SignatureType);
+            SignatureKeySizeComboBox.SelectedItem = options.SignatureKeySize;
         }
 
         private void CancelSave(object sender, RoutedEventArgs e) {
@@ -195,6 +196,8 @@ namespace SecureTextEditor.GUI {
                 DigestTypeComboBox.IsEnabled = true;
             } else {
                 SignatureKeySizeComboBox.IsEnabled = true;
+                SignatureKeySizeComboBox.ItemsSource = type == SignatureType.DSAWithSHA256 ? SignatureEngine.DSA_ACCEPTED_KEYS : SignatureEngine.ECDSA_ACCEPTED_KEYS;
+                SignatureKeySizeComboBox.SelectedIndex = SignatureKeySizeComboBox.Items.Count - 1;
                 DigestTypeComboBox.SelectedItem = DigestType.None;
                 DigestTypeComboBox.IsEnabled = false;
             }
@@ -259,8 +262,8 @@ namespace SecureTextEditor.GUI {
             switch (encryptionType) {
                 case CipherType.AES:
                     options = new EncryptionOptionsAES() {
-                        Mode = (CipherMode)AESModeComboBox.SelectedItem,
-                        Padding = (CipherPadding)AESPaddingComboBox.SelectedItem
+                        AESMode = (CipherMode)AESModeComboBox.SelectedItem,
+                        AESPadding = (CipherPadding)AESPaddingComboBox.SelectedItem
                     };
                     break;
                 case CipherType.RC4:
@@ -272,8 +275,8 @@ namespace SecureTextEditor.GUI {
             options.DigestType = (DigestType)DigestTypeComboBox.SelectedItem;
             options.SignatureType = (SignatureType)SignatureTypeComboBox.SelectedItem;
             options.SignatureKeySize = (int)SignatureKeySizeComboBox.SelectedItem;
-            options.KeyOption = (CipherKeyOption)KeyOptionComboBox.SelectedItem;
-            options.KeySize = (int)KeySizeComboBox.SelectedItem;
+            options.CipherKeyOption = (CipherKeyOption)KeyOptionComboBox.SelectedItem;
+            options.CipherKeySize = (int)KeySizeComboBox.SelectedItem;
             
             return options;
         }

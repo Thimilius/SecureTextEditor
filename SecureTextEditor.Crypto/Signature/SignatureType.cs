@@ -8,8 +8,12 @@
         /// </summary>
         None,
         /// <summary>
-        /// Describes the SHA256 with DSA algorithm.
+        /// Describes the DSA with SHA256 algorithm.
         /// </summary>
-        SHA256WithDSA
+        DSAWithSHA256,
+        /// <summary>
+        /// Describes the ECDSA with SHA256 algorithm.
+        /// </summary>
+        ECDSAWithSHA256
     }
 }

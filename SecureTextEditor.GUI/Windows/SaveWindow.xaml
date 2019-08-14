@@ -207,13 +207,13 @@
 
                             <!-- Cipher mode option -->
                             <StackPanel Grid.Column="0" Grid.Row="2">
-                                <Label Content="Mode:" />
+                                <Label Content="AES Mode:" />
                                 <ComboBox Name="AESModeComboBox" />
                             </StackPanel>
 
                             <!-- Cipher padding option -->
                             <StackPanel Grid.Column="1" Grid.Row="2">
-                                <Label Content="Padding:" />
+                                <Label Content="AES Padding:" />
                                 <ComboBox Name="AESPaddingComboBox" />
                             </StackPanel>
                         </Grid>

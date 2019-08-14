@@ -69,11 +69,11 @@ namespace SecureTextEditor.File.Handler {
                     // Encrypt text and save file
                     CipherEngine cipherEngine = GetCryptoEngine(options);
                     byte[] iv = cipherEngine.GenerateIV();
-                    byte[] cipherKey = password.Process(chars => cipherEngine.GenerateKey(options.KeyOption == CipherKeyOption.Generate ? null : chars, iv));
+                    byte[] cipherKey = password.Process(chars => cipherEngine.GenerateKey(options.CipherKeyOption == CipherKeyOption.Generate ? null : chars, iv));
                     byte[] cipher = cipherEngine.Encrypt(messageToEncrypt, cipherKey, iv);
 
                     // We overwrite the current key size with the correct one
-                    options.KeySize = cipherEngine.KeySize;
+                    options.CipherKeySize = cipherEngine.KeySize;
 
                     // TODO: The signing should be treated as a different digest option
                     // Sign the cipher
@@ -143,14 +143,14 @@ namespace SecureTextEditor.File.Handler {
                 // Get the key from a file or get it from a password in case of password based encryption
                 byte[] cipherKey = null;
                 {
-                    if (options.KeyOption == CipherKeyOption.Generate) {
+                    if (options.CipherKeyOption == CipherKeyOption.Generate) {
                         // Try loading in the key file at the same location
                         string cipherKeyPath = GetPathForCipherKeyFile(path);
                         if (!System.IO.File.Exists(cipherKeyPath)) {
-                            cipherKeyPath = cipherKeyFileResolver?.Invoke(options.KeySize);
+                            cipherKeyPath = cipherKeyFileResolver?.Invoke(options.CipherKeySize);
                             // If no path was supplied, we bail out
                             if (cipherKeyPath == null) {
-                                return new OpenFileResult(OpenFileStatus.Canceled, null, null, null);
+                                return new OpenFileResult(OpenFileStatus.Canceled);
                             }
                         }
                         cipherKey = System.IO.File.ReadAllBytes(cipherKeyPath);
@@ -158,7 +158,7 @@ namespace SecureTextEditor.File.Handler {
                         SecureString password = passwordResolver?.Invoke();
                         // If no password was supplied, we bail out
                         if (password == null) {
-                            return new OpenFileResult(OpenFileStatus.Canceled, null, null, null);
+                            return new OpenFileResult(OpenFileStatus.Canceled);
                         } else {
                             cipherKey = password.Process(chars => cipherEngine.GenerateKey(chars, iv));
                         }
@@ -174,7 +174,7 @@ namespace SecureTextEditor.File.Handler {
                             macKeyPath = macKeyFileResolver?.Invoke();
                             // If no path was supplied, we bail out
                             if (macKeyPath == null) {
-                                return new OpenFileResult(OpenFileStatus.Canceled, null, null, null);
+                                return new OpenFileResult(OpenFileStatus.Canceled);
                             }
                         }
                         macKey = System.IO.File.ReadAllBytes(macKeyPath);
@@ -187,7 +187,7 @@ namespace SecureTextEditor.File.Handler {
                     if (options.SignatureType != SignatureType.None) {
                         SignatureEngine signatureEngine = new SignatureEngine(options.SignatureType, options.SignatureKeySize);
                         if (!signatureEngine.Verify(cipher, Convert.FromBase64String(textFile.Base64Signature), Convert.FromBase64String(textFile.Base64SignatureKey))) {
-                            return new OpenFileResult(OpenFileStatus.SignatureFailed, null, null, null);
+                            return new OpenFileResult(OpenFileStatus.SignatureFailed);
                         }
                     }
                 }
@@ -199,9 +199,9 @@ namespace SecureTextEditor.File.Handler {
                 cipherKey.Clear();
 
                 if (decryptResult.Status == CipherDecryptStatus.MacFailed) {
-                    return new OpenFileResult(OpenFileStatus.MacFailed, decryptResult.Exception, null, null);
+                    return new OpenFileResult(OpenFileStatus.MacFailed, decryptResult.Exception);
                 } else if (decryptResult.Status == CipherDecryptStatus.Failed) {
-                    return new OpenFileResult(OpenFileStatus.Failed, decryptResult.Exception, null, null);
+                    return new OpenFileResult(OpenFileStatus.Failed, decryptResult.Exception);
                 }
 
                 // Reverse the appending of the hash if needed
@@ -226,7 +226,7 @@ namespace SecureTextEditor.File.Handler {
                         }
 
                         if (!DigestEngine.AreEqual(newDigest, digest)) {
-                            return new OpenFileResult(OpenFileStatus.MacFailed, decryptResult.Exception, null, null);
+                            return new OpenFileResult(OpenFileStatus.MacFailed, decryptResult.Exception);
                         }
                     }
                 }
@@ -241,7 +241,7 @@ namespace SecureTextEditor.File.Handler {
                 };
                 return new OpenFileResult(OpenFileStatus.Success, null, fileMetaData, text);
             } catch (Exception e) {
-                return new OpenFileResult(OpenFileStatus.Failed, e, null, null);
+                return new OpenFileResult(OpenFileStatus.Failed, e);
             }
         }
 
@@ -257,9 +257,9 @@ namespace SecureTextEditor.File.Handler {
 
         private static CipherEngine GetCryptoEngine(EncryptionOptions options) {
             if (options is EncryptionOptionsAES optionsAES) {
-                return new CipherEngine(optionsAES.Type, optionsAES.Mode, optionsAES.Padding, options.KeyOption, options.KeySize);
+                return new CipherEngine(optionsAES.Type, optionsAES.AESMode, optionsAES.AESPadding, options.CipherKeyOption, options.CipherKeySize);
             } else if (options is EncryptionOptionsRC4 optionsRC4) {
-                return new CipherEngine(optionsRC4.Type, CipherMode.None, CipherPadding.None, options.KeyOption, options.KeySize);
+                return new CipherEngine(optionsRC4.Type, CipherMode.None, CipherPadding.None, options.CipherKeyOption, options.CipherKeySize);
             } else {
                 return null;
             }

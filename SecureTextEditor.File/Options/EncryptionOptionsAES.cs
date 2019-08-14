@@ -13,10 +13,10 @@ namespace SecureTextEditor.File.Options {
         /// <summary>
         /// The block mode used in AES encryption.
         /// </summary>
-        [JsonProperty(Required = Required.Always)] public CipherMode Mode { get; set; }
+        [JsonProperty(Required = Required.Always)] public CipherMode AESMode { get; set; }
         /// <summary>
         /// The block padding used in AES encryption.
         /// </summary>
-        [JsonProperty(Required = Required.Always)] public CipherPadding Padding { get; set; }
+        [JsonProperty(Required = Required.Always)] public CipherPadding AESPadding { get; set; }
     }
 }

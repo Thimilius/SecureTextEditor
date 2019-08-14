@@ -13,6 +13,14 @@ namespace SecureTextEditor.File.Options {
         /// </summary>
         [JsonProperty(Required = Required.Always)] public abstract CipherType Type { get; }
         /// <summary>
+        /// The cipher key option to use for encryption.
+        /// </summary>
+        [JsonProperty(Required = Required.Always)] public CipherKeyOption CipherKeyOption { get; set; }
+        /// <summary>
+        /// The size of the cipher key used in for encryption.
+        /// </summary>
+        [JsonProperty(Required = Required.Always)] public int CipherKeySize { get; set; }
+        /// <summary>
         /// The digest type used for hashing.
         /// </summary>
         [JsonProperty(Required = Required.Always)] public DigestType DigestType { get; set; }
@@ -24,13 +32,5 @@ namespace SecureTextEditor.File.Options {
         /// The size of the key used for the signature.
         /// </summary>
         [JsonProperty(Required = Required.Always)] public int SignatureKeySize { get; set; }
-        /// <summary>
-        /// The key option to use for encryption.
-        /// </summary>
-        [JsonProperty(Required = Required.Always)] public CipherKeyOption KeyOption { get; set; }
-        /// <summary>
-        /// The size of the key used in for encryption.
-        /// </summary>
-        [JsonProperty(Required = Required.Always)] public int KeySize { get; set; }
     }
 }

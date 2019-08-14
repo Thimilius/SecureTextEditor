@@ -34,6 +34,10 @@ namespace SecureTextEditor.Crypto.Digest {
         /// </summary>
         /// <param name="type">The digest type to use</param>
         public DigestEngine(DigestType type) {
+            if (type == DigestType.None) {
+                throw new InvalidOperationException();
+            }
+
             m_Type = type;
             if (IsMacConfigured()) {
                 m_Mac = GetMac(type);

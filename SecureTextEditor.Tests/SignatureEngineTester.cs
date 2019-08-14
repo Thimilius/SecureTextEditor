@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecureTextEditor.Crypto;
+using SecureTextEditor.Crypto.Digest;
 using SecureTextEditor.Crypto.Signature;
 
 namespace SecureTextEditor.Tests {
@@ -15,8 +13,17 @@ namespace SecureTextEditor.Tests {
         // TODO: Test that signatures are different for non-deterministic dsa
 
         [TestMethod]
-        public void SHA256WithDSA_Test() {
-            SignatureEngine engine = new SignatureEngine(SignatureType.SHA256WithDSA, 1024);
+        public void DSAWithSHA256_Test() {
+            SignatureEngine engine = new SignatureEngine(SignatureType.DSAWithSHA256, 1024);
+            SignatureKeyPair keyPair = engine.GenerateKeyPair();
+            byte[] sign = engine.Sign(BLOCK_UNALIGNED_MESSAGE, keyPair.PrivateKey);
+            bool verify = engine.Verify(BLOCK_UNALIGNED_MESSAGE, sign, keyPair.PublicKey);
+            Assert.IsTrue(verify);
+        }
+
+        [TestMethod]
+        public void ECDSAWithSHA256_Test() {
+            SignatureEngine engine = new SignatureEngine(SignatureType.ECDSAWithSHA256, 256);
             SignatureKeyPair keyPair = engine.GenerateKeyPair();
             byte[] sign = engine.Sign(BLOCK_UNALIGNED_MESSAGE, keyPair.PrivateKey);
             bool verify = engine.Verify(BLOCK_UNALIGNED_MESSAGE, sign, keyPair.PublicKey);
@@ -25,11 +32,13 @@ namespace SecureTextEditor.Tests {
 
         [TestMethod]
         public void KeyStorage_Test() {
-            SignatureEngine engine = new SignatureEngine(SignatureType.SHA256WithDSA, 1024);
+            SignatureEngine engine = new SignatureEngine(SignatureType.DSAWithSHA256, 1024);
             SignatureKeyPair keyPair = engine.GenerateKeyPair();
             SignatureKeyStorage storage = new SignatureKeyStorage();
             storage.Store(keyPair);
             SignatureKeyPair loadedPair = storage.Retrieve(keyPair.PublicKey);
+            Assert.IsTrue(DigestEngine.AreEqual(keyPair.PrivateKey, loadedPair.PrivateKey));
+            Assert.IsTrue(DigestEngine.AreEqual(keyPair.PublicKey, loadedPair.PublicKey));
         }
     }
 }

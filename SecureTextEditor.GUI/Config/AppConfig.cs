@@ -85,18 +85,18 @@ namespace SecureTextEditor.GUI.Config {
                 DefaultEncryptionOptions = new Dictionary<CipherType, EncryptionOptions>() {
                     { CipherType.AES, new EncryptionOptionsAES() {
                         DigestType = DigestType.SHA256,
-                        KeyOption = CipherKeyOption.Generate,
-                        KeySize = 192,
-                        SignatureType = SignatureType.SHA256WithDSA,
+                        CipherKeyOption = CipherKeyOption.Generate,
+                        CipherKeySize = 192,
+                        SignatureType = SignatureType.ECDSAWithSHA256,
                         SignatureKeySize = 1024,
-                        Mode = CipherMode.CBC,
-                        Padding = CipherPadding.PKCS7
+                        AESMode = CipherMode.CBC,
+                        AESPadding = CipherPadding.PKCS7
                     } },
                     { CipherType.RC4, new EncryptionOptionsRC4() {
                         DigestType = DigestType.SHA256,
-                        KeyOption = CipherKeyOption.Generate,
-                        KeySize = 192,
-                        SignatureType = SignatureType.SHA256WithDSA,
+                        CipherKeyOption = CipherKeyOption.Generate,
+                        CipherKeySize = 192,
+                        SignatureType = SignatureType.DSAWithSHA256,
                         SignatureKeySize = 1024
                     } },
                 }

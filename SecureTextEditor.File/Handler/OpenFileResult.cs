@@ -48,8 +48,6 @@ namespace SecureTextEditor.File.Handler {
         /// </summary>
         public string Text { get; }
 
-        // TODO: Add overload without meta data and text
-
         /// <summary>
         /// Creates a new open file result object with given parameters.
         /// </summary>
@@ -57,7 +55,7 @@ namespace SecureTextEditor.File.Handler {
         /// <param name="exception">The underlying exception that got raised (if any)</param>
         /// <param name="fileMetaData">The actual meta data produced by the open file operation if it was successfull</param>
         /// <param name="text">The actual text loaded by the open file operation if it was successfull</param>
-        public OpenFileResult(OpenFileStatus status, Exception exception, FileMetaData fileMetaData, string text) {
+        public OpenFileResult(OpenFileStatus status, Exception exception = null, FileMetaData fileMetaData = null, string text = null) {
             Status = status;
             Exception = exception;
             FileMetaData = fileMetaData;

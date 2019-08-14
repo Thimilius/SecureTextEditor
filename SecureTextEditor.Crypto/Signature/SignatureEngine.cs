@@ -17,9 +17,13 @@ namespace SecureTextEditor.Crypto.Signature {
     /// </summary>
     public class SignatureEngine {
         /// <summary>
-        /// The key sizes accepted for key generation.
+        /// The key sizes accepted for normal DSA.
         /// </summary>
-        public static readonly int[] ACCEPTED_KEYS = new int[] { 1024, 3072 };
+        public static readonly int[] DSA_ACCEPTED_KEYS = new int[] { 1024, 3072 };
+        /// <summary>
+        /// The key sizes accepted for ECDSA.
+        /// </summary>
+        public static readonly int[] ECDSA_ACCEPTED_KEYS = new int[] { 256 };
         /// <summary>
         /// The certainty for key genration.
         /// </summary>
@@ -98,16 +102,21 @@ namespace SecureTextEditor.Crypto.Signature {
         /// <returns></returns>
         private AsymmetricCipherKeyPair GetKeyPair() {
             switch (m_Type) {
-                case SignatureType.SHA256WithDSA:
+                case SignatureType.DSAWithSHA256:
                     // Generate parameters for key generation
                     DsaParametersGenerator parametersGenerator = new DsaParametersGenerator(new Sha256Digest());
                     parametersGenerator.Init(new DsaParameterGenerationParameters(m_KeySize, GetParameterN(m_KeySize), CERTAINTY, new SecureRandom()));
                     var parameters = parametersGenerator.GenerateParameters();
-
+                    
                     // Generate key pair
-                    DsaKeyPairGenerator generator = new DsaKeyPairGenerator();
-                    generator.Init(new DsaKeyGenerationParameters(new SecureRandom(), parameters));
-                    return generator.GenerateKeyPair();
+                    DsaKeyPairGenerator dsaGenerator = new DsaKeyPairGenerator();
+                    dsaGenerator.Init(new DsaKeyGenerationParameters(new SecureRandom(), parameters));
+                    return dsaGenerator.GenerateKeyPair();
+                case SignatureType.ECDSAWithSHA256:
+                    // Generator key pair for EC P-256
+                    ECKeyPairGenerator ecGenerator = new ECKeyPairGenerator();
+                    ecGenerator.Init(new KeyGenerationParameters(new SecureRandom(), m_KeySize));
+                    return ecGenerator.GenerateKeyPair();
                 default: throw new InvalidOperationException();
             }
         }
@@ -119,7 +128,8 @@ namespace SecureTextEditor.Crypto.Signature {
         /// <returns>The signer</returns>
         private ISigner GetSigner(SignatureType type) {
             switch (type) {
-                case SignatureType.SHA256WithDSA: return new DsaDigestSigner(new DsaSigner(), new Sha256Digest());
+                case SignatureType.DSAWithSHA256: return new DsaDigestSigner(new DsaSigner(), new Sha256Digest());
+                case SignatureType.ECDSAWithSHA256: return new DsaDigestSigner(new ECDsaSigner(), new Sha256Digest());
                 default: throw new InvalidOperationException();
             }
         }
@@ -161,8 +171,19 @@ namespace SecureTextEditor.Crypto.Signature {
         /// <param name="type">The type of signature</param>
         /// <param name="keySize">The key size</param>
         private void VerifyParameters(SignatureType type, int keySize) {
-            if (!ACCEPTED_KEYS.Contains(keySize)) {
-                throw new InvalidOperationException($"Invalid key size of {keySize}!");
+            switch (type) {
+                case SignatureType.None:
+                    throw new InvalidOperationException();
+                case SignatureType.DSAWithSHA256:
+                    if (!DSA_ACCEPTED_KEYS.Contains(keySize)) {
+                        throw new InvalidOperationException($"Invalid key size of {keySize}!");
+                    }
+                    break;
+                case SignatureType.ECDSAWithSHA256:
+                    if (!ECDSA_ACCEPTED_KEYS.Contains(keySize)) {
+                        throw new InvalidOperationException($"Invalid key size of {keySize}!");
+                    }
+                    break;
             }
         }
     }
