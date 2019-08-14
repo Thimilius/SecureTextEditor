@@ -17,7 +17,7 @@ namespace SecureTextEditor.GUI {
             }
 
             // Display main window
-            MainWindow window = new MainWindow();
+            EditorWindow window = new EditorWindow();
             MainWindow = window;
             window.Show();
 

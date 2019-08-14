@@ -18,7 +18,7 @@ namespace SecureTextEditor.GUI {
     /// <summary>
     /// Interaction logic for the main window.
     /// </summary>
-    public partial class MainWindow : Window {
+    public partial class EditorWindow : Window {
         /// <summary>
         /// Gets the text editor control.
         /// </summary>
@@ -32,7 +32,7 @@ namespace SecureTextEditor.GUI {
         /// <summary>
         /// Creates a new main window.
         /// </summary>
-        public MainWindow() { 
+        public EditorWindow() { 
             InitializeComponent();
 
             m_FileHandler = new FileHandler();

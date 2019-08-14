@@ -38,7 +38,7 @@ namespace SecureTextEditor.GUI.Editor {
         /// <summary>
         /// Holds a reference to the main window this control belongs to.
         /// </summary>
-        private readonly MainWindow m_Window;
+        private readonly EditorWindow m_Window;
         /// <summary>
         /// Holds a reference to the tab control that belongs to this control.
         /// </summary>
@@ -74,7 +74,7 @@ namespace SecureTextEditor.GUI.Editor {
         /// </summary>
         /// <param name="window">The window the text editor belongs to</param>
         /// <param name="tabControl">The tab control that should belong to the text editor</param>
-        public TextEditorControl(MainWindow window, TabControl tabControl) {
+        public TextEditorControl(EditorWindow window, TabControl tabControl) {
             m_Window = window;
             m_TabControl = tabControl;
             m_NewTabCounter = 1;
