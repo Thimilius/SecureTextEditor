@@ -46,12 +46,17 @@ namespace SecureTextEditor.File.Handler {
         /// <summary>
         /// <see cref="IFileHandler.SaveFileAsync"/>
         /// </summary>
-        public async Task<SaveFileResult> SaveFileAsync(string path, string text, TextEncoding encoding, EncryptionOptions options, SecureString password) {
+        public async Task<SaveFileResult> SaveFileAsync(SaveFileParameters parameters) {
             try {
+                string path = parameters.Path;
+                TextEncoding encoding = parameters.Encoding;
+                EncryptionOptions options = parameters.EncryptionOptions;
+                SecureString password = parameters.Password;
+
                 string fileName = Path.GetFileName(path);
 
                 await Task.Run(() => {
-                    byte[] encodedText = GetEncoding(encoding).GetBytes(text);
+                    byte[] encodedText = GetEncoding(encoding).GetBytes(parameters.Text);
                     byte[] messageToEncrypt = encodedText;
                     byte[] macKey = null;
 
@@ -132,8 +137,9 @@ namespace SecureTextEditor.File.Handler {
         /// <summary>
         /// <see cref="IFileHandler.OpenFile"/>
         /// </summary>
-        public OpenFileResult OpenFile(string path, PasswordResolver passwordResolver, CipherKeyFileResolver cipherKeyFileResolver, MacKeyFileResolver macKeyFileResolver) {
+        public OpenFileResult OpenFile(OpenFileParameters parameters) {
             try {
+                string path = parameters.Path;
                 string fileName = Path.GetFileName(path);
 
                 // Load file and decrypt with corresponding encoding
@@ -152,7 +158,7 @@ namespace SecureTextEditor.File.Handler {
                         // Try loading in the key file at the same location
                         string cipherKeyPath = GetPathForCipherKeyFile(path);
                         if (!System.IO.File.Exists(cipherKeyPath)) {
-                            cipherKeyPath = cipherKeyFileResolver?.Invoke(options.CipherKeySize);
+                            cipherKeyPath = parameters.CipherKeyFileResolver?.Invoke(options.CipherKeySize);
                             // If no path was supplied, we bail out
                             if (cipherKeyPath == null) {
                                 return new OpenFileResult(OpenFileStatus.Canceled);
@@ -160,7 +166,7 @@ namespace SecureTextEditor.File.Handler {
                         }
                         cipherKey = System.IO.File.ReadAllBytes(cipherKeyPath);
                     } else {
-                        SecureString password = passwordResolver?.Invoke();
+                        SecureString password = parameters.PasswordResolver?.Invoke();
                         // If no password was supplied, we bail out
                         if (password == null) {
                             return new OpenFileResult(OpenFileStatus.Canceled);
@@ -176,7 +182,7 @@ namespace SecureTextEditor.File.Handler {
                     if (options.DigestType == DigestType.AESCMAC || options.DigestType == DigestType.HMACSHA256) {
                         string macKeyPath = GetPathForMacKeyFile(path);
                         if (!System.IO.File.Exists(macKeyPath)) {
-                            macKeyPath = macKeyFileResolver?.Invoke();
+                            macKeyPath = parameters.MacKeyFileResolver?.Invoke();
                             // If no path was supplied, we bail out
                             if (macKeyPath == null) {
                                 return new OpenFileResult(OpenFileStatus.Canceled);
@@ -185,7 +191,6 @@ namespace SecureTextEditor.File.Handler {
                         macKey = System.IO.File.ReadAllBytes(macKeyPath);
                     }
                 }
-
 
                 // Verify signature
                 {

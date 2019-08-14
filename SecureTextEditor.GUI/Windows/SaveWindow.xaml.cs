@@ -168,7 +168,14 @@ namespace SecureTextEditor.GUI {
             }
             string path = dialog.FileName;
 
-            SaveFileResult result = await m_FileHandler.SaveFileAsync(path, text, encoding, options, password);
+            SaveFileParameters parameters = new SaveFileParameters() {
+                Path = path,
+                Text = text,
+                Encoding = encoding,
+                EncryptionOptions = options,
+                Password = password
+            };
+            SaveFileResult result = await m_FileHandler.SaveFileAsync(parameters);
             if (result.Status == SaveFileStatus.Success) {
                 return result.FileMetaData;
             } else {

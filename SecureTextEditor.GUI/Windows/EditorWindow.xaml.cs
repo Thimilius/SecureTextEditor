@@ -13,6 +13,7 @@ using SecureTextEditor.GUI.Dialog;
 using SecureTextEditor.GUI.Editor;
 
 // TODO: Finish xml docs
+// TODO: If we open a file on startup do not open an empty tab
 
 namespace SecureTextEditor.GUI {
     /// <summary>
@@ -86,7 +87,13 @@ namespace SecureTextEditor.GUI {
             }
 
             // Open actual file
-            OpenFileResult result = m_FileHandler.OpenFile(path, PasswordResolver, KeyFileResolver, MacKeyFileResolver);
+            OpenFileParameters parameters = new OpenFileParameters() {
+                Path = path,
+                CipherKeyFileResolver = CipherKeyFileResolver,
+                PasswordResolver = PasswordResolver,
+                MacKeyFileResolver = MacKeyFileResolver
+            };
+            OpenFileResult result = m_FileHandler.OpenFile(parameters);
 
             if (result.Status == OpenFileStatus.Success) {
                 // Open new tab for the file
@@ -164,7 +171,7 @@ namespace SecureTextEditor.GUI {
             }
         }
 
-        private string KeyFileResolver(int keySize) {
+        private string CipherKeyFileResolver(int keySize) {
             bool IsKeyFileValid(string pathToKeyFile, int expectedKeySize) {
                 // We simply check if the size of the file that got selected matches the key size we expect
                 System.IO.FileInfo info = new System.IO.FileInfo(pathToKeyFile);

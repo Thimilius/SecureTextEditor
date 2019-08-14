@@ -47,7 +47,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Handler\FileFilters.cs" />
-    <Compile Include="Handler\FileHandler.cs" />
+    <Compile Include="Handler\OpenFileParameters.cs" />
+    <Compile Include="Handler\SaveFileParameters.cs" />
+    <Compile Include="Handler\SecureTextFileHandler.cs" />
     <Compile Include="Handler\FileMetaData.cs" />
     <Compile Include="Handler\IFileHandler.cs" />
     <Compile Include="Handler\OpenFileResult.cs" />

@@ -87,7 +87,7 @@ namespace SecureTextEditor.GUI.Config {
                         DigestType = DigestType.SHA256,
                         CipherKeyOption = CipherKeyOption.Generate,
                         CipherKeySize = 192,
-                        SignatureType = SignatureType.ECDSAWithSHA256,
+                        SignatureType = SignatureType.DSAWithSHA256,
                         SignatureKeySize = 1024,
                         AESMode = CipherMode.CBC,
                         AESPadding = CipherPadding.PKCS7
