@@ -16,59 +16,119 @@ using System.IO;
 
 namespace SecureTextEditor.Crypto {
     /// <summary>
-    /// Abstracts a PKCS12 key storage.
+    /// Abstracts a PKCS12 key storage for DSA signature key pairs.
     /// </summary>
     public class SignatureKeyStorage {
-        private const string KEY_STORE_ALIAS = "private_key";
-        private const string KEY_STORE_FILEPATH = "storage.fks";
-        private const string KEY_STORE_PASSWORD = "password";
+        /// <summary>
+        /// The certificate distinguished name.
+        /// </summary>
+        private static readonly X509Name CERTIFICATE_DISTINGUISHED_NAME = new X509Name("CN=SecureTextEditor");
 
-        private static readonly X509Name CERTIFICATE_NAME = new X509Name("CN=KeyCA");
+        /// <summary>
+        /// The file path to the storage.
+        /// </summary>
+        private readonly string m_FilePath;
+        /// <summary>
+        /// The actual storage.
+        /// </summary>
+        private readonly Pkcs12Store m_Store;
 
-        private Pkcs12Store m_Store;
-
-        public SignatureKeyStorage() {
+        /// <summary>
+        /// Creates a new key storage at a given path.
+        /// </summary>
+        /// <param name="filePath"></param>
+        public SignatureKeyStorage(string filePath) {
             m_Store = new Pkcs12Store();
+            m_FilePath = filePath;
+        }
 
+        /// <summary>
+        /// Loads the storage into memory.
+        /// </summary>
+        /// <param name="password">The password of the storage</param>
+        public void Load(char[] password) {
             // This inital loading step may be better in a seperate function
-            if (File.Exists(KEY_STORE_FILEPATH)) {
-                using (FileStream stream = new FileStream(KEY_STORE_FILEPATH, FileMode.Open)) {
-                    m_Store.Load(stream, KEY_STORE_PASSWORD.ToCharArray());
+            if (File.Exists(m_FilePath)) {
+                using (FileStream stream = new FileStream(m_FilePath, FileMode.Open)) {
+                    m_Store.Load(stream, password);
                 }
             }
         }
 
-        public void Store(SignatureKeyPair pair) {
-            AsymmetricCipherKeyPair ecKeyPair = GenerateEcKeyPair();
-            X509Certificate certificate = GetCertificate(ecKeyPair.Private, ecKeyPair.Public);
+        /// <summary>
+        /// Saves the storage to disk.
+        /// </summary>
+        /// <param name="password">The password for the storage</param>
+        public void Save(char[] password) {
+            using (FileStream stream = new FileStream(m_FilePath, FileMode.Create)) {
+                m_Store.Save(stream, password, new SecureRandom());
+            }
+        }
+
+        /// <summary>
+        /// Checks whether or not an alias exits in the storage.
+        /// </summary>
+        /// <param name="alias">The alias to check</param>
+        /// <returns>True if the alias exists otherwise false</returns>
+        public bool Exists(string alias) {
+            return m_Store.ContainsAlias(alias);
+        }
+
+        /// <summary>
+        /// Stores the private key of a signature key pair in the storage.
+        /// </summary>
+        /// <param name="alias">The alias to save the private key at</param>
+        /// <param name="pair">The signature key pair with the private key to save</param>
+        public void Store(string alias, SignatureKeyPair pair) {
+            AsymmetricCipherKeyPair ecKeyPair = GenerateECKeyPair();
+            X509Certificate certificate = GenerateCertificate(ecKeyPair.Private, ecKeyPair.Public);
 
             X509CertificateEntry[] certificates = new X509CertificateEntry[] { new X509CertificateEntry(certificate) };
 
             AsymmetricKeyEntry privateEntry = new AsymmetricKeyEntry(pair.Pair.Private);
-            m_Store.SetKeyEntry(KEY_STORE_ALIAS, privateEntry, certificates);
+            m_Store.SetKeyEntry(alias, privateEntry, certificates);
+        }
 
-            using (FileStream stream = new FileStream(KEY_STORE_FILEPATH, FileMode.Create)) {
-                m_Store.Save(stream, KEY_STORE_PASSWORD.ToCharArray(), new SecureRandom());
+        /// <summary>
+        /// Retrieves the private key pair out of storage and returns the with the combined signature key pair.
+        /// </summary>
+        /// <param name="alias">The alias to load the private key from</param>
+        /// <returns>The combined signature key pair</returns>
+        public SignatureKeyPair Retrieve(string alias) {
+            // Currently we always assume we are dealing with DSA
+            if (m_Store.GetKey(alias).Key is DsaPrivateKeyParameters privateParameters) {
+                // Get public key from private
+                BigInteger p = privateParameters.Parameters.P;
+                BigInteger g = privateParameters.Parameters.G;
+                BigInteger x = privateParameters.X;
+                BigInteger y = g.ModPow(x, p);
+                DsaPublicKeyParameters publicKeyParameters = new DsaPublicKeyParameters(y, privateParameters.Parameters);
+
+                AsymmetricCipherKeyPair keyPair = new AsymmetricCipherKeyPair(publicKeyParameters, privateParameters);
+
+                PrivateKeyInfo privateInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(privateParameters);
+                SubjectPublicKeyInfo publicInfo = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(keyPair.Public);
+                byte[] privateEncoded = privateInfo.GetEncoded();
+                byte[] publicEncoded = publicInfo.GetEncoded();
+
+                return new SignatureKeyPair(privateEncoded, publicEncoded, keyPair);
+            } else {
+                throw new InvalidOperationException();
             }
         }
 
-        public bool Exists() {
-            return m_Store.ContainsAlias(KEY_STORE_ALIAS);
-        }
-
-        public SignatureKeyPair Retrieve(byte[] publicKey) {
-            AsymmetricKeyParameter privateParameter = m_Store.GetKey(KEY_STORE_ALIAS).Key;
-            PrivateKeyInfo privateInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(privateParameter);
-            byte[] privateEncoded = privateInfo.GetEncoded();
-            return new SignatureKeyPair(privateEncoded, publicKey, new AsymmetricCipherKeyPair(PublicKeyFactory.CreateKey(publicKey), privateParameter));
-        }
-
-        private X509Certificate GetCertificate(AsymmetricKeyParameter privateKey, AsymmetricKeyParameter publicKey) {
+        /// <summary>
+        /// Generates a new certificate.
+        /// </summary>
+        /// <param name="privateKey">The private key parameter</param>
+        /// <param name="publicKey">The public key parameter</param>
+        /// <returns>The generated certificate</returns>
+        private X509Certificate GenerateCertificate(AsymmetricKeyParameter privateKey, AsymmetricKeyParameter publicKey) {
             ISignatureFactory factory = new Asn1SignatureFactory(X9ObjectIdentifiers.ECDsaWithSha256.ToString(), privateKey);
 
             X509V3CertificateGenerator generator = new X509V3CertificateGenerator();
-            generator.SetIssuerDN(CERTIFICATE_NAME);
-            generator.SetSubjectDN(CERTIFICATE_NAME);
+            generator.SetIssuerDN(CERTIFICATE_DISTINGUISHED_NAME);
+            generator.SetSubjectDN(CERTIFICATE_DISTINGUISHED_NAME);
             generator.SetSerialNumber(BigInteger.ValueOf(1));
             generator.SetNotAfter(DateTime.Now.AddYears(1));
             generator.SetNotBefore(DateTime.UtcNow);
@@ -77,8 +137,12 @@ namespace SecureTextEditor.Crypto {
             return generator.Generate(factory);
         }
 
-        private static AsymmetricCipherKeyPair GenerateEcKeyPair() {
-            X9ECParameters cureParameters = SecNamedCurves.GetByName("secp256r1");
+        /// <summary>
+        /// Generates a new elliptic curve pair.
+        /// </summary>
+        /// <returns>The generated elliptic curve pair</returns>
+        private static AsymmetricCipherKeyPair GenerateECKeyPair() {
+            X9ECParameters cureParameters = SecNamedCurves.GetByName("SECP256R1");
             ECDomainParameters domain = new ECDomainParameters(cureParameters.Curve, cureParameters.G, cureParameters.N);
             ECKeyGenerationParameters generationParameters = new ECKeyGenerationParameters(domain, new SecureRandom());
 
