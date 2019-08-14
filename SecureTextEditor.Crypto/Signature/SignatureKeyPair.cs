@@ -28,5 +28,13 @@ namespace SecureTextEditor.Crypto.Signature {
             PublicKey = publicKey;
             Pair = pair;
         }
+
+        /// <summary>
+        /// Clears out the key pairs.
+        /// </summary>
+        public void Clear() {
+            PrivateKey.Clear();
+            PublicKey.Clear();
+        }
     }
 }

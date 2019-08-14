@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
 
-namespace SecureTextEditor.File {
+namespace SecureTextEditor.Crypto {
     /// <summary>
     /// Provides extensions/utilities for security.
     /// </summary>

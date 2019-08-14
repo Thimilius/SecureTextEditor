@@ -35,7 +35,7 @@ namespace SecureTextEditor.GUI {
         public EditorWindow() { 
             InitializeComponent();
 
-            m_FileHandler = new FileHandler();
+            m_FileHandler = new SecureTextFileHandler();
 
             // We need to set the inital theme based on config
             ChangeTheme(AppConfig.Config.Theme);
@@ -152,14 +152,15 @@ namespace SecureTextEditor.GUI {
         }
 
         private SecureString PasswordResolver() {
-            using (PasswordWindow window = new PasswordWindow(this)) {
-                bool? result = window.ShowDialog();
+            PasswordWindow window = new PasswordWindow(this);
+            bool? result = window.ShowDialog();
 
-                if (result.Value) {
-                    return window.Password;
-                } else {
-                    return null;
-                }
+            if (result.Value) {
+                SecureString password = window.Password;
+                window.Clear();
+                return password;
+            } else {
+                return null;
             }
         }
 

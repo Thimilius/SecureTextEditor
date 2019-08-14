@@ -18,6 +18,7 @@ using SecureTextEditor.GUI.Editor;
 
 // TODO: Finish xml docs
 // FIXME: Refresh the whole ui when something changes so that the dependencies are easier to handle
+// TODO: The signing should be treated as a different digest option
 
 namespace SecureTextEditor.GUI {
     /// <summary>
@@ -33,7 +34,7 @@ namespace SecureTextEditor.GUI {
         public SaveWindow(ITextEditorControl control, ITextEditorTab tab) {
             InitializeComponent();
 
-            m_FileHandler = new FileHandler();
+            m_FileHandler = new SecureTextFileHandler();
             m_TextEditorControl = control;
             m_TabToSave = tab;
             m_CTSPaddingAvailable = m_TabToSave.Editor.Text.Length >= CipherEngine.BLOCK_SIZE;

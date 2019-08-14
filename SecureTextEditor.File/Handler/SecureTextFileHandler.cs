@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using SecureTextEditor.Crypto;
 using SecureTextEditor.Crypto.Cipher;
 using SecureTextEditor.Crypto.Digest;
 using SecureTextEditor.Crypto.Signature;
@@ -18,7 +19,7 @@ namespace SecureTextEditor.File.Handler {
     /// <summary>
     /// Handler that abstracts opening and loading a secure text file.
     /// </summary>
-    public class FileHandler : IFileHandler {
+    public class SecureTextFileHandler : IFileHandler {
         /// <summary>
         /// The extension used for the file.
         /// </summary>
@@ -75,7 +76,6 @@ namespace SecureTextEditor.File.Handler {
                     // We overwrite the current key size with the correct one
                     options.CipherKeySize = cipherEngine.KeySize;
 
-                    // TODO: The signing should be treated as a different digest option
                     // Sign the cipher
                     SignatureKeyPair keyPair = null;
                     byte[] sign = null;
@@ -93,7 +93,12 @@ namespace SecureTextEditor.File.Handler {
                         sign != null ? Convert.ToBase64String(sign) : null, // The actual sign in base64
                         Convert.ToBase64String(cipher) // The cipher in base64
                     );
-                    // TODO: Clear out signature key pair
+
+                    // Clear out signature key pair
+                    if (keyPair != null) {
+                        keyPair.Clear();
+                    }
+
                     // FIXME: Why does the iv still get saved even though its null?
                     SaveSecureTextFile(path, file);
 
