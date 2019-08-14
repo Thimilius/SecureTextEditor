@@ -132,14 +132,13 @@ namespace SecureTextEditor.Crypto.Cipher {
             }
         }
 
-        // FIXME: We do not generate a salt for the password! BAD!
         /// <summary>
         /// Generates a key for use with this engine.
         /// </summary>
         /// <param name="password">The password required for password based encryption (Can be null if not needed)</param>
-        /// <param name="iv">The iv that is needed for key generation (Can be null if not needed)</param>
+        /// <param name="salt">The salt that is needed for key generation (Can be null if not needed)</param>
         /// <returns>The generated key</returns>
-        public byte[] GenerateKey(char[] password, byte[] iv) {
+        public byte[] GenerateKey(char[] password, byte[] salt) {
             switch (m_KeyOption) {
                 case CipherKeyOption.Generate:
                     // Simple cipher key generation
@@ -158,13 +157,13 @@ namespace SecureTextEditor.Crypto.Cipher {
                         algorithm = "RC4";
                     }
                     // TODO: What do these parameters mean?
-                    pbeGenerator.Init(PbeParametersGenerator.Pkcs12PasswordToBytes(password), iv, 2048);
+                    pbeGenerator.Init(PbeParametersGenerator.Pkcs12PasswordToBytes(password), salt, 2048);
                     return ((KeyParameter)pbeGenerator.GenerateDerivedParameters(algorithm, KeySize)).GetKey();
                 case CipherKeyOption.PBEWithSCRYPT:
                     // Generate cipher key from password with SCRYPT
                     // TODO: What do these parameters mean?
                     byte[] encoded = PbeParametersGenerator.Pkcs5PasswordToUtf8Bytes(password);
-                    return SCrypt.Generate(encoded, iv, 2048, 16, 1, KeySize / 8);
+                    return SCrypt.Generate(encoded, salt, 2048, 16, 1, KeySize / 8);
                 default: throw new InvalidOperationException();
             }
         }
@@ -174,7 +173,7 @@ namespace SecureTextEditor.Crypto.Cipher {
         /// </summary>
         /// <returns>The generated initilization vector or null</returns>
         public byte[] GenerateIV() {
-            if (m_CipherMode == CipherMode.ECB) {
+            if (m_Type == CipherType.RC4 || m_CipherMode == CipherMode.ECB) {
                 return null;
             } else {
                 // If we use CCM the iv is treated as the nonce

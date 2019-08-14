@@ -11,7 +11,7 @@ namespace SecureTextEditor.File.Options {
         /// <summary>
         /// The general type of algorithm.
         /// </summary>
-        [JsonProperty(Required = Required.Always)] public abstract CipherType Type { get; }
+        [JsonProperty(Required = Required.Always)] public abstract CipherType CipherType { get; }
         /// <summary>
         /// The cipher key option to use for encryption.
         /// </summary>

@@ -9,6 +9,6 @@ namespace SecureTextEditor.File.Options {
         /// <summary>
         /// The cipher type used in encryption.
         /// </summary>
-        [JsonProperty(Required = Required.Always)] public override CipherType Type => CipherType.RC4;
+        [JsonProperty(Required = Required.Always)] public override CipherType CipherType => CipherType.RC4;
     }
 }

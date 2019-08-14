@@ -49,15 +49,15 @@ namespace SecureTextEditor.GUI {
 
             // Set default options
             EncryptionOptions options = tab.MetaData.FileMetaData.EncryptionOptions;
-            CipherTypeComboBox.SelectedItem = options.Type;
+            CipherTypeComboBox.SelectedItem = options.CipherType;
             DigestTypeComboBox.SelectedItem = options.DigestType;
             SignatureTypeComboBox.SelectedItem = options.SignatureType;
             SignatureKeySizeComboBox.SelectedItem = options.SignatureKeySize;
             KeyOptionComboBox.SelectedItem = options.CipherKeyOption;
 
             EncryptionOptionsAES optionsAES = GetDefaultEncryptionOptions<EncryptionOptionsAES>(options, CipherType.AES);
-            AESModeComboBox.SelectedItem = optionsAES.AESMode;
-            AESPaddingComboBox.SelectedItem = optionsAES.AESPadding;
+            AESModeComboBox.SelectedItem = optionsAES.CipherMode;
+            AESPaddingComboBox.SelectedItem = optionsAES.CipherPadding;
 
             // Set up events
             CipherTypeComboBox.SelectionChanged += (s, e) => {
@@ -88,18 +88,18 @@ namespace SecureTextEditor.GUI {
             PasswordTextBox.PasswordChanged += (s, e) => OnPasswordChanged(PasswordTextBox.Password);
 
             // Set up initial ui visibility
-            OnCipherTypeSelectionChanged(options.Type);
+            OnCipherTypeSelectionChanged(options.CipherType);
             OnPasswordChanged("");
-            OnAESPaddingSelectionChanged(optionsAES.AESPadding);
-            OnAESModeSelectionChanged(optionsAES.AESMode);
+            OnAESPaddingSelectionChanged(optionsAES.CipherPadding);
+            OnAESModeSelectionChanged(optionsAES.CipherMode);
             OnKeyOptionSelectionChanged(options.CipherKeyOption);
 
             // For some selections it is a littly hacky because of the weird dependency to the padding
-            if (AESModeComboBox.Items.Contains(optionsAES.AESMode)) {
-                AESModeComboBox.SelectedItem = optionsAES.AESMode;
+            if (AESModeComboBox.Items.Contains(optionsAES.CipherMode)) {
+                AESModeComboBox.SelectedItem = optionsAES.CipherMode;
             } else {
                 AESPaddingComboBox.SelectedItem = CipherPadding.None;
-                AESModeComboBox.SelectedItem = optionsAES.AESMode;
+                AESModeComboBox.SelectedItem = optionsAES.CipherMode;
             }
             KeySizeComboBox.SelectedItem = options.CipherKeySize;
             KeyOptionComboBox.SelectedItem = options.CipherKeyOption;
@@ -270,8 +270,8 @@ namespace SecureTextEditor.GUI {
             switch (encryptionType) {
                 case CipherType.AES:
                     options = new EncryptionOptionsAES() {
-                        AESMode = (CipherMode)AESModeComboBox.SelectedItem,
-                        AESPadding = (CipherPadding)AESPaddingComboBox.SelectedItem
+                        CipherMode = (CipherMode)AESModeComboBox.SelectedItem,
+                        CipherPadding = (CipherPadding)AESPaddingComboBox.SelectedItem
                     };
                     break;
                 case CipherType.RC4:

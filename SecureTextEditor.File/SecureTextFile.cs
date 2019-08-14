@@ -19,9 +19,9 @@ namespace SecureTextEditor.File {
         /// </summary>
         [JsonProperty(Required = Required.Always)] internal TextEncoding Encoding { get; }
         /// <summary>
-        /// The initilization vector encoded in Base64.
+        /// The initilization vector or salt encoded in Base64.
         /// </summary>
-        [JsonProperty(Required = Required.Default)] internal string Base64IV { get; }
+        [JsonProperty(Required = Required.Default)] internal string Base64IVOrSalt { get; }
         /// <summary>
         /// The public key used for verifying the signature encoded in Base64.
         /// </summary>
@@ -40,14 +40,14 @@ namespace SecureTextEditor.File {
         /// </summary>
         /// <param name="options">The security options used for encryption</param>
         /// <param name="encoding">The encoding used for the text</param>
-        /// <param name="base64IV">The initilization vector encoded in Base64</param>
+        /// <param name="base64IVOrSalt">The initilization vector encoded in Base64</param>
         /// <param name="base64SignatureKey">The public key used for verifying the signature encoded in Base64</param>
         /// <param name="base64Signature">The sign of the whole file encoded in Base64</param>
         /// <param name="base64Cipher">The actual cipher encoded in Base64</param>
-        public SecureTextFile(EncryptionOptions encryptionOptions, TextEncoding encoding, string base64IV, string base64SignatureKey, string base64Signature, string base64Cipher) {
+        internal SecureTextFile(EncryptionOptions encryptionOptions, TextEncoding encoding, string base64IVOrSalt, string base64SignatureKey, string base64Signature, string base64Cipher) {
             Encoding = encoding;
             EncryptionOptions = encryptionOptions;
-            Base64IV = base64IV;
+            Base64IVOrSalt = base64IVOrSalt;
             Base64SignatureKey = base64SignatureKey;
             Base64Signature = base64Signature;
             Base64Cipher = base64Cipher;

@@ -52,7 +52,6 @@ namespace SecureTextEditor.File.Handler {
                 TextEncoding encoding = parameters.Encoding;
                 EncryptionOptions options = parameters.EncryptionOptions;
                 SecureString password = parameters.Password;
-
                 string fileName = Path.GetFileName(path);
 
                 await Task.Run(() => {
@@ -61,7 +60,7 @@ namespace SecureTextEditor.File.Handler {
                     byte[] macKey = null;
 
                     if (options.DigestType != DigestType.None) {
-                        // We compute the digest from message
+                        // We compute the digest from plain message
                         DigestEngine digestEngine = new DigestEngine(options.DigestType);
                         macKey = digestEngine.GenerateKey();
                         byte[] digest = digestEngine.Digest(encodedText, macKey);
@@ -74,9 +73,9 @@ namespace SecureTextEditor.File.Handler {
 
                     // Encrypt text and save file
                     CipherEngine cipherEngine = GetCryptoEngine(options);
-                    byte[] iv = cipherEngine.GenerateIV();
-                    byte[] cipherKey = password.Process(chars => cipherEngine.GenerateKey(options.CipherKeyOption == CipherKeyOption.Generate ? null : chars, iv));
-                    byte[] cipher = cipherEngine.Encrypt(messageToEncrypt, cipherKey, iv);
+                    byte[] ivOrSalt = cipherEngine.GenerateIV();
+                    byte[] cipherKey = password.Process(chars => cipherEngine.GenerateKey(options.CipherKeyOption == CipherKeyOption.Generate ? null : chars, ivOrSalt));
+                    byte[] cipher = cipherEngine.Encrypt(messageToEncrypt, cipherKey, ivOrSalt);
 
                     // We overwrite the current key size with the correct one
                     options.CipherKeySize = cipherEngine.KeySize;
@@ -90,28 +89,27 @@ namespace SecureTextEditor.File.Handler {
                         sign = signaturEngine.Sign(cipher, keyPair.PrivateKey);
                     }
 
+                    // Save the actual secure text file
                     SecureTextFile file = new SecureTextFile(
-                        options, // Encryption options 
-                        encoding, // Encoding
-                        iv != null ? Convert.ToBase64String(iv) : null, // The iv in base64 if any
-                        keyPair != null ? Convert.ToBase64String(keyPair.PublicKey) : null, // The public signature key in base64
-                        sign != null ? Convert.ToBase64String(sign) : null, // The actual sign in base64
-                        Convert.ToBase64String(cipher) // The cipher in base64
+                        options,
+                        encoding,
+                        ConvertToBase64OrNull(ivOrSalt),
+                        ConvertToBase64OrNull(keyPair.PublicKey),
+                        ConvertToBase64OrNull(sign),
+                        ConvertToBase64OrNull(cipher)
                     );
+                    SaveSecureTextFile(path, file);
 
                     // Clear out signature key pair
                     if (keyPair != null) {
                         keyPair.Clear();
                     }
 
-                    // FIXME: Why does the iv still get saved even though its null?
-                    SaveSecureTextFile(path, file);
-
-                    // Save cipher key into file next to the text file and clear the array
+                    // Save cipher key into file next to the text file and clear it
                     System.IO.File.WriteAllBytes(GetPathForCipherKeyFile(path), cipherKey);
                     cipherKey.Clear();
 
-                    // If we have a mac key to save, save it to a seperate file as well and clear the array
+                    // If we have a mac key to save, save it to a seperate file as well and clear it
                     if (options.DigestType != DigestType.None) {
                         if (macKey != null) {
                             System.IO.File.WriteAllBytes(GetPathForMacKeyFile(path), macKey);
@@ -147,7 +145,7 @@ namespace SecureTextEditor.File.Handler {
                 TextEncoding encoding = textFile.Encoding;
                 EncryptionOptions options = textFile.EncryptionOptions;
                 byte[] cipher = Convert.FromBase64String(textFile.Base64Cipher);
-                byte[] iv = textFile.Base64IV != null ? Convert.FromBase64String(textFile.Base64IV) : null;
+                byte[] iv = textFile.Base64IVOrSalt != null ? Convert.FromBase64String(textFile.Base64IVOrSalt) : null;
 
                 CipherEngine cipherEngine = GetCryptoEngine(options);
 
@@ -267,9 +265,9 @@ namespace SecureTextEditor.File.Handler {
 
         private static CipherEngine GetCryptoEngine(EncryptionOptions options) {
             if (options is EncryptionOptionsAES optionsAES) {
-                return new CipherEngine(optionsAES.Type, optionsAES.AESMode, optionsAES.AESPadding, options.CipherKeyOption, options.CipherKeySize);
+                return new CipherEngine(optionsAES.CipherType, optionsAES.CipherMode, optionsAES.CipherPadding, options.CipherKeyOption, options.CipherKeySize);
             } else if (options is EncryptionOptionsRC4 optionsRC4) {
-                return new CipherEngine(optionsRC4.Type, CipherMode.None, CipherPadding.None, options.CipherKeyOption, options.CipherKeySize);
+                return new CipherEngine(optionsRC4.CipherType, CipherMode.None, CipherPadding.None, options.CipherKeyOption, options.CipherKeySize);
             } else {
                 return null;
             }
@@ -279,8 +277,12 @@ namespace SecureTextEditor.File.Handler {
             switch (encoding) {
                 case TextEncoding.ASCII: return Encoding.ASCII;
                 case TextEncoding.UTF8: return Encoding.UTF8;
-                default: throw new ArgumentOutOfRangeException(nameof(encoding));
+                default: throw new InvalidOperationException();
             }
+        }
+
+        private static string ConvertToBase64OrNull(byte[] value) {
+            return value == null ? null : Convert.ToBase64String(value);
         }
 
         private static string GetPathForCipherKeyFile(string basePath) {

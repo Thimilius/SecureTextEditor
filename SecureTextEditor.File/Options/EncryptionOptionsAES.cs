@@ -9,14 +9,14 @@ namespace SecureTextEditor.File.Options {
         /// <summary>
         /// The cipher type used in encryption.
         /// </summary>
-        [JsonProperty(Required = Required.Always)] public override CipherType Type => CipherType.AES;
+        [JsonProperty(Required = Required.Always)] public override CipherType CipherType => CipherType.AES;
         /// <summary>
         /// The block mode used in AES encryption.
         /// </summary>
-        [JsonProperty(Required = Required.Always)] public CipherMode AESMode { get; set; }
+        [JsonProperty(Required = Required.Always)] public CipherMode CipherMode { get; set; }
         /// <summary>
         /// The block padding used in AES encryption.
         /// </summary>
-        [JsonProperty(Required = Required.Always)] public CipherPadding AESPadding { get; set; }
+        [JsonProperty(Required = Required.Always)] public CipherPadding CipherPadding { get; set; }
     }
 }
