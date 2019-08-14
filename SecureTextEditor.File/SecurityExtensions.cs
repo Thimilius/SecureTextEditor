@@ -15,8 +15,6 @@ namespace SecureTextEditor.File {
         /// <param name="processor">The processor callback</param>
         /// <returns></returns>
         public static T Process<T>(this SecureString src, Func<char[], T> processor) where T : class {
-            IntPtr byteStringPointer = IntPtr.Zero;
-
             byte[] bytes = null;
             char[] chars = null;
 
@@ -24,6 +22,7 @@ namespace SecureTextEditor.File {
             GCHandle bytesHandle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
             GCHandle charsHandle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
 
+            IntPtr byteStringPointer = IntPtr.Zero;
             try {
                 // Convert secure string to unmanaged byte string
                 byteStringPointer = Marshal.SecureStringToBSTR(src);

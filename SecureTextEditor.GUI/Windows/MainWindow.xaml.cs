@@ -25,10 +25,17 @@ namespace SecureTextEditor.GUI {
         public ITextEditorControl TextEditorControl { get; private set; }
 
         /// <summary>
+        /// The file handler for opening files.
+        /// </summary>
+        private readonly IFileHandler m_FileHandler;
+
+        /// <summary>
         /// Creates a new main window.
         /// </summary>
         public MainWindow() { 
             InitializeComponent();
+
+            m_FileHandler = new FileHandler();
 
             // We need to set the inital theme based on config
             ChangeTheme(AppConfig.Config.Theme);
@@ -79,7 +86,7 @@ namespace SecureTextEditor.GUI {
             }
 
             // Open actual file
-            OpenFileResult result = FileHandler.OpenFile(path, PasswordResolver, KeyFileResolver, MacKeyFileResolver);
+            OpenFileResult result = m_FileHandler.OpenFile(path, PasswordResolver, KeyFileResolver, MacKeyFileResolver);
 
             if (result.Status == OpenFileStatus.Success) {
                 // Open new tab for the file
@@ -145,13 +152,14 @@ namespace SecureTextEditor.GUI {
         }
 
         private SecureString PasswordResolver() {
-            PasswordWindow window = new PasswordWindow(this);
-            bool? result = window.ShowDialog();
+            using (PasswordWindow window = new PasswordWindow(this)) {
+                bool? result = window.ShowDialog();
 
-            if (result.Value == true) {
-                return window.Password;
-            } else {
-                return null;
+                if (result.Value) {
+                    return window.Password;
+                } else {
+                    return null;
+                }
             }
         }
 

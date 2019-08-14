@@ -49,6 +49,7 @@
     <Compile Include="Handler\FileFilters.cs" />
     <Compile Include="Handler\FileHandler.cs" />
     <Compile Include="Handler\FileMetaData.cs" />
+    <Compile Include="Handler\IFileHandler.cs" />
     <Compile Include="Handler\OpenFileResult.cs" />
     <Compile Include="Handler\SaveFileResult.cs" />
     <Compile Include="Options\EncryptionOptions.cs" />

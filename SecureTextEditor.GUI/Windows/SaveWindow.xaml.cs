@@ -24,6 +24,7 @@ namespace SecureTextEditor.GUI {
     /// Interaction logic for the save window.
     /// </summary>
     public partial class SaveWindow : Window {
+        private readonly IFileHandler m_FileHandler;
         private readonly ITextEditorControl m_TextEditorControl;
         private readonly ITextEditorTab m_TabToSave;
         private readonly bool m_CTSPaddingAvailable;
@@ -32,6 +33,7 @@ namespace SecureTextEditor.GUI {
         public SaveWindow(ITextEditorControl control, ITextEditorTab tab) {
             InitializeComponent();
 
+            m_FileHandler = new FileHandler();
             m_TextEditorControl = control;
             m_TabToSave = tab;
             m_CTSPaddingAvailable = m_TabToSave.Editor.Text.Length >= CipherEngine.BLOCK_SIZE;
@@ -122,7 +124,7 @@ namespace SecureTextEditor.GUI {
             TextEncoding encoding = m_TabToSave.MetaData.FileMetaData.Encoding;
             string text = m_TabToSave.Editor.Text;
             SecureString password = PasswordTextBox.SecurePassword;
-            FileMetaData fileMetaData = await PerformSave(BuildEncryptionOptions(), encoding, text, password);
+            FileMetaData fileMetaData = await PerformSave(text, encoding, BuildEncryptionOptions(), password);
             // It is important that we clear out the password text box!
             PasswordTextBox.Clear();
             m_SaveInProgress = false;
@@ -150,7 +152,7 @@ namespace SecureTextEditor.GUI {
             SaveButton.IsEnabled = true;
         }
 
-        private async Task<FileMetaData> PerformSave(EncryptionOptions options, TextEncoding encoding, string text, SecureString password) {
+        private async Task<FileMetaData> PerformSave(string text, TextEncoding encoding, EncryptionOptions options, SecureString password) {
             // Show dialog for saving a file
             SaveFileDialog dialog = new SaveFileDialog() {
                 Title = "Save Secure Text File",
@@ -164,7 +166,7 @@ namespace SecureTextEditor.GUI {
             }
             string path = dialog.FileName;
 
-            SaveFileResult result = await FileHandler.SaveFileAsync(path, options, encoding, text, password);
+            SaveFileResult result = await m_FileHandler.SaveFileAsync(path, text, encoding, options, password);
             if (result.Status == SaveFileStatus.Success) {
                 return result.FileMetaData;
             } else {
