@@ -24,7 +24,7 @@ namespace SecureTextEditor.GUI {
     /// Interaction logic for the save window.
     /// </summary>
     public partial class SaveWindow : Window {
-        private readonly FileHandler m_FileHandler;
+        private readonly SaveFileHandler m_SaveFileHandler;
         private readonly ITextEditorControl m_TextEditorControl;
         private readonly ITextEditorTab m_TabToSave;
         private readonly bool m_CTSPaddingAvailable;
@@ -33,7 +33,7 @@ namespace SecureTextEditor.GUI {
         public SaveWindow(ITextEditorControl control, ITextEditorTab tab) {
             InitializeComponent();
 
-            m_FileHandler = new FileHandler();
+            m_SaveFileHandler = new SaveFileHandler();
             m_TextEditorControl = control;
             m_TabToSave = tab;
             m_CTSPaddingAvailable = m_TabToSave.Editor.Text.Length >= CipherEngine.BLOCK_SIZE;
@@ -190,7 +190,7 @@ namespace SecureTextEditor.GUI {
                 KeyStoragePassword = keyStoragePassword,
                 PBEPassword = pbePassword,
             };
-            SaveFileResult saveResult = await m_FileHandler.SaveFileAsync(parameters);
+            SaveFileResult saveResult = await m_SaveFileHandler.SaveFileAsync(parameters);
             pbePassword.Clear();
 
             // Handle save file status

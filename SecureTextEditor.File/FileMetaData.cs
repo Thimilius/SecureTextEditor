@@ -1,6 +1,6 @@
 ﻿using SecureTextEditor.File.Options;
 
-namespace SecureTextEditor.File.Handler {
+namespace SecureTextEditor.File {
     /// <summary>
     /// Stores meta data for a secure text file.
     /// </summary>

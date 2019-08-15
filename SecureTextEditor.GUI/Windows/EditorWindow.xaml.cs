@@ -27,7 +27,7 @@ namespace SecureTextEditor.GUI {
         /// <summary>
         /// The file handler for opening files.
         /// </summary>
-        private readonly FileHandler m_FileHandler;
+        private readonly OpenFileHandler m_OpenFileHandler;
 
         /// <summary>
         /// Creates a new main window.
@@ -35,7 +35,7 @@ namespace SecureTextEditor.GUI {
         public EditorWindow() { 
             InitializeComponent();
 
-            m_FileHandler = new FileHandler();
+            m_OpenFileHandler = new OpenFileHandler();
 
             // We need to set the inital theme based on config
             ChangeTheme(AppConfig.Config.Theme);
@@ -92,7 +92,7 @@ namespace SecureTextEditor.GUI {
                 PasswordResolver = PasswordResolver,
                 MacKeyFileResolver = MacKeyFileResolver
             };
-            OpenFileResult result = m_FileHandler.OpenFile(parameters);
+            OpenFileResult result = m_OpenFileHandler.OpenFile(parameters);
 
             if (result.Status == OpenFileStatus.Success) {
                 // Open new tab for the file

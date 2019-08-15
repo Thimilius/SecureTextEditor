@@ -27,7 +27,7 @@ namespace SecureTextEditor.Crypto.Cipher {
         /// </summary>
         public static readonly int[] RC4_ACCEPTED_KEYS = new int[] { 40, 64, 128, 160, 192, 256, 512, 1024, 2048 };
         /// <summary>
-        /// The size of the tag used in authenticated enryption modes(GCM and CCM).
+        /// The size of the tag used in authenticated enryption modes (GCM and CCM).
         /// </summary>
         private const int AE_TAG_SIZE = 128;
         /// <summary>
@@ -120,7 +120,7 @@ namespace SecureTextEditor.Crypto.Cipher {
                 length += m_Cipher.DoFinal(result, length);
                 return new CipherDecryptResult(CipherDecryptStatus.Success, null, result.Take(length).ToArray());
             } catch(InvalidCipherTextException e) {
-                // This is a little hackey way of determining the actual error
+                // This is a little hacky way of determining the actual error
                 // but we don't really have control over that
                 if (e.Message == "pad block corrupted") {
                     return new CipherDecryptResult(CipherDecryptStatus.MacFailed, e, null);
@@ -156,22 +156,25 @@ namespace SecureTextEditor.Crypto.Cipher {
                         pbeGenerator = new Pkcs12ParametersGenerator(new Sha1Digest());
                         algorithm = "RC4";
                     }
-                    // TODO: What do these parameters mean?
-                    pbeGenerator.Init(PbeParametersGenerator.Pkcs12PasswordToBytes(password), salt, 2048);
+                    int iterationCount = 2048;
+                    pbeGenerator.Init(PbeParametersGenerator.Pkcs12PasswordToBytes(password), salt, iterationCount);
                     return ((KeyParameter)pbeGenerator.GenerateDerivedParameters(algorithm, KeySize)).GetKey();
                 case CipherKeyOption.PBEWithSCRYPT:
                     // Generate cipher key from password with SCRYPT
-                    // TODO: What do these parameters mean?
                     byte[] encoded = PbeParametersGenerator.Pkcs5PasswordToUtf8Bytes(password);
-                    return SCrypt.Generate(encoded, salt, 2048, 16, 1, KeySize / 8);
+                    int keySize = KeySize / 8; // Needs to be in bytes
+                    int costParameterN = 2048; // Needs to a power of 2
+                    int blockSize = m_Cipher.GetBlockSize();
+                    int parallelisationParameter = 1; // Depends on block size
+                    return SCrypt.Generate(encoded, salt, costParameterN, blockSize, parallelisationParameter, keySize);
                 default: throw new InvalidOperationException();
             }
         }
 
         /// <summary>
-        /// Generates an initilization vector if the engine requires one otherwise returns null.
+        /// Generates an initilization vector or salt if the engine requires one otherwise returns null.
         /// </summary>
-        /// <returns>The generated initilization vector or null</returns>
+        /// <returns>The generated initilization vector or salt</returns>
         public byte[] GenerateIV() {
             if (m_Type == CipherType.RC4 || m_CipherMode == CipherMode.ECB) {
                 return null;

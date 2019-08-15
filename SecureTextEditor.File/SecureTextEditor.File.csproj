@@ -47,10 +47,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Handler\FileFilters.cs" />
+    <Compile Include="Handler\OpenFileHandler.cs" />
     <Compile Include="Handler\OpenFileParameters.cs" />
+    <Compile Include="Handler\SaveFileHandler.cs" />
     <Compile Include="Handler\SaveFileParameters.cs" />
     <Compile Include="Handler\FileHandler.cs" />
-    <Compile Include="Handler\FileMetaData.cs" />
+    <Compile Include="FileMetaData.cs" />
     <Compile Include="Handler\OpenFileResult.cs" />
     <Compile Include="Handler\SaveFileResult.cs" />
     <Compile Include="Options\EncryptionOptions.cs" />
