@@ -146,6 +146,24 @@ namespace SecureTextEditor.File.Handler {
         }
 
         /// <summary>
+        /// Constructs the path for the cipher key file.
+        /// </summary>
+        /// <param name="basePath">The base path to use</param>
+        /// <returns>The full path for the cipher key file</returns>
+        private static string ConstructPathForCipherKeyFile(string basePath) {
+            return Path.GetFileNameWithoutExtension(basePath) + CIPHER_KEY_FILE_EXTENSION;
+        }
+
+        /// <summary>
+        /// Constructs the path for the MAC key file.
+        /// </summary>
+        /// <param name="basePath">The base path to use</param>
+        /// <returns>The full path for the MAC key file</returns>
+        private static string ConstructPathForMacKeyFile(string basePath) {
+            return Path.GetFileNameWithoutExtension(basePath) + MAC_KEY_FILE_EXTENSION;
+        }
+
+        /// <summary>
         /// Converts a given byte array to a Base64 string.
         /// </summary>
         /// <param name="value">The byte arry to convert or null</param>

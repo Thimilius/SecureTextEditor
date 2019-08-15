@@ -37,7 +37,7 @@ namespace SecureTextEditor.File.Handler {
                 byte[] cipherKey = null;
                 if (options.CipherKeyOption == CipherKeyOption.Generate) {
                     // Try loading in the key file at the same location
-                    string cipherKeyPath = ConstructPathForCipherKeyFile(path);
+                    string cipherKeyPath = ResolvePathForCipherKeyFile(path);
                     if (!System.IO.File.Exists(cipherKeyPath)) {
                         cipherKeyPath = parameters.CipherKeyFileResolver?.Invoke(options.CipherKeySize);
                         // If no path was supplied, we bail out
@@ -59,7 +59,7 @@ namespace SecureTextEditor.File.Handler {
                 // Try loading in the MAC key if we need it
                 byte[] macKey = null;
                 if (options.DigestType == DigestType.AESCMAC || options.DigestType == DigestType.HMACSHA256) {
-                    string macKeyPath = ConstructPathForMacKeyFile(path);
+                    string macKeyPath = ResolvePathForMacKeyFile(path);
                     if (!System.IO.File.Exists(macKeyPath)) {
                         macKeyPath = parameters.MacKeyFileResolver?.Invoke();
                         // If no path was supplied, we bail out
@@ -137,6 +137,24 @@ namespace SecureTextEditor.File.Handler {
         private static SecureTextFile LoadSecureTextFile(string path) {
             string json = System.IO.File.ReadAllText(path);
             return JsonConvert.DeserializeObject<SecureTextFile>(json, SERIALIZER_SETTINGS);
+        }
+
+        /// <summary>
+        /// Resolves the path for the cipher key file.
+        /// </summary>
+        /// <param name="basePath">The base path to use</param>
+        /// <returns>The full path for the cipher key file</returns>
+        private static string ResolvePathForCipherKeyFile(string basePath) {
+            return Path.GetDirectoryName(basePath) + Path.DirectorySeparatorChar + Path.GetFileNameWithoutExtension(basePath) + CIPHER_KEY_FILE_EXTENSION;
+        }
+
+        /// <summary>
+        /// Resolves the path for the MAC key file.
+        /// </summary>
+        /// <param name="basePath">The base path to use</param>
+        /// <returns>The full path for the MAC key file</returns>
+        private static string ResolvePathForMacKeyFile(string basePath) {
+            return Path.GetDirectoryName(basePath) + Path.DirectorySeparatorChar + Path.GetFileNameWithoutExtension(basePath) + MAC_KEY_FILE_EXTENSION;
         }
     }
 }
