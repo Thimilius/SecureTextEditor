@@ -12,7 +12,7 @@ namespace SecureTextEditor.Crypto.Digest {
     /// </summary>
     public class DigestEngine {
         /// <summary>
-        /// The size of the mac key in bits.
+        /// The size of the MAC key in bits.
         /// </summary>
         private const int MAC_KEY_SIZE = 256;
 
@@ -25,7 +25,7 @@ namespace SecureTextEditor.Crypto.Digest {
         /// </summary>
         private readonly IDigest m_Digest;
         /// <summary>
-        /// The actual mac that will be used.
+        /// The actual MAC that will be used.
         /// </summary>
         private readonly IMac m_Mac;
 
@@ -100,7 +100,7 @@ namespace SecureTextEditor.Crypto.Digest {
         }
 
         /// <summary>
-        /// Hashes a given input with a mac algorithm.
+        /// Hashes a given input with a MAC algorithm.
         /// </summary>
         /// <param name="input">The input to hash</param>
         /// <param name="key">The key to use</param>
@@ -126,10 +126,10 @@ namespace SecureTextEditor.Crypto.Digest {
         }
 
         /// <summary>
-        /// Converts the digest type to a mac algorithm to use.
+        /// Converts the digest type to a MAC algorithm to use.
         /// </summary>
         /// <param name="type">The type of digest</param>
-        /// <returns>The mac algorithm</returns>
+        /// <returns>The MAC algorithm</returns>
         private IMac GetMac(DigestType type) {
             switch (type) {
                 case DigestType.AESCMAC: return new CMac(new AesEngine());
@@ -139,9 +139,9 @@ namespace SecureTextEditor.Crypto.Digest {
         }
 
         /// <summary>
-        /// Checks whether or not the engine is configured to use a mac algorithm
+        /// Checks whether or not the engine is configured to use a MAC algorithm
         /// </summary>
-        /// <returns>True if the engine is configured to use a mac algorithm otherwise false</returns>
+        /// <returns>True if the engine is configured to use a MAC algorithm otherwise false</returns>
         private bool IsMacConfigured() {
             return m_Type != DigestType.SHA256;
         }

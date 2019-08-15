@@ -21,7 +21,7 @@ namespace SecureTextEditor.File.Handler {
         /// </summary>
         public const string CIPHER_KEY_FILE_EXTENSION = ".key";
         /// <summary>
-        /// The extension used for the mac key file.
+        /// The extension used for the MAC key file.
         /// </summary>
         public const string MAC_KEY_FILE_EXTENSION = ".mackey";
 
@@ -73,10 +73,10 @@ namespace SecureTextEditor.File.Handler {
         }
 
         /// <summary>
-        /// Constructs the path for the mac key file.
+        /// Constructs the path for the MAC key file.
         /// </summary>
         /// <param name="basePath">The base path to use</param>
-        /// <returns>The full path for the mac key file</returns>
+        /// <returns>The full path for the MAC key file</returns>
         protected static string ConstructPathForMacKeyFile(string basePath) {
             return Path.GetFileNameWithoutExtension(basePath) + MAC_KEY_FILE_EXTENSION;
         }

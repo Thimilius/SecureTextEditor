@@ -10,7 +10,7 @@ namespace SecureTextEditor.Crypto.Cipher {
         /// </summary>
         Success,
         /// <summary>
-        /// Describes that the decryption failed because the underlying mac reported an error.
+        /// Describes that the decryption failed because the underlying MAC reported an error.
         /// </summary>
         MacFailed,
         /// <summary>

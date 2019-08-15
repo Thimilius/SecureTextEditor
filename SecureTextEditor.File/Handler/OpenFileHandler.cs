@@ -47,7 +47,7 @@ namespace SecureTextEditor.File.Handler {
                     }
                     cipherKey = System.IO.File.ReadAllBytes(cipherKeyPath);
                 } else {
-                    SecureString password = parameters.PasswordResolver?.Invoke();
+                    SecureString password = parameters.PBEPasswordResolver?.Invoke();
                     // If no password was supplied, we bail out
                     if (password == null) {
                         return new OpenFileResult(OpenFileStatus.Canceled);
@@ -56,7 +56,7 @@ namespace SecureTextEditor.File.Handler {
                     }
                 }
 
-                // Try loading in the mac key if we need it
+                // Try loading in the MAC key if we need it
                 byte[] macKey = null;
                 if (options.DigestType == DigestType.AESCMAC || options.DigestType == DigestType.HMACSHA256) {
                     string macKeyPath = ConstructPathForMacKeyFile(path);
@@ -105,7 +105,7 @@ namespace SecureTextEditor.File.Handler {
                     // Compare saved and new computed digest
                     byte[] newDigest = digestEngine.Digest(message, macKey);
 
-                    // Clear out mac key if we had one because we no longer need it
+                    // Clear out MAC key if we had one because we no longer need it
                     if (macKey != null) {
                         macKey.Clear();
                     }

@@ -13,9 +13,9 @@ namespace SecureTextEditor.File.Handler {
     /// <returns>The path to the cipher key file to load</returns>
     public delegate string CipherKeyFileResolver(int keySize);
     /// <summary>
-    /// Handler to resolve the path to a mac key file.
+    /// Handler to resolve the path to a MAC key file.
     /// </summary>
-    /// <returns>The path to the mac key file to load</returns>
+    /// <returns>The path to the MAC key file to load</returns>
     public delegate string MacKeyFileResolver();
 
     /// <summary>
@@ -31,11 +31,11 @@ namespace SecureTextEditor.File.Handler {
         /// </summary>
         public CipherKeyFileResolver CipherKeyFileResolver { get; set; }
         /// <summary>
-        /// The password resolver.
+        /// The PBE password resolver.
         /// </summary>
-        public PasswordResolver PasswordResolver { get; set; }
+        public PasswordResolver PBEPasswordResolver { get; set; }
         /// <summary>
-        /// The mac key file resolver.
+        /// The MAC key file resolver.
         /// </summary>
         public MacKeyFileResolver MacKeyFileResolver { get; set; }
     }

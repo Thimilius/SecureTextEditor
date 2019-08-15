@@ -15,10 +15,6 @@ namespace SecureTextEditor.Crypto.Cipher {
     /// </summary>
     public class CipherEngine {
         /// <summary>
-        /// The size of a block in AES encryption.
-        /// </summary>
-        public const int BLOCK_SIZE = 16;
-        /// <summary>
         /// The key sizes accepted in AES encryption.
         /// </summary>
         public static readonly int[] AES_ACCEPTED_KEYS = new int[] { 128, 192, 256 };
@@ -26,6 +22,10 @@ namespace SecureTextEditor.Crypto.Cipher {
         /// The key sizes accepted in RC4 encryption.
         /// </summary>
         public static readonly int[] RC4_ACCEPTED_KEYS = new int[] { 40, 64, 128, 160, 192, 256, 512, 1024, 2048 };
+        /// <summary>
+        /// The size of a block in AES encryption.
+        /// </summary>
+        private const int BLOCK_SIZE = 16;
         /// <summary>
         /// The size of the tag used in authenticated enryption modes (GCM and CCM).
         /// </summary>
@@ -185,6 +185,15 @@ namespace SecureTextEditor.Crypto.Cipher {
                 new SecureRandom().NextBytes(iv);
                 return iv;
             }
+        }
+
+        /// <summary>
+        /// Checks for a given message wether or not CTS padding is possible.
+        /// </summary>
+        /// <param name="message">The message to check</param>
+        /// <returns>True if CTS padding is possible otherwise false</returns>
+        public static bool IsCTSPaddingPossible(string message) {
+            return message.Length >= BLOCK_SIZE;
         }
 
         /// <summary>

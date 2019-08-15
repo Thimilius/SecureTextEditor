@@ -12,8 +12,6 @@ using SecureTextEditor.GUI.Config;
 using SecureTextEditor.GUI.Dialog;
 using SecureTextEditor.GUI.Editor;
 
-// TODO: Finish xml docs
-
 namespace SecureTextEditor.GUI {
     /// <summary>
     /// Interaction logic for the main window.
@@ -56,6 +54,49 @@ namespace SecureTextEditor.GUI {
         }
 
         /// <summary>
+        /// Prompts the dialog window for saving.
+        /// </summary>
+        /// <param name="tab">The tab that should get saved</param>
+        public void PromptSaveDialog(ITextEditorTab tab) {
+            // Show question dialog
+            bool save = DialogBox.Show(this,
+                $"Do you want to save \"{tab.MetaData.FileMetaData.FileName}\" before closing?",
+                "Save",
+                DialogBoxButton.YesNo,
+                DialogBoxIcon.Question);
+
+            if (save) {
+                PromptSaveWindow(tab);
+            }
+        }
+
+        /// <summary>
+        /// Prompts the save dialogs for all unsaved tabs.
+        /// </summary>
+        private void PromptSaveDialogs() {
+            // Loop through every dirty tab
+            foreach (var tab in TextEditorControl.Tabs.Where(t => t.MetaData.IsDirty)) {
+                // Focus the tab and prompt save dialog for it
+                TextEditorControl.SelectTab(tab);
+                PromptSaveDialog(tab);
+            }
+        }
+
+        /// <summary>
+        /// Prompts the save window for a given tab.
+        /// </summary>
+        /// <param name="tab">The tab to prompt the save window for</param>
+        private void PromptSaveWindow(ITextEditorTab tab) {
+            // Open and show the save dialog
+            Window window = new SaveWindow(TextEditorControl, tab) {
+                Owner = this,
+            };
+            window.ShowDialog();
+
+            UpdateUI();
+        }
+
+        /// <summary>
         /// Opens a file at a given path or opens up an file dialog for it.
         /// </summary>
         /// <param name="path">The path to a file to open or null if a dialog should be displyed</param>
@@ -89,7 +130,7 @@ namespace SecureTextEditor.GUI {
             OpenFileParameters parameters = new OpenFileParameters() {
                 Path = path,
                 CipherKeyFileResolver = CipherKeyFileResolver,
-                PasswordResolver = PasswordResolver,
+                PBEPasswordResolver = PBEPasswordResolver,
                 MacKeyFileResolver = MacKeyFileResolver
             };
             OpenFileResult result = m_OpenFileHandler.OpenFile(parameters);
@@ -132,32 +173,10 @@ namespace SecureTextEditor.GUI {
         }
 
         /// <summary>
-        /// Updates all ui elements of the main window.
+        /// Resolver for the PBE password.
         /// </summary>
-        public void UpdateUI() {
-            UpdateEncodingStatus();
-            UpdateEditorStatus();
-            UpdateWindowTitle();
-        }
-
-        /// <summary>
-        /// Prompts the dialog window for saving.
-        /// </summary>
-        /// <param name="tab">The tab that should get saved</param>
-        public void PromptSaveDialog(ITextEditorTab tab) {
-            // Show question dialog
-            bool save = DialogBox.Show(this,
-                $"Do you want to save \"{tab.MetaData.FileMetaData.FileName}\" before closing?",
-                "Save",
-                DialogBoxButton.YesNo,
-                DialogBoxIcon.Question);
-
-            if (save) {
-                PromptSaveWindow(tab);
-            }
-        }
-
-        private SecureString PasswordResolver() {
+        /// <returns>The PBE password</returns>
+        private SecureString PBEPasswordResolver() {
             PasswordWindow window = new PasswordWindow(this, "You need to provide a password to open the file!");
             bool? result = window.ShowDialog();
 
@@ -170,6 +189,11 @@ namespace SecureTextEditor.GUI {
             }
         }
 
+        /// <summary>
+        /// Resolver for the cipher key file path.
+        /// </summary>
+        /// <param name="keySize">The wanted key size</param>
+        /// <returns>The path to the key file</returns>
         private string CipherKeyFileResolver(int keySize) {
             bool IsKeyFileValid(string pathToKeyFile, int expectedKeySize) {
                 // We simply check if the size of the file that got selected matches the key size we expect
@@ -205,6 +229,10 @@ namespace SecureTextEditor.GUI {
             return keyFilePath;
         }
 
+        /// <summary>
+        /// Resolver for the MAC key file path.
+        /// </summary>
+        /// <returns>The path to the MAC key file path</returns>
         private string MacKeyFileResolver() {
             return ShowFileDialogForKeyFile(
                 "The file you want to open requires a mac key file to decrypt!",
@@ -214,6 +242,14 @@ namespace SecureTextEditor.GUI {
             );
         }
 
+        /// <summary>
+        /// Shows the dialog box and file dialog for a key file.
+        /// </summary>
+        /// <param name="message">The message of the dialog box</param>
+        /// <param name="messageTitle">The title of the dialog box</param>
+        /// <param name="dialogTitle">The title of the file dialog</param>
+        /// <param name="dialogFilter">The filter of the file dialog</param>
+        /// <returns>The path to the key file</returns>
         private string ShowFileDialogForKeyFile(string message, string messageTitle, string dialogTitle, string dialogFilter) {
             DialogBox.Show(
                     Application.Current.MainWindow,
@@ -237,73 +273,112 @@ namespace SecureTextEditor.GUI {
             }
         }
 
-        private void PromptSaveDialogs() {
-            // Loop through every dirty tab
-            foreach (var tab in TextEditorControl.Tabs.Where(t => t.MetaData.IsDirty)) {
-                // Focus the tab and prompt save dialog for it
-                TextEditorControl.SelectTab(tab);
-                PromptSaveDialog(tab);
-            }
-        }
-
-        private void PromptSaveWindow(ITextEditorTab tab) {
-            // Open and show the save dialog
-            Window window = new SaveWindow(TextEditorControl, tab) {
-                Owner = this,
-            };
-            window.ShowDialog();
-
-            UpdateUI();
-        }
-
+        /// <summary>
+        /// Callback when the user wants to exit the application.
+        /// </summary>
+        /// <param name="sender">The sender of the event</param>
+        /// <param name="e">The event parameters</param>
         private void OnExit(object sender, EventArgs e) {
             Close();
         }
 
+        /// <summary>
+        /// Callback when the user wants to create a new tab.
+        /// </summary>
+        /// <param name="sender">The sender of the event</param>
+        /// <param name="e">The event parameters</param>
         private void OnNew(object sender, RoutedEventArgs e) {
             TextEditorControl.NewTab("");
         }
 
+        /// <summary>
+        /// Callback when the user wants to open a file.
+        /// </summary>
+        /// <param name="sender">The sender of the event</param>
+        /// <param name="e">The event parameters</param>
         private void OnOpen(object sender, RoutedEventArgs e) {
             OpenFile(null);
         }
 
+        /// <summary>
+        /// Callback when the user wants to save the current tab.
+        /// </summary>
+        /// <param name="sender">The sender of the event</param>
+        /// <param name="e">The event parameters</param>
         private void OnSave(object sender, RoutedEventArgs e) {
             PromptSaveWindow(TextEditorControl.CurrentTab);
         }
 
+        /// <summary>
+        /// Callback when the window gets closed.
+        /// </summary>
+        /// <param name="sender">The sender of the event</param>
+        /// <param name="e">The event parameters</param>
         private void OnWindowClosing(object sender, CancelEventArgs e) {
             PromptSaveDialogs();
         }
 
+        /// <summary>
+        /// Callback when the user wants to zoom in.
+        /// </summary>
+        /// <param name="sender">The sender of the event</param>
+        /// <param name="e">The event parameters</param>
         private void OnZoomIn(object sender, RoutedEventArgs e) {
             TextEditorControl.ZoomIn();
         }
 
+        /// <summary>
+        /// Callback when the user wants to zoom out.
+        /// </summary>
+        /// <param name="sender">The sender of the event</param>
+        /// <param name="e">The event parameters</param>
         private void OnZoomOut(object sender, RoutedEventArgs e) {
             TextEditorControl.ZoomOut();
         }
 
+        /// <summary>
+        /// Callback when the user wants to reset the zoom.
+        /// </summary>
+        /// <param name="sender">The sender of the event</param>
+        /// <param name="e">The event parameters</param>
         private void OnZoomReset(object sender, RoutedEventArgs e) {
             TextEditorControl.ZoomReset();
         }
 
+        /// <summary>
+        /// Callback when the user wants to close a tab.
+        /// </summary>
+        /// <param name="sender">The sender of the event</param>
+        /// <param name="e">The event parameters</param>
         private void OnCloseTab(object sender, RoutedEventArgs e) {
             TextEditorControl.CloseTab(TextEditorControl.CurrentTab);
         }
 
+        /// <summary>
+        /// Callback that gets executed when the encoding changes.
+        /// </summary>
+        /// <param name="sender">The sender of the event</param>
+        /// <param name="e">The event parameters</param>
         private void OnEncodingChanged(object sender, RoutedEventArgs e) {
             // Update encoding checkboxes
             EncodingCheckBoxASCII.IsChecked = TextEditorControl.CurrentTab.MetaData.FileMetaData.Encoding == TextEncoding.ASCII;
             EncodingCheckBoxUTF8.IsChecked = TextEditorControl.CurrentTab.MetaData.FileMetaData.Encoding == TextEncoding.UTF8;
         }
 
+        /// <summary>
+        /// Changes the encoding for the current tab.
+        /// </summary>
+        /// <param name="encoding">The encodig to change to</param>
         private void ChangeEncoding(TextEncoding encoding) {
             TextEditorControl.CurrentTab.MetaData.FileMetaData.Encoding = encoding;
 
             UpdateEncodingStatus();
         }
 
+        /// <summary>
+        /// Changes the theme.
+        /// </summary>
+        /// <param name="theme">The theme to change to</param>
         private void ChangeTheme(Theme theme) {
             // Store theme in config
             AppConfig.Config.Theme = theme;
@@ -317,6 +392,18 @@ namespace SecureTextEditor.GUI {
             ThemeCheckBoxDarkMode.IsChecked = theme == Theme.DarkMode;
         }
 
+        /// <summary>
+        /// Updates all ui elements of the main window.
+        /// </summary>
+        public void UpdateUI() {
+            UpdateEncodingStatus();
+            UpdateEditorStatus();
+            UpdateWindowTitle();
+        }
+
+        /// <summary>
+        /// Updates the encoding status.
+        /// </summary>
         private void UpdateEncodingStatus() {
             string TextEncodingToString(TextEncoding textEncoding) {
                 switch (textEncoding) {
@@ -334,6 +421,9 @@ namespace SecureTextEditor.GUI {
             EncodingLabel.Text = $"Encoding: {TextEncodingToString(encoding)}";
         }
 
+        /// <summary>
+        /// Updates the editor status.
+        /// </summary>
         private void UpdateEditorStatus() {
             TextBox editor = TextEditorControl.CurrentTab.Editor;
 
@@ -349,6 +439,9 @@ namespace SecureTextEditor.GUI {
             SelectionLabel.Text = $"Sel: {editor.SelectionLength}";
         }
 
+        /// <summary>
+        /// Updates the window title.
+        /// </summary>
         private void UpdateWindowTitle() {
             Title = $"Secure Text Editor - {TextEditorControl.CurrentTab.MetaData.FileMetaData.FilePath}";
         }

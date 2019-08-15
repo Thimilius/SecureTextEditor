@@ -1,4 +1,4 @@
-﻿using SecureTextEditor.File.Handler;
+﻿using SecureTextEditor.File;
 
 namespace SecureTextEditor.GUI.Editor {
     /// <summary>
