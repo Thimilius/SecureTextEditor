@@ -15,12 +15,13 @@ namespace SecureTextEditor.GUI {
         /// <summary>
         /// Creates a new password window.
         /// </summary>
-        public PasswordWindow(Window owner) {
+        public PasswordWindow(Window owner, string message) {
             InitializeComponent();
 
             Owner = owner;
-            PasswordTextBox.PasswordChanged += (s, e) => OnPasswordChanged(PasswordTextBox.Password);
-            OnPasswordChanged(PasswordTextBox.Password);
+            MessageText.Text = message;
+            PasswordTextBox.PasswordChanged += (s, e) => OnPasswordChanged(PasswordTextBox.SecurePassword);
+            OnPasswordChanged(PasswordTextBox.SecurePassword);
             PasswordTextBox.Focus();
         }
 
@@ -28,8 +29,8 @@ namespace SecureTextEditor.GUI {
         /// Callback when the password changes.
         /// </summary>
         /// <param name="password">The password entered in</param>
-        private void OnPasswordChanged(string password) {
-            SubmitButton.IsEnabled = PasswordTextBox.Password != null && PasswordTextBox.Password != "";
+        private void OnPasswordChanged(SecureString password) {
+            SubmitButton.IsEnabled = password != null && password.Length != 0;
         }
 
         /// <summary>

@@ -11,13 +11,13 @@ namespace SecureTextEditor.File {
         /// </summary>
         [JsonProperty(Required = Required.Always)] internal string Version { get; } = "0.1.0";
         /// <summary>
-        /// The options used for encryption.
-        /// </summary>
-        [JsonProperty(Required = Required.Always)] internal EncryptionOptions EncryptionOptions { get; }
-        /// <summary>
         /// The encoding used for the text.
         /// </summary>
         [JsonProperty(Required = Required.Always)] internal TextEncoding Encoding { get; }
+        /// <summary>
+        /// The options used for encryption.
+        /// </summary>
+        [JsonProperty(Required = Required.Always)] internal EncryptionOptions EncryptionOptions { get; }
         /// <summary>
         /// The initilization vector or salt encoded in Base64.
         /// </summary>
@@ -25,7 +25,7 @@ namespace SecureTextEditor.File {
         /// <summary>
         /// The public key used for verifying the signature encoded in Base64.
         /// </summary>
-        [JsonProperty(Required = Required.Default)] internal string Base64SignatureKey { get; }
+        [JsonProperty(Required = Required.Default)] internal string Base64SignaturePublicKey { get; }
         /// <summary>
         /// The signature of the whole file encoded in Base64.
         /// </summary>
@@ -38,19 +38,19 @@ namespace SecureTextEditor.File {
         /// <summary>
         /// Creates a new secure text file with given properties.
         /// </summary>
-        /// <param name="options">The security options used for encryption</param>
         /// <param name="encoding">The encoding used for the text</param>
-        /// <param name="base64IVOrSalt">The initilization vector encoded in Base64</param>
-        /// <param name="base64SignatureKey">The public key used for verifying the signature encoded in Base64</param>
-        /// <param name="base64Signature">The sign of the whole file encoded in Base64</param>
+        /// <param name="options">The security options used for encryption</param>
         /// <param name="base64Cipher">The actual cipher encoded in Base64</param>
-        internal SecureTextFile(EncryptionOptions encryptionOptions, TextEncoding encoding, string base64IVOrSalt, string base64SignatureKey, string base64Signature, string base64Cipher) {
+        /// <param name="base64IVOrSalt">The initilization vector encoded in Base64</param>
+        /// <param name="base64SignaturePublicKey">The public key used for verifying the signature encoded in Base64</param>
+        /// <param name="base64Signature">The sign of the whole file encoded in Base64</param>
+        public SecureTextFile(TextEncoding encoding, EncryptionOptions encryptionOptions, string base64Cipher, string base64IVOrSalt, string base64SignaturePublicKey, string base64Signature) {
             Encoding = encoding;
             EncryptionOptions = encryptionOptions;
-            Base64IVOrSalt = base64IVOrSalt;
-            Base64SignatureKey = base64SignatureKey;
-            Base64Signature = base64Signature;
             Base64Cipher = base64Cipher;
+            Base64IVOrSalt = base64IVOrSalt;
+            Base64SignaturePublicKey = base64SignaturePublicKey;
+            Base64Signature = base64Signature;
         }
     }
 }

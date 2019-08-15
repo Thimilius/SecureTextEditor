@@ -23,8 +23,16 @@ namespace SecureTextEditor.File.Handler {
         /// </summary>
         public EncryptionOptions EncryptionOptions { get; set; }
         /// <summary>
-        /// The password used in PBE if configured.
+        /// The path to the signature key storage.
         /// </summary>
-        public SecureString Password { get; set; }
+        public string SignatureKeyStoragePath { get; set; }
+        /// <summary>
+        /// The password for the signature key storage if configured in encryption options.
+        /// </summary>
+        public SecureString SignatureKeyStoragePassword { get; set; }
+        /// <summary>
+        /// The password used in PBE if configured in encryption options.
+        /// </summary>
+        public SecureString PBEPassword { get; set; }
     }
 }

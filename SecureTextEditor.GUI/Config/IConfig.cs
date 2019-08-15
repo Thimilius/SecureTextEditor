@@ -28,5 +28,9 @@ namespace SecureTextEditor.GUI.Config {
         /// Gets or sets the default encryption options for the corresponding type.
         /// </summary>
         IDictionary<CipherType, EncryptionOptions> DefaultEncryptionOptions { get; set; }
+        /// <summary>
+        /// Gets or sets the default signature key storage path.
+        /// </summary>
+        string SignatureKeyStoragePath { get; set; }
     }
 }

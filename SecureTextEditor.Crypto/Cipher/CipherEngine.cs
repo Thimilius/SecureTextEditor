@@ -123,9 +123,9 @@ namespace SecureTextEditor.Crypto.Cipher {
                 // This is a little hackey way of determining the actual error
                 // but we don't really have control over that
                 if (e.Message == "pad block corrupted") {
-                    return new CipherDecryptResult(CipherDecryptStatus.Failed, e, null);
-                } else {
                     return new CipherDecryptResult(CipherDecryptStatus.MacFailed, e, null);
+                } else {
+                    return new CipherDecryptResult(CipherDecryptStatus.Failed, e, null);
                 }
             } catch (Exception e) {
                 return new CipherDecryptResult(CipherDecryptStatus.Failed, e, null);

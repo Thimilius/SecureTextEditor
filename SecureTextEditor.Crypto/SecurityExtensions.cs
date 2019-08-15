@@ -14,7 +14,7 @@ namespace SecureTextEditor.Crypto {
         /// <param name="src">The secure string to process</param>
         /// <param name="processor">The processor callback</param>
         /// <returns></returns>
-        public static T Process<T>(this SecureString src, Func<char[], T> processor) where T : class {
+        public static void Process(this SecureString src, Action<char[]> processor) {
             byte[] bytes = null;
             char[] chars = null;
 
@@ -42,7 +42,7 @@ namespace SecureTextEditor.Crypto {
                 chars = Encoding.Unicode.GetChars(bytes);
 
                 // Invoke the processor
-                return processor?.Invoke(chars);
+                processor?.Invoke(chars);
             } finally {
                 // Clear out the bytes to zero
                 if (bytes != null) {

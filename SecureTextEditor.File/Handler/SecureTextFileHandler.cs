@@ -32,7 +32,10 @@ namespace SecureTextEditor.File.Handler {
         /// The extension used for the mac key file.
         /// </summary>
         public const string MAC_KEY_FILE_EXTENSION = ".mackey";
-        
+
+
+        private const string SIGNATURE_PRIVATE_KEY_ALIAS = "signature_private_key";
+
         /// <summary>
         /// Settings for serializing and deserializing the text file.
         /// </summary>
@@ -47,14 +50,15 @@ namespace SecureTextEditor.File.Handler {
         /// <see cref="IFileHandler.SaveFileAsync"/>
         /// </summary>
         public async Task<SaveFileResult> SaveFileAsync(SaveFileParameters parameters) {
-            try {
-                string path = parameters.Path;
-                TextEncoding encoding = parameters.Encoding;
-                EncryptionOptions options = parameters.EncryptionOptions;
-                SecureString password = parameters.Password;
-                string fileName = Path.GetFileName(path);
+            return await Task.Run(() => {
+                try {
+                    string path = parameters.Path;
+                    TextEncoding encoding = parameters.Encoding;
+                    EncryptionOptions options = parameters.EncryptionOptions;
+                    SecureString password = parameters.PBEPassword;
+                    SecureString keyStoragePassword = parameters.SignatureKeyStoragePassword;
+                    string fileName = Path.GetFileName(path);
 
-                await Task.Run(() => {
                     byte[] encodedText = GetEncoding(encoding).GetBytes(parameters.Text);
                     byte[] messageToEncrypt = encodedText;
                     byte[] macKey = null;
@@ -74,7 +78,8 @@ namespace SecureTextEditor.File.Handler {
                     // Encrypt text and save file
                     CipherEngine cipherEngine = GetCryptoEngine(options);
                     byte[] ivOrSalt = cipherEngine.GenerateIV();
-                    byte[] cipherKey = password.Process(chars => cipherEngine.GenerateKey(options.CipherKeyOption == CipherKeyOption.Generate ? null : chars, ivOrSalt));
+                    byte[] cipherKey = null;
+                    password.Process(chars => cipherKey = cipherEngine.GenerateKey(options.CipherKeyOption == CipherKeyOption.Generate ? null : chars, ivOrSalt));
                     byte[] cipher = cipherEngine.Encrypt(messageToEncrypt, cipherKey, ivOrSalt);
 
                     // We overwrite the current key size with the correct one
@@ -83,20 +88,36 @@ namespace SecureTextEditor.File.Handler {
                     // Sign the cipher
                     SignatureKeyPair keyPair = null;
                     byte[] sign = null;
-                    if (options.SignatureType != SignatureType.None) {
-                        SignatureEngine signaturEngine = new SignatureEngine(options.SignatureType, options.SignatureKeySize);
-                        keyPair = signaturEngine.GenerateKeyPair();
-                        sign = signaturEngine.Sign(cipher, keyPair.PrivateKey);
+                    byte[] publicKey = null;
+                    {
+                        if (options.SignatureType != SignatureType.None) {
+                            SignatureEngine signatureEngine = new SignatureEngine(options.SignatureType, options.SignatureKeySize);
+
+                            // Check if we can use the key storage or need to generate a fresh key pair
+                            SignatureKeyStorage signatureKeyStorage = new SignatureKeyStorage(parameters.SignatureKeyStoragePath);
+                            keyStoragePassword.Process(chars => signatureKeyStorage.Load(chars));
+                            if (signatureKeyStorage.Exists(SIGNATURE_PRIVATE_KEY_ALIAS)) {
+                                keyPair = signatureKeyStorage.Retrieve(SIGNATURE_PRIVATE_KEY_ALIAS);
+                            } else {
+                                keyPair = signatureEngine.GenerateKeyPair();
+                                // Save the pair in the storage
+                                signatureKeyStorage.Store(SIGNATURE_PRIVATE_KEY_ALIAS, keyPair);
+                                keyStoragePassword.Process(chars => signatureKeyStorage.Save(chars));
+                            }
+
+                            sign = signatureEngine.Sign(cipher, keyPair.PrivateKey);
+                            publicKey = keyPair.PublicKey;
+                        }
                     }
 
                     // Save the actual secure text file
                     SecureTextFile file = new SecureTextFile(
-                        options,
                         encoding,
+                        options,
+                        ConvertToBase64OrNull(cipher),
                         ConvertToBase64OrNull(ivOrSalt),
-                        ConvertToBase64OrNull(keyPair.PublicKey),
-                        ConvertToBase64OrNull(sign),
-                        ConvertToBase64OrNull(cipher)
+                        ConvertToBase64OrNull(publicKey),
+                        ConvertToBase64OrNull(sign)
                     );
                     SaveSecureTextFile(path, file);
 
@@ -116,20 +137,19 @@ namespace SecureTextEditor.File.Handler {
                             macKey.Clear();
                         }
                     }
-                });
-                await Task.Delay(250);
 
-                FileMetaData fileMetaData = new FileMetaData() {
-                    Encoding = encoding,
-                    EncryptionOptions = options,
-                    FileName = fileName,
-                    FilePath = path,
+                    FileMetaData fileMetaData = new FileMetaData() {
+                        Encoding = encoding,
+                        EncryptionOptions = options,
+                        FileName = fileName,
+                        FilePath = path,
+                    };
+
+                    return new SaveFileResult(SaveFileStatus.Success, null, fileMetaData);
+                } catch (Exception e) {
+                    return new SaveFileResult(SaveFileStatus.Failed, e, null);
                 };
-
-                return new SaveFileResult(SaveFileStatus.Success, null, fileMetaData);
-            } catch(Exception e) {
-                return new SaveFileResult(SaveFileStatus.Failed, e, null);
-            }
+            });
         }
 
         /// <summary>
@@ -169,7 +189,7 @@ namespace SecureTextEditor.File.Handler {
                         if (password == null) {
                             return new OpenFileResult(OpenFileStatus.Canceled);
                         } else {
-                            cipherKey = password.Process(chars => cipherEngine.GenerateKey(chars, iv));
+                            password.Process(chars => cipherKey = cipherEngine.GenerateKey(chars, iv));
                         }
                     }
                 }
@@ -194,7 +214,7 @@ namespace SecureTextEditor.File.Handler {
                 {
                     if (options.SignatureType != SignatureType.None) {
                         SignatureEngine signatureEngine = new SignatureEngine(options.SignatureType, options.SignatureKeySize);
-                        if (!signatureEngine.Verify(cipher, Convert.FromBase64String(textFile.Base64Signature), Convert.FromBase64String(textFile.Base64SignatureKey))) {
+                        if (!signatureEngine.Verify(cipher, Convert.FromBase64String(textFile.Base64Signature), Convert.FromBase64String(textFile.Base64SignaturePublicKey))) {
                             return new OpenFileResult(OpenFileStatus.SignatureFailed);
                         }
                     }

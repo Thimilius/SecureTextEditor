@@ -17,8 +17,7 @@ using SecureTextEditor.GUI.Dialog;
 using SecureTextEditor.GUI.Editor;
 
 // TODO: Finish xml docs
-// FIXME: Refresh the whole ui when something changes so that the dependencies are easier to handle
-// TODO: The signing should be treated as a different digest option
+// TODO: Refactor how the ui dependencies are handled maybe refresh the whole ui when anything changes
 
 namespace SecureTextEditor.GUI {
     /// <summary>
@@ -44,7 +43,7 @@ namespace SecureTextEditor.GUI {
             DigestTypeComboBox.ItemsSource = GetEnumValuesWithout<DigestType>();
             SignatureTypeComboBox.ItemsSource = GetEnumValuesWithout<SignatureType>();
             SignatureKeySizeComboBox.ItemsSource = SignatureEngine.DSA_ACCEPTED_KEYS;
-            KeyOptionComboBox.ItemsSource = GetEnumValuesWithout<CipherKeyOption>();
+            CipherKeyOptionComboBox.ItemsSource = GetEnumValuesWithout<CipherKeyOption>();
             AESPaddingComboBox.ItemsSource = GetEnumValuesWithout<CipherPadding>();
 
             // Set default options
@@ -53,7 +52,7 @@ namespace SecureTextEditor.GUI {
             DigestTypeComboBox.SelectedItem = options.DigestType;
             SignatureTypeComboBox.SelectedItem = options.SignatureType;
             SignatureKeySizeComboBox.SelectedItem = options.SignatureKeySize;
-            KeyOptionComboBox.SelectedItem = options.CipherKeyOption;
+            CipherKeyOptionComboBox.SelectedItem = options.CipherKeyOption;
 
             EncryptionOptionsAES optionsAES = GetDefaultEncryptionOptions<EncryptionOptionsAES>(options, CipherType.AES);
             AESModeComboBox.SelectedItem = optionsAES.CipherMode;
@@ -70,8 +69,8 @@ namespace SecureTextEditor.GUI {
                     OnSignatureTypeSelectionChanged(type);
                 }
             };
-            KeyOptionComboBox.SelectionChanged += (s, e) => {
-                if (KeyOptionComboBox.SelectedItem is CipherKeyOption option) {
+            CipherKeyOptionComboBox.SelectionChanged += (s, e) => {
+                if (CipherKeyOptionComboBox.SelectedItem is CipherKeyOption option) {
                     OnKeyOptionSelectionChanged(option);
                 }
             };
@@ -85,7 +84,7 @@ namespace SecureTextEditor.GUI {
                     OnAESPaddingSelectionChanged(padding);
                 }
             };
-            PasswordTextBox.PasswordChanged += (s, e) => OnPasswordChanged(PasswordTextBox.Password);
+            PBEPasswordTextBox.PasswordChanged += (s, e) => OnPasswordChanged(PBEPasswordTextBox.Password);
 
             // Set up initial ui visibility
             OnCipherTypeSelectionChanged(options.CipherType);
@@ -101,8 +100,8 @@ namespace SecureTextEditor.GUI {
                 AESPaddingComboBox.SelectedItem = CipherPadding.None;
                 AESModeComboBox.SelectedItem = optionsAES.CipherMode;
             }
-            KeySizeComboBox.SelectedItem = options.CipherKeySize;
-            KeyOptionComboBox.SelectedItem = options.CipherKeyOption;
+            CipherKeySizeComboBox.SelectedItem = options.CipherKeySize;
+            CipherKeyOptionComboBox.SelectedItem = options.CipherKeyOption;
 
             OnSignatureTypeSelectionChanged(options.SignatureType);
             SignatureKeySizeComboBox.SelectedItem = options.SignatureKeySize;
@@ -125,10 +124,10 @@ namespace SecureTextEditor.GUI {
             m_SaveInProgress = true;
             TextEncoding encoding = m_TabToSave.MetaData.FileMetaData.Encoding;
             string text = m_TabToSave.Editor.Text;
-            SecureString password = PasswordTextBox.SecurePassword;
-            FileMetaData fileMetaData = await PerformSave(text, encoding, BuildEncryptionOptions(), password);
+            SecureString pbePassword = PBEPasswordTextBox.SecurePassword;
+            FileMetaData fileMetaData = await PerformSave(text, encoding, BuildEncryptionOptions(), pbePassword);
             // It is important that we clear out the password text box!
-            PasswordTextBox.Clear();
+            PBEPasswordTextBox.Clear();
             m_SaveInProgress = false;
 
             // Proceed only if the file got actually saved
@@ -154,7 +153,21 @@ namespace SecureTextEditor.GUI {
             SaveButton.IsEnabled = true;
         }
 
-        private async Task<FileMetaData> PerformSave(string text, TextEncoding encoding, EncryptionOptions options, SecureString password) {
+        private async Task<FileMetaData> PerformSave(string text, TextEncoding encoding, EncryptionOptions options, SecureString pbePassword) {
+            // Check if we need to prompt the user for the signature key storage password
+            SecureString signatureKeyStoragePassword = null;
+            if (options.SignatureType != SignatureType.None) {
+                PasswordWindow window = new PasswordWindow(this, "You need to provide a password for the signature key storage!");
+                bool? result = window.ShowDialog();
+
+                if (result.Value) {
+                    signatureKeyStoragePassword = window.Password;
+                    window.Clear();
+                } else {
+                    return null;
+                }
+            }
+
             // Show dialog for saving a file
             SaveFileDialog dialog = new SaveFileDialog() {
                 Title = "Save Secure Text File",
@@ -173,15 +186,19 @@ namespace SecureTextEditor.GUI {
                 Text = text,
                 Encoding = encoding,
                 EncryptionOptions = options,
-                Password = password
+                SignatureKeyStoragePath = AppConfig.Config.SignatureKeyStoragePath,
+                SignatureKeyStoragePassword = signatureKeyStoragePassword,
+                PBEPassword = pbePassword,
             };
-            SaveFileResult result = await m_FileHandler.SaveFileAsync(parameters);
-            if (result.Status == SaveFileStatus.Success) {
-                return result.FileMetaData;
+            SaveFileResult saveResult = await m_FileHandler.SaveFileAsync(parameters);
+            pbePassword.Clear();
+
+            if (saveResult.Status == SaveFileStatus.Success) {
+                return saveResult.FileMetaData;
             } else {
                 DialogBox.Show(
                     Application.Current.MainWindow,
-                    $"Failed to save the file:\n{path}!\n{result.Exception.GetType()}\n{result.Exception.Message}",
+                    $"Failed to save the file:\n{path}!\n{saveResult.Exception.GetType()}\n{saveResult.Exception.Message}",
                     "Saving Failed",
                     DialogBoxButton.OK,
                     DialogBoxIcon.Error
@@ -192,10 +209,10 @@ namespace SecureTextEditor.GUI {
 
         private void OnCipherTypeSelectionChanged(CipherType type) {
             AESOptions.Visibility = type == CipherType.AES ? Visibility.Visible : Visibility.Hidden;
-            KeyOptionComboBox.ItemsSource = type == CipherType.AES ? GetEnumValuesWithout<CipherKeyOption>() : GetEnumValuesWithout(CipherKeyOption.PBEWithSCRYPT);
-            KeyOptionComboBox.SelectedIndex = 0;
-            KeySizeComboBox.ItemsSource = type == CipherType.AES ? CipherEngine.AES_ACCEPTED_KEYS : CipherEngine.RC4_ACCEPTED_KEYS;
-            KeySizeComboBox.SelectedIndex = KeySizeComboBox.Items.Count - 1;
+            CipherKeyOptionComboBox.ItemsSource = type == CipherType.AES ? GetEnumValuesWithout<CipherKeyOption>() : GetEnumValuesWithout(CipherKeyOption.PBEWithSCRYPT);
+            CipherKeyOptionComboBox.SelectedIndex = 0;
+            CipherKeySizeComboBox.ItemsSource = type == CipherType.AES ? CipherEngine.AES_ACCEPTED_KEYS : CipherEngine.RC4_ACCEPTED_KEYS;
+            CipherKeySizeComboBox.SelectedIndex = CipherKeySizeComboBox.Items.Count - 1;
         }
 
         private void OnSignatureTypeSelectionChanged(SignatureType type) {
@@ -215,7 +232,7 @@ namespace SecureTextEditor.GUI {
             KeySizeOption.Visibility = option == CipherKeyOption.Generate ? Visibility.Visible : Visibility.Hidden;
             PasswordOption.Visibility = option == CipherKeyOption.PBE || option == CipherKeyOption.PBEWithSCRYPT ? Visibility.Visible : Visibility.Hidden;
             SaveButton.IsEnabled = option == CipherKeyOption.Generate;
-            PasswordTextBox.Clear();
+            PBEPasswordTextBox.Clear();
 
             // Use special options for pbe and pbe with SCRYPT
             if (option == CipherKeyOption.PBE) {
@@ -232,7 +249,7 @@ namespace SecureTextEditor.GUI {
         }
 
         private void OnPasswordChanged(string password) {
-            if ((CipherKeyOption)KeyOptionComboBox.SelectedItem != CipherKeyOption.Generate) {
+            if ((CipherKeyOption)CipherKeyOptionComboBox.SelectedItem != CipherKeyOption.Generate) {
                 SaveButton.IsEnabled = password != null && password != "";
             }
         }
@@ -256,11 +273,13 @@ namespace SecureTextEditor.GUI {
         }
 
         private void OnAESModeSelectionChanged(CipherMode mode) {
-            if (mode == CipherMode.GCM || mode == CipherMode.CCM) {
-                DigestTypeComboBox.SelectedItem = DigestType.None;
-                DigestTypeComboBox.IsEnabled = false;
-            } else {
-                DigestTypeComboBox.IsEnabled = true;
+            if ((SignatureType)SignatureTypeComboBox.SelectedItem == SignatureType.None) {
+                if (mode == CipherMode.GCM || mode == CipherMode.CCM) {
+                    DigestTypeComboBox.SelectedItem = DigestType.None;
+                    DigestTypeComboBox.IsEnabled = false;
+                } else {
+                    DigestTypeComboBox.IsEnabled = true;
+                }
             }
         }
 
@@ -283,8 +302,8 @@ namespace SecureTextEditor.GUI {
             options.DigestType = (DigestType)DigestTypeComboBox.SelectedItem;
             options.SignatureType = (SignatureType)SignatureTypeComboBox.SelectedItem;
             options.SignatureKeySize = (int)SignatureKeySizeComboBox.SelectedItem;
-            options.CipherKeyOption = (CipherKeyOption)KeyOptionComboBox.SelectedItem;
-            options.CipherKeySize = (int)KeySizeComboBox.SelectedItem;
+            options.CipherKeyOption = (CipherKeyOption)CipherKeyOptionComboBox.SelectedItem;
+            options.CipherKeySize = (int)CipherKeySizeComboBox.SelectedItem;
             
             return options;
         }

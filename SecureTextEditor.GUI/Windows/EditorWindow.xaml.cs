@@ -159,7 +159,7 @@ namespace SecureTextEditor.GUI {
         }
 
         private SecureString PasswordResolver() {
-            PasswordWindow window = new PasswordWindow(this);
+            PasswordWindow window = new PasswordWindow(this, "You need to provide a password to open the file!");
             bool? result = window.ShowDialog();
 
             if (result.Value) {

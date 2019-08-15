@@ -67,7 +67,7 @@
                             <Setter Property="Width" Value="200" />
                         </Style>
 
-                        <Style TargetType="PasswordBox" BasedOn="{StaticResource {x:Type PasswordBox}}">
+                        <Style TargetType= "PasswordBox" BasedOn="{StaticResource {x:Type PasswordBox}}">
                             <Setter Property="VerticalAlignment" Value="Center" />
                             <Setter Property="HorizontalAlignment" Value="Center" />
                             <Setter Property="Width" Value="200" />
@@ -123,8 +123,51 @@
                         <Separator Grid.Column="1"></Separator>
                     </Grid>
 
-                    <!-- Signature options -->
+                    <!-- Key options -->
                     <Grid Grid.Row="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Key option -->
+                        <StackPanel Grid.Column="0" Grid.Row="3">
+                            <Label Content="Cipher Key Option:" />
+                            <ComboBox Name="CipherKeyOptionComboBox" />
+                        </StackPanel>
+
+                        <!-- Key size option -->
+                        <Border Name="KeySizeOption" Grid.Column="1" Grid.Row="3" BorderThickness="0">
+                            <!-- Key size -->
+                            <StackPanel Grid.Column="0" Grid.Row="1">
+                                <Label Content="Cipher Key Size:" />
+                                <ComboBox Name="CipherKeySizeComboBox" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Password option -->
+                        <Border Name="PasswordOption" Grid.Column="1" Grid.Row="1" BorderThickness="0" Visibility="Hidden">
+                            <!-- Password -->
+                            <StackPanel Grid.Column="0" Grid.Row="1">
+                                <Label Content="PBE Password:" />
+                                <PasswordBox Name="PBEPasswordTextBox" />
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                    
+                    <!-- Separator -->
+                    <Grid Grid.Row="3">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="9.2*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Separator Grid.Column="1"></Separator>
+                    </Grid>
+
+                    <!-- Signature options -->
+                    <Grid Grid.Row="4">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
@@ -142,50 +185,7 @@
                             <ComboBox Name="SignatureKeySizeComboBox" />
                         </StackPanel>
                     </Grid>
-                    
-                    <!-- Separator -->
-                    <Grid Grid.Row="3">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="9.2*" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
 
-                        <Separator Grid.Column="1"></Separator>
-                    </Grid>
-                    
-                    <!-- Key options -->
-                    <Grid Grid.Row="4">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        
-                        <!-- Key option -->
-                        <StackPanel Grid.Column="0" Grid.Row="3">
-                            <Label Content="Key Option:" />
-                            <ComboBox Name="KeyOptionComboBox" />
-                        </StackPanel>
-
-                        <!-- Key size option -->
-                        <Border Name="KeySizeOption" Grid.Column="1" Grid.Row="3" BorderThickness="0">
-                            <!-- Key size -->
-                            <StackPanel Grid.Column="0" Grid.Row="1">
-                                <Label Content="Key Size:" />
-                                <ComboBox Name="KeySizeComboBox" />
-                            </StackPanel>
-                        </Border>
-                        
-                        <!-- Password option -->
-                        <Border Name="PasswordOption" Grid.Column="1" Grid.Row="1" BorderThickness="0" Visibility="Hidden">
-                            <!-- Password -->
-                            <StackPanel Grid.Column="0" Grid.Row="1">
-                                <Label Content="Password:" />
-                                <PasswordBox Name="PasswordTextBox" />
-                            </StackPanel>
-                        </Border>
-                    </Grid>
-                    
                     <!-- Separator -->
                     <Grid Grid.Row="5">
                         <Grid.ColumnDefinitions>

@@ -15,10 +15,14 @@ using System;
 using System.IO;
 
 namespace SecureTextEditor.Crypto {
+    // TODO: Put the storage class into own namespace?
+
     /// <summary>
     /// Abstracts a PKCS12 key storage for DSA signature key pairs.
     /// </summary>
     public class SignatureKeyStorage {
+        
+
         /// <summary>
         /// The certificate distinguished name.
         /// </summary>
@@ -46,12 +50,23 @@ namespace SecureTextEditor.Crypto {
         /// Loads the storage into memory.
         /// </summary>
         /// <param name="password">The password of the storage</param>
-        public void Load(char[] password) {
+        public KeyStorageLoadStatus Load(char[] password) {
             // This inital loading step may be better in a seperate function
-            if (File.Exists(m_FilePath)) {
-                using (FileStream stream = new FileStream(m_FilePath, FileMode.Open)) {
-                    m_Store.Load(stream, password);
+            try {
+                if (File.Exists(m_FilePath)) {
+                    using (FileStream stream = new FileStream(m_FilePath, FileMode.Open)) {
+                        m_Store.Load(stream, password);
+                    }
                 }
+                return KeyStorageLoadStatus.Success;
+            } catch (IOException e) {
+                if (e.Message == "PKCS12 key store MAC invalid - wrong password or corrupted file.") {
+                    return KeyStorageLoadStatus.PasswordWrong;
+                } else {
+                    return KeyStorageLoadStatus.Failed;
+                }
+            } catch {
+                return KeyStorageLoadStatus.Failed;
             }
         }
 
