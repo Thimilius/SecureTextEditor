@@ -24,7 +24,7 @@ namespace SecureTextEditor.GUI {
     /// Interaction logic for the save window.
     /// </summary>
     public partial class SaveWindow : Window {
-        private readonly IFileHandler m_FileHandler;
+        private readonly FileHandler m_FileHandler;
         private readonly ITextEditorControl m_TextEditorControl;
         private readonly ITextEditorTab m_TabToSave;
         private readonly bool m_CTSPaddingAvailable;
@@ -33,7 +33,7 @@ namespace SecureTextEditor.GUI {
         public SaveWindow(ITextEditorControl control, ITextEditorTab tab) {
             InitializeComponent();
 
-            m_FileHandler = new SecureTextFileHandler();
+            m_FileHandler = new FileHandler();
             m_TextEditorControl = control;
             m_TabToSave = tab;
             m_CTSPaddingAvailable = m_TabToSave.Editor.Text.Length >= CipherEngine.BLOCK_SIZE;
@@ -155,13 +155,13 @@ namespace SecureTextEditor.GUI {
 
         private async Task<FileMetaData> PerformSave(string text, TextEncoding encoding, EncryptionOptions options, SecureString pbePassword) {
             // Check if we need to prompt the user for the signature key storage password
-            SecureString signatureKeyStoragePassword = null;
+            SecureString keyStoragePassword = null;
             if (options.SignatureType != SignatureType.None) {
                 PasswordWindow window = new PasswordWindow(this, "You need to provide a password for the signature key storage!");
                 bool? result = window.ShowDialog();
 
                 if (result.Value) {
-                    signatureKeyStoragePassword = window.Password;
+                    keyStoragePassword = window.Password;
                     window.Clear();
                 } else {
                     return null;
@@ -186,24 +186,36 @@ namespace SecureTextEditor.GUI {
                 Text = text,
                 Encoding = encoding,
                 EncryptionOptions = options,
-                SignatureKeyStoragePath = AppConfig.Config.SignatureKeyStoragePath,
-                SignatureKeyStoragePassword = signatureKeyStoragePassword,
+                KeyStoragePath = AppConfig.Config.KeyStoragePath,
+                KeyStoragePassword = keyStoragePassword,
                 PBEPassword = pbePassword,
             };
             SaveFileResult saveResult = await m_FileHandler.SaveFileAsync(parameters);
             pbePassword.Clear();
 
-            if (saveResult.Status == SaveFileStatus.Success) {
-                return saveResult.FileMetaData;
-            } else {
-                DialogBox.Show(
-                    Application.Current.MainWindow,
-                    $"Failed to save the file:\n{path}!\n{saveResult.Exception.GetType()}\n{saveResult.Exception.Message}",
-                    "Saving Failed",
-                    DialogBoxButton.OK,
-                    DialogBoxIcon.Error
-                );
-                return null;
+            // Handle save file status
+            switch (saveResult.Status) {
+                case SaveFileStatus.Success:
+                    return saveResult.FileMetaData;
+                case SaveFileStatus.KeyStoragePasswordWrong:
+                    DialogBox.Show(
+                        Application.Current.MainWindow,
+                        $"The provided key storage password is wrong!",
+                        "Key Storage Password Wrong",
+                        DialogBoxButton.OK,
+                        DialogBoxIcon.Error
+                    );
+                    return null;
+                case SaveFileStatus.Failed:
+                    DialogBox.Show(
+                        Application.Current.MainWindow,
+                        $"Failed to save the file:\n{path}!\n{saveResult.Exception.GetType()}\n{saveResult.Exception.Message}",
+                        "Saving Failed",
+                        DialogBoxButton.OK,
+                        DialogBoxIcon.Error
+                    );
+                    return null;
+                default: throw new InvalidOperationException();
             }
         }
 

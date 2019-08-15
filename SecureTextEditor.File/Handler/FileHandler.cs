@@ -11,6 +11,7 @@ using SecureTextEditor.Crypto;
 using SecureTextEditor.Crypto.Cipher;
 using SecureTextEditor.Crypto.Digest;
 using SecureTextEditor.Crypto.Signature;
+using SecureTextEditor.Crypto.Storage;
 using SecureTextEditor.File.Options;
 
 // TODO: Finish xml docs
@@ -19,7 +20,7 @@ namespace SecureTextEditor.File.Handler {
     /// <summary>
     /// Handler that abstracts opening and loading a secure text file.
     /// </summary>
-    public class SecureTextFileHandler : IFileHandler {
+    public class FileHandler {
         /// <summary>
         /// The extension used for the file.
         /// </summary>
@@ -47,8 +48,10 @@ namespace SecureTextEditor.File.Handler {
         };
 
         /// <summary>
-        /// <see cref="IFileHandler.SaveFileAsync"/>
+        /// Saves a file with given parameters asynchronously.
         /// </summary>
+        /// <param name="parameters">The save file parameters to use</param>
+        /// <returns>The result of the save operation</returns>
         public async Task<SaveFileResult> SaveFileAsync(SaveFileParameters parameters) {
             return await Task.Run(() => {
                 try {
@@ -56,7 +59,7 @@ namespace SecureTextEditor.File.Handler {
                     TextEncoding encoding = parameters.Encoding;
                     EncryptionOptions options = parameters.EncryptionOptions;
                     SecureString password = parameters.PBEPassword;
-                    SecureString keyStoragePassword = parameters.SignatureKeyStoragePassword;
+                    SecureString keyStoragePassword = parameters.KeyStoragePassword;
                     string fileName = Path.GetFileName(path);
 
                     byte[] encodedText = GetEncoding(encoding).GetBytes(parameters.Text);
@@ -91,18 +94,25 @@ namespace SecureTextEditor.File.Handler {
                     byte[] publicKey = null;
                     {
                         if (options.SignatureType != SignatureType.None) {
-                            SignatureEngine signatureEngine = new SignatureEngine(options.SignatureType, options.SignatureKeySize);
+                            // Load the key storage into memory
+                            KeyStorage keyStorage = new KeyStorage(parameters.KeyStoragePath);
+                            KeyStorageLoadResult result = null;
+                            keyStoragePassword.Process(chars => result = keyStorage.Load(chars));
+                            if (result.Status == KeyStorageLoadStatus.PasswordWrong) {
+                                return new SaveFileResult(SaveFileStatus.KeyStoragePasswordWrong, result.Exception, null);
+                            } else if (result.Status == KeyStorageLoadStatus.Failed) {
+                                return new SaveFileResult(SaveFileStatus.Failed, result.Exception, null);
+                            }
 
                             // Check if we can use the key storage or need to generate a fresh key pair
-                            SignatureKeyStorage signatureKeyStorage = new SignatureKeyStorage(parameters.SignatureKeyStoragePath);
-                            keyStoragePassword.Process(chars => signatureKeyStorage.Load(chars));
-                            if (signatureKeyStorage.Exists(SIGNATURE_PRIVATE_KEY_ALIAS)) {
-                                keyPair = signatureKeyStorage.Retrieve(SIGNATURE_PRIVATE_KEY_ALIAS);
+                            SignatureEngine signatureEngine = new SignatureEngine(options.SignatureType, options.SignatureKeySize);
+                            if (keyStorage.Exists(SIGNATURE_PRIVATE_KEY_ALIAS)) {
+                                keyPair = keyStorage.Retrieve(SIGNATURE_PRIVATE_KEY_ALIAS);
                             } else {
                                 keyPair = signatureEngine.GenerateKeyPair();
                                 // Save the pair in the storage
-                                signatureKeyStorage.Store(SIGNATURE_PRIVATE_KEY_ALIAS, keyPair);
-                                keyStoragePassword.Process(chars => signatureKeyStorage.Save(chars));
+                                keyStorage.Store(SIGNATURE_PRIVATE_KEY_ALIAS, keyPair);
+                                keyStoragePassword.Process(chars => keyStorage.Save(chars));
                             }
 
                             sign = signatureEngine.Sign(cipher, keyPair.PrivateKey);
@@ -153,8 +163,10 @@ namespace SecureTextEditor.File.Handler {
         }
 
         /// <summary>
-        /// <see cref="IFileHandler.OpenFile"/>
+        /// Opens a file with given parameters.
         /// </summary>
+        /// <param name="parameters">The open file parameters to use</param>
+        /// <returns>The result of the open operation</returns>
         public OpenFileResult OpenFile(OpenFileParameters parameters) {
             try {
                 string path = parameters.Path;

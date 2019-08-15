@@ -20,7 +20,7 @@ namespace SecureTextEditor.Crypto.Cipher {
     }
 
     /// <summary>
-    /// Data holder for the result of the decryption operation.
+    /// Data holder for the result of a decryption operation.
     /// </summary>
     public class CipherDecryptResult {
         /// <summary>

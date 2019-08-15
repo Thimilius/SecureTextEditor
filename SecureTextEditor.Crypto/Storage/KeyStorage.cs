@@ -1,4 +1,6 @@
-﻿using Org.BouncyCastle.Asn1.Pkcs;
+﻿using System;
+using System.IO;
+using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
@@ -11,18 +13,12 @@ using Org.BouncyCastle.Pkcs;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.X509;
 using SecureTextEditor.Crypto.Signature;
-using System;
-using System.IO;
 
-namespace SecureTextEditor.Crypto {
-    // TODO: Put the storage class into own namespace?
-
+namespace SecureTextEditor.Crypto.Storage {
     /// <summary>
     /// Abstracts a PKCS12 key storage for DSA signature key pairs.
     /// </summary>
-    public class SignatureKeyStorage {
-        
-
+    public class KeyStorage {
         /// <summary>
         /// The certificate distinguished name.
         /// </summary>
@@ -41,16 +37,16 @@ namespace SecureTextEditor.Crypto {
         /// Creates a new key storage at a given path.
         /// </summary>
         /// <param name="filePath"></param>
-        public SignatureKeyStorage(string filePath) {
+        public KeyStorage(string filePath) {
             m_Store = new Pkcs12Store();
             m_FilePath = filePath;
         }
 
         /// <summary>
-        /// Loads the storage into memory.
+        /// Loads the key storage from disk into memory.
         /// </summary>
         /// <param name="password">The password of the storage</param>
-        public KeyStorageLoadStatus Load(char[] password) {
+        public KeyStorageLoadResult Load(char[] password) {
             // This inital loading step may be better in a seperate function
             try {
                 if (File.Exists(m_FilePath)) {
@@ -58,15 +54,15 @@ namespace SecureTextEditor.Crypto {
                         m_Store.Load(stream, password);
                     }
                 }
-                return KeyStorageLoadStatus.Success;
+                return new KeyStorageLoadResult(KeyStorageLoadStatus.Success, null);
             } catch (IOException e) {
                 if (e.Message == "PKCS12 key store MAC invalid - wrong password or corrupted file.") {
-                    return KeyStorageLoadStatus.PasswordWrong;
+                    return new KeyStorageLoadResult(KeyStorageLoadStatus.PasswordWrong, e);
                 } else {
-                    return KeyStorageLoadStatus.Failed;
+                    return new KeyStorageLoadResult(KeyStorageLoadStatus.Failed, e);
                 }
-            } catch {
-                return KeyStorageLoadStatus.Failed;
+            } catch(Exception e) {
+                return new KeyStorageLoadResult(KeyStorageLoadStatus.Failed, e);
             }
         }
 

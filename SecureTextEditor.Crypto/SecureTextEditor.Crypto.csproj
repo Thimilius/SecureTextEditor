@@ -55,11 +55,11 @@
     <Compile Include="Digest\DigestType.cs" />
     <Compile Include="Cipher\CipherKeyOption.cs" />
     <Compile Include="SecurityExtensions.cs" />
-    <Compile Include="Signature\SignatureKeyStorage.cs" />
+    <Compile Include="Storage\KeyStorage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Signature\SignatureEngine.cs" />
     <Compile Include="Signature\SignatureKeyPair.cs" />
-    <Compile Include="Signature\SignatureKeyStorageLoadResult.cs" />
+    <Compile Include="Storage\KeyStorageLoadResult.cs" />
     <Compile Include="Signature\SignatureType.cs" />
   </ItemGroup>
   <ItemGroup>

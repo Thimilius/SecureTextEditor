@@ -10,6 +10,10 @@ namespace SecureTextEditor.File.Handler {
         /// </summary>
         Success,
         /// <summary>
+        /// Describes that the key storage password was wrong.
+        /// </summary>
+        KeyStoragePasswordWrong,
+        /// <summary>
         /// Describes that the save file operation failed.
         /// </summary>
         Failed

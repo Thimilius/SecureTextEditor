@@ -13,7 +13,6 @@ using SecureTextEditor.GUI.Dialog;
 using SecureTextEditor.GUI.Editor;
 
 // TODO: Finish xml docs
-// TODO: If we open a file on startup do not open an empty tab
 
 namespace SecureTextEditor.GUI {
     /// <summary>
@@ -28,7 +27,7 @@ namespace SecureTextEditor.GUI {
         /// <summary>
         /// The file handler for opening files.
         /// </summary>
-        private readonly IFileHandler m_FileHandler;
+        private readonly FileHandler m_FileHandler;
 
         /// <summary>
         /// Creates a new main window.
@@ -36,7 +35,7 @@ namespace SecureTextEditor.GUI {
         public EditorWindow() { 
             InitializeComponent();
 
-            m_FileHandler = new SecureTextFileHandler();
+            m_FileHandler = new FileHandler();
 
             // We need to set the inital theme based on config
             ChangeTheme(AppConfig.Config.Theme);

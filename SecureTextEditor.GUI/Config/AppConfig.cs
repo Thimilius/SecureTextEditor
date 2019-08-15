@@ -21,7 +21,7 @@ namespace SecureTextEditor.GUI.Config {
             [JsonProperty(Required = Required.Always)] public TextEncoding NewFileTextEncoding { get; set; }
             [JsonProperty(Required = Required.Always)] public CipherType DefaultCipherType { get; set; }
             [JsonProperty(Required = Required.Always)] public IDictionary<CipherType, EncryptionOptions> DefaultEncryptionOptions { get; set; }
-            [JsonProperty(Required = Required.Always)] public string SignatureKeyStoragePath { get; set; }
+            [JsonProperty(Required = Required.Always)] public string KeyStoragePath { get; set; }
         }
 
         /// <summary>
@@ -101,7 +101,7 @@ namespace SecureTextEditor.GUI.Config {
                         SignatureKeySize = 1024
                     } },
                 },
-                SignatureKeyStoragePath = "key_storage.fks"
+                KeyStoragePath = "key_storage.fks"
             };
         }
     }

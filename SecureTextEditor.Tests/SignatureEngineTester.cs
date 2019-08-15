@@ -1,9 +1,8 @@
-﻿using System;
-using System.Text;
+﻿using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SecureTextEditor.Crypto;
 using SecureTextEditor.Crypto.Digest;
 using SecureTextEditor.Crypto.Signature;
+using SecureTextEditor.Crypto.Storage;
 
 namespace SecureTextEditor.Tests {
     [TestClass]
@@ -37,7 +36,7 @@ namespace SecureTextEditor.Tests {
         public void KeyStorage_Test() {
             SignatureEngine engine = new SignatureEngine(SignatureType.DSAWithSHA256, 1024);
             SignatureKeyPair keyPair = engine.GenerateKeyPair();
-            SignatureKeyStorage storage = new SignatureKeyStorage(KEY_STORAGE_PATH);
+            KeyStorage storage = new KeyStorage(KEY_STORAGE_PATH);
             storage.Store(KEY_STORAGE_ALIAS, keyPair);
             storage.Save(KEY_STORAGE_PASSWORD);
             storage.Load(KEY_STORAGE_PASSWORD);
