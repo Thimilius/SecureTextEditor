@@ -78,5 +78,15 @@ namespace SecureTextEditor.Crypto {
                 array[i] = 0;
             }
         }
+
+        /// <summary>
+        /// Checks whether or not the content of two given arrays are the same.
+        /// </summary>
+        /// <param name="a">The first array</param>
+        /// <param name="b">The second array</param>
+        /// <returns>True if the two arrays have the same content otherwise false</returns>
+        public static bool AreEqual(byte[] a, byte[] b) {
+            return Org.BouncyCastle.Utilities.Arrays.ConstantTimeAreEqual(a, b);
+        }
     }
 }

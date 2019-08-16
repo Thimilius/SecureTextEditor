@@ -110,7 +110,7 @@ namespace SecureTextEditor.File.Handler {
                         macKey.Clear();
                     }
 
-                    if (!DigestEngine.AreEqual(newDigest, digest)) {
+                    if (!SecurityExtensions.AreEqual(newDigest, digest)) {
                         return new OpenFileResult(OpenFileStatus.MacFailed, decryptResult.Exception);
                     }
                 }
