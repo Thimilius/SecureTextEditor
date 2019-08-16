@@ -14,6 +14,7 @@ namespace SecureTextEditor.Tests {
         private static readonly byte[] MESSAGE_UNDER_ONE_BLOCK = Encoding.UTF8.GetBytes("Short message!");
         private static readonly byte[] KEY = Hex.Decode("000102030405060708090a0b0c0d0e0f");
         private static readonly byte[] IV = Hex.Decode("000102030405060708090a0b0c0d0e0f");
+        private static readonly char[] PASSWORD = "Password".ToCharArray();
 
         private static readonly CipherPadding[] CIPHER_BLOCK_PADDINGS = (CipherPadding[])Enum.GetValues(typeof(CipherPadding));
          
@@ -90,6 +91,43 @@ namespace SecureTextEditor.Tests {
             byte[] cipher = engine.Encrypt(BLOCK_UNALIGNED_MESSAGE, KEY, IV);
             CipherDecryptResult result = engine.Decrypt(cipher, KEY, IV);
             Assert.IsTrue(BLOCK_UNALIGNED_MESSAGE.SequenceEqual(result.Result));
+        }
+
+
+        [TestMethod]
+        public void SCRYPT_Test() {
+            CipherEngine engine = new CipherEngine(CipherType.AES, CipherMode.GCM, CipherPadding.None, CipherKeyOption.PBEWithSCRYPT, 128);
+
+            byte[] message = BLOCK_UNALIGNED_MESSAGE;
+            byte[] key = engine.GenerateKey(PASSWORD, IV);
+
+            byte[] cipher = engine.Encrypt(message, key, IV);
+            CipherDecryptResult result = engine.Decrypt(cipher, key, IV);
+            Assert.IsTrue(message.SequenceEqual(result.Result));
+        }
+
+        [TestMethod]
+        public void PBEWithSHA256And128BitAESCBCBC_Test() {
+            CipherEngine engine = new CipherEngine(CipherType.AES, CipherMode.CBC, CipherPadding.PKCS7, CipherKeyOption.PBE, 128);
+
+            byte[] message = BLOCK_UNALIGNED_MESSAGE;
+            byte[] key = engine.GenerateKey(PASSWORD, IV);
+
+            byte[] cipher = engine.Encrypt(message, key, IV);
+            CipherDecryptResult result = engine.Decrypt(cipher, key, IV);
+            Assert.IsTrue(message.SequenceEqual(result.Result));
+        }
+
+        [TestMethod]
+        public void PBEWithSHAAnd40BitRC4_Test() {
+            CipherEngine engine = new CipherEngine(CipherType.RC4, CipherMode.None, CipherPadding.None, CipherKeyOption.PBE, 40);
+
+            byte[] message = BLOCK_UNALIGNED_MESSAGE;
+            byte[] key = engine.GenerateKey(PASSWORD, IV);
+
+            byte[] cipher = engine.Encrypt(message, key, IV);
+            CipherDecryptResult result = engine.Decrypt(cipher, key, IV);
+            Assert.IsTrue(message.SequenceEqual(result.Result));
         }
 
         [TestMethod]

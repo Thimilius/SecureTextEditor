@@ -53,10 +53,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DigestEngingeTester.cs" />
-    <Compile Include="PBETester.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="CryptoEngineTester.cs" />
     <Compile Include="SignatureEngineTester.cs" />
+    <Compile Include="StorageTester.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
