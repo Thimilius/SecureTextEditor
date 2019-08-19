@@ -204,7 +204,7 @@ namespace SecureTextEditor.GUI {
             // Only allow digest option if we are not using a signature
             if (type == SignatureType.None) {
                 SignatureKeySizeComboBox.IsEnabled = false;
-                DigestTypeComboBox.IsEnabled = true;
+                OnAESModeSelectionChanged((CipherMode)AESModeComboBox.SelectedItem);
             } else {
                 // Set appropriate key sizes
                 SignatureKeySizeComboBox.IsEnabled = true;
@@ -246,6 +246,23 @@ namespace SecureTextEditor.GUI {
         }
 
         /// <summary>
+        /// Callback that gets executed when the cipher mode changes.
+        /// </summary>
+        /// <param name="mode">The selected cipher mode</param>
+        private void OnAESModeSelectionChanged(CipherMode mode) {
+            // Only allow digest option if we are not using a signature
+            if ((SignatureType)SignatureTypeComboBox.SelectedItem == SignatureType.None) {
+                // GCM and CCM have built in integrity
+                if (mode == CipherMode.GCM || mode == CipherMode.CCM) {
+                    DigestTypeComboBox.SelectedItem = DigestType.None;
+                    DigestTypeComboBox.IsEnabled = false;
+                } else {
+                    DigestTypeComboBox.IsEnabled = true;
+                }
+            }
+        }
+
+        /// <summary>
         /// Callback that gets executed when the cipher padding changes.
         /// </summary>
         /// <param name="padding">The selected cipher padding</param>
@@ -265,23 +282,6 @@ namespace SecureTextEditor.GUI {
 
             // When changing just select the first element
             AESModeComboBox.SelectedIndex = 0;
-        }
-
-        /// <summary>
-        /// Callback that gets executed when the cipher mode changes.
-        /// </summary>
-        /// <param name="mode">The selected cipher mode</param>
-        private void OnAESModeSelectionChanged(CipherMode mode) {
-            // Only allow digest option if we are not using a signature
-            if ((SignatureType)SignatureTypeComboBox.SelectedItem == SignatureType.None) {
-                // GCM and CCM have built in integrity
-                if (mode == CipherMode.GCM || mode == CipherMode.CCM) {
-                    DigestTypeComboBox.SelectedItem = DigestType.None;
-                    DigestTypeComboBox.IsEnabled = false;
-                } else {
-                    DigestTypeComboBox.IsEnabled = true;
-                }
-            }
         }
 
         /// <summary>

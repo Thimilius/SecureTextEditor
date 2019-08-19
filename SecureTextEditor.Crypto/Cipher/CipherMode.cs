@@ -36,7 +36,7 @@
         /// </summary>
         GCM,
         /// <summary>
-        /// Describes the CBC/MAC mode.
+        /// Describes the Counter with CBC-MAC mode.
         /// </summary>
         CCM
     }

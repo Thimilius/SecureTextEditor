@@ -62,5 +62,23 @@ namespace SecureTextEditor.File.Handler {
                 default: throw new InvalidOperationException();
             }
         }
+
+        /// <summary>
+        /// Resolves the path for the cipher key file.
+        /// </summary>
+        /// <param name="basePath">The base path to use</param>
+        /// <returns>The full path for the cipher key file</returns>
+        protected static string ResolvePathForCipherKeyFile(string basePath) {
+            return Path.GetDirectoryName(basePath) + Path.DirectorySeparatorChar + Path.GetFileNameWithoutExtension(basePath) + CIPHER_KEY_FILE_EXTENSION;
+        }
+
+        /// <summary>
+        /// Resolves the path for the MAC key file.
+        /// </summary>
+        /// <param name="basePath">The base path to use</param>
+        /// <returns>The full path for the MAC key file</returns>
+        protected static string ResolvePathForMacKeyFile(string basePath) {
+            return Path.GetDirectoryName(basePath) + Path.DirectorySeparatorChar + Path.GetFileNameWithoutExtension(basePath) + MAC_KEY_FILE_EXTENSION;
+        }
     }
 }

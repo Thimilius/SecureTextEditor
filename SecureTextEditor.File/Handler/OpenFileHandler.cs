@@ -138,23 +138,5 @@ namespace SecureTextEditor.File.Handler {
             string json = System.IO.File.ReadAllText(path);
             return JsonConvert.DeserializeObject<SecureTextFile>(json, SERIALIZER_SETTINGS);
         }
-
-        /// <summary>
-        /// Resolves the path for the cipher key file.
-        /// </summary>
-        /// <param name="basePath">The base path to use</param>
-        /// <returns>The full path for the cipher key file</returns>
-        private static string ResolvePathForCipherKeyFile(string basePath) {
-            return Path.GetDirectoryName(basePath) + Path.DirectorySeparatorChar + Path.GetFileNameWithoutExtension(basePath) + CIPHER_KEY_FILE_EXTENSION;
-        }
-
-        /// <summary>
-        /// Resolves the path for the MAC key file.
-        /// </summary>
-        /// <param name="basePath">The base path to use</param>
-        /// <returns>The full path for the MAC key file</returns>
-        private static string ResolvePathForMacKeyFile(string basePath) {
-            return Path.GetDirectoryName(basePath) + Path.DirectorySeparatorChar + Path.GetFileNameWithoutExtension(basePath) + MAC_KEY_FILE_EXTENSION;
-        }
     }
 }

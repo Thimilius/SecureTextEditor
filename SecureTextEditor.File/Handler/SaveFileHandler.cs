@@ -110,13 +110,13 @@ namespace SecureTextEditor.File.Handler {
                     }
 
                     // Save cipher key into file next to the text file and clear it
-                    System.IO.File.WriteAllBytes(ConstructPathForCipherKeyFile(path), cipherKey);
+                    System.IO.File.WriteAllBytes(ResolvePathForCipherKeyFile(path), cipherKey);
                     cipherKey.Clear();
 
                     // If we have a MAC key to save, save it to a seperate file as well and clear it
                     if (options.DigestType != DigestType.None) {
                         if (macKey != null) {
-                            System.IO.File.WriteAllBytes(ConstructPathForMacKeyFile(path), macKey);
+                            System.IO.File.WriteAllBytes(ResolvePathForCipherKeyFile(path), macKey);
                             macKey.Clear();
                         }
                     }
@@ -143,24 +143,6 @@ namespace SecureTextEditor.File.Handler {
         private static void SaveSecureTextFile(string path, SecureTextFile file) {
             string json = JsonConvert.SerializeObject(file, SERIALIZER_SETTINGS);
             System.IO.File.WriteAllText(path, json);
-        }
-
-        /// <summary>
-        /// Constructs the path for the cipher key file.
-        /// </summary>
-        /// <param name="basePath">The base path to use</param>
-        /// <returns>The full path for the cipher key file</returns>
-        private static string ConstructPathForCipherKeyFile(string basePath) {
-            return Path.GetFileNameWithoutExtension(basePath) + CIPHER_KEY_FILE_EXTENSION;
-        }
-
-        /// <summary>
-        /// Constructs the path for the MAC key file.
-        /// </summary>
-        /// <param name="basePath">The base path to use</param>
-        /// <returns>The full path for the MAC key file</returns>
-        private static string ConstructPathForMacKeyFile(string basePath) {
-            return Path.GetFileNameWithoutExtension(basePath) + MAC_KEY_FILE_EXTENSION;
         }
 
         /// <summary>
