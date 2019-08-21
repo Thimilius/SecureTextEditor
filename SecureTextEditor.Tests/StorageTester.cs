@@ -4,25 +4,46 @@ using SecureTextEditor.Crypto.Signature;
 using SecureTextEditor.Crypto.Storage;
 
 namespace SecureTextEditor.Tests {
+    /// <summary>
+    /// Tester for the key storage.
+    /// </summary>
     [TestClass]
     public class StorageTester {
         private const string KEY_STORAGE_PATH = "storage.fks";
         private const string KEY_STORAGE_ALIAS = "signature_private_key";
         private static readonly char[] KEY_STORAGE_PASSWORD = "password".ToCharArray();
+        private static readonly char[] KEY_STORAGE_WRONG_PASSWORD = "wrong_password".ToCharArray();
 
-        // TODO: Test wrong key storage password
-
+        /// <summary>
+        /// Tests simple storing and loading from key storage.
+        /// </summary>
         [TestMethod]
         public void KeyStorage_Test() {
             SignatureEngine engine = new SignatureEngine(SignatureType.DSAWithSHA256, 1024);
             SignatureKeyPair keyPair = engine.GenerateKeyPair();
             KeyStorage storage = new KeyStorage(KEY_STORAGE_PATH);
+
             storage.Store(KEY_STORAGE_ALIAS, keyPair);
             storage.Save(KEY_STORAGE_PASSWORD);
-            storage.Load(KEY_STORAGE_PASSWORD);
+            Assert.IsTrue(storage.Load(KEY_STORAGE_PASSWORD).Status == KeyStorageLoadStatus.Success);
             SignatureKeyPair loadedPair = storage.Retrieve(KEY_STORAGE_ALIAS);
+
             Assert.IsTrue(SecurityExtensions.AreEqual(keyPair.PrivateKey, loadedPair.PrivateKey));
             Assert.IsTrue(SecurityExtensions.AreEqual(keyPair.PublicKey, loadedPair.PublicKey));
+        }
+
+        /// <summary>
+        /// Tests that a wrong password fails to load.
+        /// </summary>
+        [TestMethod]
+        public void WrongPassword_Test() {
+            SignatureEngine engine = new SignatureEngine(SignatureType.DSAWithSHA256, 1024);
+            SignatureKeyPair keyPair = engine.GenerateKeyPair();
+            KeyStorage storage = new KeyStorage(KEY_STORAGE_PATH);
+
+            storage.Store(KEY_STORAGE_ALIAS, keyPair);
+            storage.Save(KEY_STORAGE_PASSWORD);
+            Assert.IsTrue(storage.Load(KEY_STORAGE_WRONG_PASSWORD).Status == KeyStorageLoadStatus.PasswordWrong);
         }
     }
 }
