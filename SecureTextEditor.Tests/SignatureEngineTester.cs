@@ -13,7 +13,7 @@ namespace SecureTextEditor.Tests {
         private static readonly byte[] BLOCK_UNALIGNED_MESSAGE = Encoding.UTF8.GetBytes("This is my secrect text message");
 
         /// <summary>
-        /// Test signature via DSAWITHSHA256.
+        /// Tests signature via DSAWITHSHA256.
         /// </summary>
         [TestMethod]
         public void DSAWithSHA256_Test() {
@@ -33,7 +33,7 @@ namespace SecureTextEditor.Tests {
         }
 
         /// <summary>
-        /// Test signature via ECDSAWithSHA256.
+        /// Tests signature via ECDSAWithSHA256.
         /// </summary>
         [TestMethod]
         public void ECDSAWithSHA256_Test() {
@@ -53,7 +53,7 @@ namespace SecureTextEditor.Tests {
         }
 
         /// <summary>
-        /// Test invalid parameters of signature engine.
+        /// Tests invalid parameters of signature engine.
         /// </summary>
         [TestMethod]
         public void InvalidParameters_Test() {
