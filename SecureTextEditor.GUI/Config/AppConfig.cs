@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using SecureTextEditor.Crypto.Cipher;
@@ -27,7 +28,7 @@ namespace SecureTextEditor.GUI.Config {
         /// <summary>
         /// The path to the config file.
         /// </summary>
-        private const string FILE_PATH = ".config";
+        private static readonly string FILE_PATH = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ".config");
         /// <summary>
         /// Settings for serializing and deserializing the settings file.
         /// </summary>
