@@ -126,7 +126,7 @@ namespace SecureTextEditor.Crypto.Cipher {
             } catch(InvalidCipherTextException e) {
                 // This is a little hacky way of determining the actual error
                 // but we don't really have control over that
-                if (e.Message == "pad block corrupted") {
+                if (e.Message == "mac check in GCM failed") {
                     return new CipherDecryptResult(CipherDecryptStatus.MacFailed, e, null);
                 } else {
                     return new CipherDecryptResult(CipherDecryptStatus.Failed, e, null);
@@ -225,7 +225,7 @@ namespace SecureTextEditor.Crypto.Cipher {
                     case CipherMode.OFB: return new BufferedBlockCipher(new OfbBlockCipher(BLOCK_CIPHER_ENGINE, BLOCK_SIZE));
                     case CipherMode.GCM: return new BufferedAeadBlockCipher(new GcmBlockCipher(BLOCK_CIPHER_ENGINE));
                     case CipherMode.CCM: return new BufferedAeadBlockCipher(new CcmBlockCipher(BLOCK_CIPHER_ENGINE));
-                    default: throw new ArgumentOutOfRangeException(nameof(mode));
+                    default: throw new InvalidOperationException();
                 }
             } else {
                 return new BufferedStreamCipher(STREAM_CIPHER_ENGINE);
@@ -247,7 +247,7 @@ namespace SecureTextEditor.Crypto.Cipher {
                 case CipherPadding.TCB: return new TbcPadding();
                 case CipherPadding.X923: return new X923Padding();
                 case CipherPadding.ZeroBytes: return new ZeroBytePadding();
-                default: throw new ArgumentOutOfRangeException(nameof(padding));
+                default: throw new InvalidOperationException();
             }
         }
 
