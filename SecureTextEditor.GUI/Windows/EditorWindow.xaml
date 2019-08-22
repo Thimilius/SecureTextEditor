@@ -32,7 +32,7 @@
         <DockPanel LastChildFill="True">
             
             <!-- Menu -->
-            <Menu DockPanel.Dock="Top" Height="25">
+            <Menu DockPanel.Dock="Top" Height="25" Background="{DynamicResource {x:Static adonisUi:Brushes.Layer1BackgroundBrush}}">
                 <MenuItem Header="File" Height="25">
                     <MenuItem Header="New" Command="New" />
                     <MenuItem Header="Open..." Command="Open" />
