@@ -13,3 +13,7 @@ cd..
 cd "SecureTextEditor.GUI"
 doxygen .doxygen
 cd..
+
+cd "SecureTextEditor.Tests"
+doxygen .doxygen
+cd..

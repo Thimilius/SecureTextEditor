@@ -39,6 +39,7 @@ namespace SecureTextEditor.File.Handler {
                     byte[] messageToEncrypt = encodedText;
                     byte[] macKey = null;
 
+                    // The digest implementation is equivalent to the MAC-then-Encrypt mode
                     if (options.DigestType != DigestType.None) {
                         // We compute the digest from plain message
                         DigestEngine digestEngine = new DigestEngine(options.DigestType);
