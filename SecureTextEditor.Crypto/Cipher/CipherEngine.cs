@@ -34,10 +34,6 @@ namespace SecureTextEditor.Crypto.Cipher {
         /// The size of the nonce in CTR mode that determines the remaining space for the counter.
         /// </summary>
         private const int CTR_NONCE_SIZE = 12;
-        /// <summary>
-        /// The size of the special nonce used in CCM mode that must be between 7 and 13 octets.
-        /// </summary>
-        private const int CCM_NONCE_SIZE = 13;
 
         /// <summary>
         /// The underlying block cipher used in block type.
@@ -184,12 +180,9 @@ namespace SecureTextEditor.Crypto.Cipher {
                 return null;
             } else {
                 int size = m_Cipher.GetBlockSize();
-                if (m_CipherMode == CipherMode.CTR) {
-                    // CTR splits the iv into nonce and counter
+                // Modes which use the counter mode split the iv into nonce and counter
+                if (m_CipherMode == CipherMode.CTR || m_CipherMode == CipherMode.CCM || m_CipherMode == CipherMode.GCM) {
                     size = CTR_NONCE_SIZE;
-                } else if (m_CipherMode == CipherMode.CCM) {
-                    // CCM needs to have a special size for its nonce
-                    size = CCM_NONCE_SIZE;
                 }
 
                 byte[] iv = new byte[size];
