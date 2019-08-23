@@ -235,7 +235,6 @@ namespace SecureTextEditor.Crypto.Cipher {
                 case CipherPadding.None: return null;
                 case CipherPadding.ISO7816d4: return new ISO7816d4Padding();
                 case CipherPadding.ISO10126d2: return new ISO10126d2Padding();
-                case CipherPadding.PKCS5: return new Pkcs7Padding();
                 case CipherPadding.PKCS7: return new Pkcs7Padding();
                 case CipherPadding.TCB: return new TbcPadding();
                 case CipherPadding.X923: return new X923Padding();

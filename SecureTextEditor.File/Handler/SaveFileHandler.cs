@@ -117,7 +117,7 @@ namespace SecureTextEditor.File.Handler {
                     // If we have a MAC key to save, save it to a seperate file as well and clear it
                     if (options.DigestType != DigestType.None) {
                         if (macKey != null) {
-                            System.IO.File.WriteAllBytes(ResolvePathForCipherKeyFile(path), macKey);
+                            System.IO.File.WriteAllBytes(ResolvePathForMacKeyFile(path), macKey);
                             macKey.Clear();
                         }
                     }

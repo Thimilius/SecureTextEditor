@@ -166,6 +166,7 @@ namespace SecureTextEditor.Tests {
 
             byte[] cipher = engine.Encrypt(message, key, IV);
             CipherDecryptResult result = engine.Decrypt(cipher, key, IV);
+
             Assert.IsTrue(result.Status == CipherDecryptStatus.Success);
             Assert.IsTrue(message.SequenceEqual(result.Result));
         }
@@ -182,6 +183,7 @@ namespace SecureTextEditor.Tests {
 
             byte[] cipher = engine.Encrypt(message, key, IV);
             CipherDecryptResult result = engine.Decrypt(cipher, key, IV);
+
             Assert.IsTrue(result.Status == CipherDecryptStatus.Success);
             Assert.IsTrue(message.SequenceEqual(result.Result));
         }
@@ -198,6 +200,7 @@ namespace SecureTextEditor.Tests {
 
             byte[] cipher = engine.Encrypt(message, key, IV);
             CipherDecryptResult result = engine.Decrypt(cipher, key, IV);
+
             Assert.IsTrue(result.Status == CipherDecryptStatus.Success);
             Assert.IsTrue(message.SequenceEqual(result.Result));
         }

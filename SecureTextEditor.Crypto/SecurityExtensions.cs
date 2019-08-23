@@ -45,11 +45,7 @@ namespace SecureTextEditor.Crypto {
                 processor?.Invoke(chars);
             } finally {
                 // Clear out the bytes to zero
-                if (bytes != null) {
-                    for (int i = 0; i < bytes.Length; i++) {
-                        bytes[i] = 0;
-                    }
-                }
+                bytes.Clear();
 
                 // Clear out the chars to zero
                 if (chars != null) {

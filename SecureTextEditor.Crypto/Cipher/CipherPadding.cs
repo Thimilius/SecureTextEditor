@@ -16,10 +16,6 @@
         /// </summary>
         ISO10126d2,
         /// <summary>
-        /// Describes the PKCS#5 padding.
-        /// </summary>
-        PKCS5,
-        /// <summary>
         /// Describes the PKCS#7 padding.
         /// </summary>
         PKCS7,

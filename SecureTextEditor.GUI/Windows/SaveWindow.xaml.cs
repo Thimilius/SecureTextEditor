@@ -239,6 +239,10 @@ namespace SecureTextEditor.GUI {
             AESPaddingComboBox.IsEnabled = option == CipherKeyOption.Generate;
         }
 
+        /// <summary>
+        /// Callback that gets executed when the password changes.
+        /// </summary>
+        /// <param name="password">The new password</param>
         private void OnPasswordChanged(SecureString password) {
             if ((CipherKeyOption)CipherKeyOptionComboBox.SelectedItem != CipherKeyOption.Generate) {
                 SaveButton.IsEnabled = password != null && password.Length != 0;
