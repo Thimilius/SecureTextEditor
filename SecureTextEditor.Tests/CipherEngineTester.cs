@@ -12,12 +12,33 @@ namespace SecureTextEditor.Tests {
     /// </summary>
     [TestClass]
     public class CipherEngineTester {
+        /// <summary>
+        /// A block aligned message encoded in UTF8.
+        /// </summary>
         private static readonly byte[] BLOCK_ALIGNED_MESSAGE   = Encoding.UTF8.GetBytes("This is my secrect text message!");
+        /// <summary>
+        /// A block unaligned message encoded in UTF8.
+        /// </summary>
         private static readonly byte[] BLOCK_UNALIGNED_MESSAGE = Encoding.UTF8.GetBytes("This is my secrect text message");
+        /// <summary>
+        /// A block unaligned mesasge under one block encoded in UTF8.
+        /// </summary>
         private static readonly byte[] MESSAGE_UNDER_ONE_BLOCK = Encoding.UTF8.GetBytes("Short message!");
+        /// <summary>
+        /// A fixed symmetric key.
+        /// </summary>
         private static readonly byte[] KEY = Hex.Decode("000102030405060708090a0b0c0d0e0f");
+        /// <summary>
+        /// A fixed initialization vector.
+        /// </summary>
         private static readonly byte[] IV = Hex.Decode("000102030405060708090a0b0c0d0e0f");
+        /// <summary>
+        /// A fixed password for PBE.
+        /// </summary>
         private static readonly char[] PASSWORD = "Password".ToCharArray();
+        /// <summary>
+        /// A list of all available cipher paddings.
+        /// </summary>
         private static readonly CipherPadding[] CIPHER_BLOCK_PADDINGS = (CipherPadding[])Enum.GetValues(typeof(CipherPadding));
          
         /// <summary>

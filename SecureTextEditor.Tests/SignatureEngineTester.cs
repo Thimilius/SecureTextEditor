@@ -10,6 +10,9 @@ namespace SecureTextEditor.Tests {
     /// </summary>
     [TestClass]
     public class SignatureEngineTester {
+        /// <summary>
+        /// A block unaligned message encoded in UTF8.
+        /// </summary>
         private static readonly byte[] BLOCK_UNALIGNED_MESSAGE = Encoding.UTF8.GetBytes("This is my secrect text message");
 
         /// <summary>

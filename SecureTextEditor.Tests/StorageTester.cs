@@ -9,9 +9,21 @@ namespace SecureTextEditor.Tests {
     /// </summary>
     [TestClass]
     public class StorageTester {
+        /// <summary>
+        /// The path to the key storage.
+        /// </summary>
         private const string KEY_STORAGE_PATH = "storage.fks";
+        /// <summary>
+        /// The alias used to store the private key in the key storage.
+        /// </summary>
         private const string KEY_STORAGE_ALIAS = "signature_private_key";
+        /// <summary>
+        /// The password for the key storage.
+        /// </summary>
         private static readonly char[] KEY_STORAGE_PASSWORD = "password".ToCharArray();
+        /// <summary>
+        /// A wrong password for the key storage.
+        /// </summary>
         private static readonly char[] KEY_STORAGE_WRONG_PASSWORD = "wrong_password".ToCharArray();
 
         /// <summary>

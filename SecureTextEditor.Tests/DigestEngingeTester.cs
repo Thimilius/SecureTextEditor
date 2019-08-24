@@ -10,8 +10,17 @@ namespace SecureTextEditor.Tests {
     /// </summary>
     [TestClass]
     public class DigestEngingeTester {
+        /// <summary>
+        /// A simple message.
+        /// </summary>
         private static readonly byte[] MESSAGE = Hex.Decode("000102030405060708090a0b0c0d0e0f");
+        /// <summary>
+        /// A slightly altered message.
+        /// </summary>
         private static readonly byte[] ALTERED_MESSAGE = Hex.Decode("000102030405060708090a0b0c0d0e00");
+        /// <summary>
+        /// A fixed key.
+        /// </summary>
         private static readonly byte[] KEY = Hex.Decode("000102030405060708090a0b0c0d0e0f");
 
         /// <summary>
