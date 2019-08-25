@@ -155,7 +155,10 @@ namespace SecureTextEditor.GUI {
                 PBEPassword = pbePassword,
             };
             SaveFileResult saveResult = await m_SaveFileHandler.SaveFileAsync(parameters);
+
+            // Clear out passwords
             pbePassword.Clear();
+            keyStoragePassword.Clear();
 
             // Handle save file status
             switch (saveResult.Status) {
