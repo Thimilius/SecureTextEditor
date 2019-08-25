@@ -102,7 +102,7 @@ namespace SecureTextEditor.GUI.Config {
                         SignatureKeySize = 1024
                     } },
                 },
-                KeyStoragePath = "key_storage.fks"
+                KeyStoragePath = "key_storage.p12"
             };
         }
     }
