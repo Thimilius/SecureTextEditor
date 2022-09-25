@@ -1,7 +1,9 @@
 # SecureTextEditor
 
-![Icon](http://icons.iconarchive.com/icons/simiographics/secure/128/Key-icon.png)
+A simple text editor capable of securly storing created texts using a variety of methods based on the *Bouncy Cast* APIs.
 
-A simple text editor capable of securly storing created texts using a variety of methods.
+## Dependencies
 
-Icon from: http://www.iconarchive.com/show/secure-icons-by-simiographics/Key-icon.html
+- [*Bouncy Castle*](https://www.bouncycastle.org/csharp/index.html)
+- [*Newtonsoft.Json*](https://github.com/JamesNK/Newtonsoft.Json)
+- [*Adonis UI*](https://github.com/benruehl/adonis-ui)
