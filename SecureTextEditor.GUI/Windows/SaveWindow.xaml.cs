@@ -158,7 +158,9 @@ namespace SecureTextEditor.GUI {
 
             // Clear out passwords
             pbePassword.Clear();
-            keyStoragePassword.Clear();
+            if (keyStoragePassword != null) {
+                keyStoragePassword.Clear();
+            }
 
             // Handle save file status
             switch (saveResult.Status) {
